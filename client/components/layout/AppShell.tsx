@@ -1,17 +1,21 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { UserMenu } from "@/components/auth/UserMenu";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { useCan } from "@/lib/auth/hooks";
 import type { PermissionCheck } from "@/lib/auth/permissions";
 import type { SessionType } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
+import type messages from "@/messages/en.json";
 
 export type NavItem = {
   href: string;
-  label: string;
+  // key under "nav" in the messages
+  label: keyof (typeof messages)["nav"];
   // school only: hidden unless the session has it
   permission?: PermissionCheck;
 };
@@ -25,6 +29,7 @@ type Props = {
 
 /** Minimal header + nav layout for logged-in areas. Design comes later. */
 export function AppShell({ session, title, nav, children }: Props) {
+  const t = useTranslations("nav");
   // middleware serves this site from its app folder; compare public paths only
   const pathname = usePathname().replace(/^\/(platform|school)(?=\/|$)/, "") || "/";
   const can = useCan();
@@ -45,10 +50,11 @@ export function AppShell({ session, title, nav, children }: Props) {
                   pathname === item.href && "bg-muted text-foreground",
                 )}
               >
-                {item.label}
+                {t(item.label)}
               </Link>
             ))}
           </nav>
+          <LanguageSwitcher />
           <UserMenu session={session} />
         </div>
       </header>

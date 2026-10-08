@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Hind_Siliguri } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 
 import QueryProviders from "@/providers/QueryProvider";
@@ -16,27 +18,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "School Management",
-  description: "The Next Level School Management System",
-};
+// Geist has no Bangla glyphs; the browser takes them from this font instead
+const bangla = Hind_Siliguri({
+  variable: "--font-bangla",
+  subsets: ["bengali"],
+  weight: ["400", "500", "600", "700"],
+});
 
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("common");
+  return { title: { default: t("appName"), template: `%s · ${t("appName")}` } };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${bangla.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <QueryProviders>
-          <TooltipProvider>{children}</TooltipProvider>
-          <Toaster position="top-right" richColors closeButton />
-        </QueryProviders>
+        <NextIntlClientProvider>
+          <QueryProviders>
+            <TooltipProvider>{children}</TooltipProvider>
+            <Toaster position="top-right" richColors closeButton />
+          </QueryProviders>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

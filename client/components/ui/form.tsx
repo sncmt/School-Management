@@ -1,7 +1,9 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
+import type messages from "@/messages/en.json"
 import type { Label as LabelPrimitive } from "radix-ui"
 import { Slot } from "radix-ui"
 import {
@@ -135,9 +137,19 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
+// Validation schemas use translation keys ("validation.emailRequired") as their
+// messages; server field errors are plain text and are shown as they are.
+type ValidationKey = keyof (typeof messages)["validation"]
+const VALIDATION_PREFIX = "validation."
+
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? "") : props.children
+  const t = useTranslations("validation")
+  const message = error ? String(error?.message ?? "") : ""
+  const key = message.slice(VALIDATION_PREFIX.length) as ValidationKey
+  const body = error
+    ? message.startsWith(VALIDATION_PREFIX) && t.has(key) ? t(key) : message
+    : props.children
 
   if (!body) {
     return null

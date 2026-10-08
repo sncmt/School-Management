@@ -1,12 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { getErrorMessage, getErrorStatus } from "@/lib/api/errors";
+import { getErrorStatus } from "@/lib/api/errors";
 import { useLogout, useMe } from "@/lib/auth/hooks";
 import { authRoutes } from "@/lib/auth/routes";
 import { goToLogin, onLogoutElsewhere } from "@/lib/auth/session";
+import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import type { SessionType } from "@/lib/tenant";
 import { FullPageState } from "./FullPageState";
 
@@ -23,6 +25,9 @@ type Props = {
  * check, since /auth/me goes through the server (and the refresh interceptor).
  */
 export function AuthGuard({ session, allowPasswordChange = false, children }: Props) {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const describeError = useErrorMessage();
   const router = useRouter();
   const { data: me, error, isPending, refetch, isRefetching } = useMe();
   const logout = useLogout(session);
@@ -47,9 +52,9 @@ export function AuthGuard({ session, allowPasswordChange = false, children }: Pr
     if (getErrorStatus(error) === 401) {
       return (
         <FullPageState
-          title="Your session has ended"
-          message="Please log in again."
-          actions={<Button onClick={() => goToLogin("expired")}>Log in</Button>}
+          title={t("sessionEndedTitle")}
+          message={t("sessionEndedMessage")}
+          actions={<Button onClick={() => goToLogin("expired")}>{tCommon("logIn")}</Button>}
         />
       );
     }
@@ -57,15 +62,15 @@ export function AuthGuard({ session, allowPasswordChange = false, children }: Pr
     // 403/404 (inactive account or school, no longer a member) or the server is unreachable
     return (
       <FullPageState
-        title="We couldn't load your account"
-        message={getErrorMessage(error)}
+        title={t("loadFailedTitle")}
+        message={describeError(error)}
         actions={
           <>
             <Button variant="outline" onClick={() => refetch()} disabled={isRefetching}>
-              Try again
+              {tCommon("tryAgain")}
             </Button>
             <Button onClick={() => logout.mutate({})} disabled={logout.isPending}>
-              Log out
+              {tCommon("logOut")}
             </Button>
           </>
         }
@@ -74,7 +79,7 @@ export function AuthGuard({ session, allowPasswordChange = false, children }: Pr
   }
 
   if (me.sessionType !== session) {
-    return <FullPageState title="Wrong account type" message="This area needs a different login." />;
+    return <FullPageState title={t("wrongAccountTitle")} message={t("wrongAccountMessage")} />;
   }
 
   return children;

@@ -4,13 +4,24 @@ import type { ApiErrorBody, ApiErrorIssue } from "./types";
 const isApiErrorBody = (body: unknown): body is ApiErrorBody =>
   typeof body === "object" && body !== null && "message" in body && "success" in body;
 
-/** The server's message for a failed request, or a fallback for network errors. */
-export const getErrorMessage = (error: unknown, fallback = "Something went wrong. Please try again.") => {
+export type ErrorFallbacks = { generic: string; network: string };
+
+/**
+ * The server's message for a failed request, or a fallback when there is none.
+ * In components use useErrorMessage(), which passes translated fallbacks.
+ */
+export const getErrorMessage = (
+  error: unknown,
+  fallbacks: ErrorFallbacks = {
+    generic: "Something went wrong. Please try again.",
+    network: "Can't reach the server. Check your connection.",
+  },
+) => {
   if (axios.isAxiosError(error)) {
     if (isApiErrorBody(error.response?.data)) return error.response.data.message;
-    if (!error.response) return "Can't reach the server. Check your connection.";
+    if (!error.response) return fallbacks.network;
   }
-  return fallback;
+  return fallbacks.generic;
 };
 
 /** Field errors from a 400 "Validation failed" response, keyed by field path. */

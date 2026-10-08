@@ -1,0 +1,113 @@
+{
+  "common": {
+    "appName": "স্কুল ম্যানেজমেন্ট",
+    "loading": "লোড হচ্ছে",
+    "tryAgain": "আবার চেষ্টা করুন",
+    "logIn": "লগ ইন",
+    "logOut": "লগ আউট",
+    "cancel": "বাতিল",
+    "language": "ভাষা"
+  },
+  "errors": {
+    "generic": "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+    "network": "সার্ভারে সংযোগ করা যাচ্ছে না। আপনার ইন্টারনেট সংযোগ দেখে নিন।",
+    "pageNotFoundTitle": "পাতাটি পাওয়া যায়নি",
+    "pageNotFoundMessage": "আপনি যে পাতাটি খুঁজছেন সেটি নেই।",
+    "schoolNotFoundTitle": "স্কুল পাওয়া যায়নি",
+    "schoolNotFoundMessage": "এই ঠিকানায় কোনো সক্রিয় স্কুল নেই। ঠিকানাটি দেখে আবার চেষ্টা করুন।"
+  },
+  "validation": {
+    "emailRequired": "ইমেইল দিন",
+    "emailInvalid": "সঠিক ইমেইল ঠিকানা দিন",
+    "passwordRequired": "পাসওয়ার্ড দিন",
+    "identifierRequired": "ইমেইল বা মোবাইল নম্বর দিন",
+    "currentPasswordRequired": "বর্তমান পাসওয়ার্ড দিন",
+    "newPasswordMin": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে",
+    "newPasswordMax": "পাসওয়ার্ড সর্বোচ্চ ৭২ অক্ষরের হতে পারে",
+    "confirmPasswordRequired": "নতুন পাসওয়ার্ডটি আবার লিখুন",
+    "passwordsDontMatch": "পাসওয়ার্ড দুটি মেলেনি",
+    "newPasswordSameAsCurrent": "নতুন পাসওয়ার্ড বর্তমান পাসওয়ার্ড থেকে আলাদা হতে হবে"
+  },
+  "auth": {
+    "email": "ইমেইল",
+    "password": "পাসওয়ার্ড",
+    "emailOrPhone": "ইমেইল বা মোবাইল নম্বর",
+    "emailOrPhoneHint": "অ্যাডমিনরা স্কুলের ইমেইল ব্যবহার করবেন। অন্য সবাই নিজের মোবাইল নম্বর ব্যবহার করবেন।",
+    "logIn": "লগ ইন",
+    "loggingIn": "লগ ইন হচ্ছে…",
+    "showPassword": "পাসওয়ার্ড দেখান",
+    "hidePassword": "পাসওয়ার্ড লুকান",
+    "sessionEnded": "আপনার সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগ ইন করুন।",
+    "sessionEndedTitle": "আপনার সেশন শেষ হয়ে গেছে",
+    "sessionEndedMessage": "অনুগ্রহ করে আবার লগ ইন করুন।",
+    "loadFailedTitle": "আপনার অ্যাকাউন্ট লোড করা যায়নি",
+    "wrongAccountTitle": "ভুল অ্যাকাউন্ট",
+    "wrongAccountMessage": "এই অংশে ঢুকতে অন্য লগ ইন প্রয়োজন।",
+    "noAccessTitle": "এই পাতায় আপনার প্রবেশাধিকার নেই",
+    "noAccessMessage": "প্রয়োজন হলে আপনার স্কুলের অ্যাডমিনের সাথে যোগাযোগ করুন।",
+    "platformLoginTitle": "প্ল্যাটফর্ম অ্যাডমিন",
+    "platformLoginDescription": "প্ল্যাটফর্মের স্কুলগুলো পরিচালনা করতে লগ ইন করুন।",
+    "platformLoginPageTitle": "প্ল্যাটফর্ম লগ ইন",
+    "schoolLoginTitle": "লগ ইন",
+    "changePassword": {
+      "pageTitle": "পাসওয়ার্ড পরিবর্তন",
+      "title": "পাসওয়ার্ড পরিবর্তন",
+      "titleForced": "নতুন পাসওয়ার্ড সেট করুন",
+      "description": "এতে অন্য সব ডিভাইস থেকে আপনি লগ আউট হয়ে যাবেন।",
+      "descriptionForced": "আপনি একটি অস্থায়ী পাসওয়ার্ড ব্যবহার করছেন। চালিয়ে যেতে নিজের পাসওয়ার্ড দিন।",
+      "current": "বর্তমান পাসওয়ার্ড",
+      "new": "নতুন পাসওয়ার্ড",
+      "confirm": "নতুন পাসওয়ার্ড আবার লিখুন",
+      "newHint": "৮ থেকে ৭২ অক্ষর।",
+      "saving": "সংরক্ষণ হচ্ছে…",
+      "submit": "পাসওয়ার্ড পরিবর্তন করুন",
+      "logOutInstead": "বরং লগ আউট করুন",
+      "success": "পাসওয়ার্ড পরিবর্তন হয়েছে। অন্য ডিভাইসগুলো থেকে লগ আউট করা হয়েছে।"
+    },
+    "userMenu": {
+      "changePassword": "পাসওয়ার্ড পরিবর্তন",
+      "logOutEverywhere": "সব ডিভাইস থেকে লগ আউট",
+      "logOut": "লগ আউট"
+    }
+  },
+  "roles": {
+    "SCHOOL_SUPER_ADMIN": "স্কুল সুপার অ্যাডমিন",
+    "TEACHER": "শিক্ষক",
+    "GUARDIAN": "অভিভাবক"
+  },
+  "nav": {
+    "dashboard": "ড্যাশবোর্ড",
+    "newSchool": "নতুন স্কুল",
+    "platformAdmin": "প্ল্যাটফর্ম অ্যাডমিন"
+  },
+  "platform": {
+    "welcome": "স্বাগতম, {name}",
+    "dashboardIntro": "প্ল্যাটফর্ম ড্যাশবোর্ড। স্কুল, এনসিটিবি বিষয় এবং জাতীয় ছুটির তালিকা এখানে থাকবে।",
+    "newSchool": {
+      "title": "স্কুল তৈরি করুন",
+      "name": "স্কুলের নাম",
+      "subdomain": "সাবডোমেইন",
+      "email": "স্কুলের ইমেইল",
+      "creating": "তৈরি হচ্ছে…",
+      "create": "স্কুল তৈরি করুন",
+      "created": "স্কুল তৈরি হয়েছে। সুপার অ্যাডমিন তৈরি করতে স্কুলটি সক্রিয় করুন।"
+    }
+  },
+  "school": {
+    "welcome": "স্বাগতম, {name}",
+    "accessSummary": "{permissions, number}টি অনুমতি · {modules, number}টি মডিউল",
+    "visibleWith": "{code} অনুমতি থাকলে দেখা যাবে",
+    "areas": {
+      "students": "শিক্ষার্থী",
+      "teachers": "শিক্ষক",
+      "sections": "শাখা",
+      "subjects": "বিষয়",
+      "exams": "পরীক্ষা",
+      "routine": "ক্লাস রুটিন"
+    }
+  },
+  "marketing": {
+    "title": "বাংলাদেশের স্কুলের জন্য তৈরি স্কুল ম্যানেজমেন্ট",
+    "subtitle": "শিক্ষার্থী, শিক্ষক, হাজিরা, পরীক্ষা, ফলাফল ও রুটিন — বাংলা ও ইংরেজিতে, আপনার স্কুলের নিজস্ব ঠিকানায়।"
+  }
+}

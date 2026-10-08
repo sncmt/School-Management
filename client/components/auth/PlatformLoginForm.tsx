@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { applyServerErrors } from "@/lib/auth/formErrors";
 import { usePlatformLogin } from "@/lib/auth/hooks";
 import { afterLoginPath } from "@/lib/auth/routes";
+import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { platformLoginSchema, type PlatformLoginInput } from "@/zod/auth";
 import { FormError } from "./AuthCard";
 import { PasswordInput } from "./PasswordInput";
@@ -17,10 +19,12 @@ import { PasswordInput } from "./PasswordInput";
 export function PlatformLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("auth");
+  const describeError = useErrorMessage();
   const login = usePlatformLogin();
-  const [formError, setFormError] = useState<string | null>(
-    searchParams.get("reason") === "expired" ? "Your session has ended. Please log in again." : null,
-  );
+  const [formError, setFormError] = useState<string | null>(null);
+  // kept as a flag, not text, so it follows a language switch
+  const [sessionEnded, setSessionEnded] = useState(searchParams.get("reason") === "expired");
 
   const form = useForm<PlatformLoginInput>({
     resolver: zodResolver(platformLoginSchema),
@@ -30,25 +34,26 @@ export function PlatformLoginForm() {
   const onSubmit = form.handleSubmit(async (values) => {
     console.log(values);
     setFormError(null);
+    setSessionEnded(false);
     try {
       const { user } = await login.mutateAsync(values);
       router.replace(afterLoginPath("PLATFORM", user.mustChangePassword, searchParams.get("next")));
     } catch (error) {
-      setFormError(applyServerErrors(error, form.setError, ["email", "password"]));
+      setFormError(applyServerErrors(error, form.setError, ["email", "password"], describeError));
     }
   });
 
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        <FormError message={formError} />
+        <FormError message={formError ?? (sessionEnded ? t("sessionEnded") : null)} />
 
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("email")}</FormLabel>
               <FormControl>
                 <Input type="email" autoComplete="username" autoFocus {...field} />
               </FormControl>
@@ -62,7 +67,7 @@ export function PlatformLoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t("password")}</FormLabel>
               <FormControl>
                 <PasswordInput autoComplete="current-password" {...field} />
               </FormControl>
@@ -72,7 +77,7 @@ export function PlatformLoginForm() {
         />
 
         <Button type="submit" className="w-full" disabled={login.isPending || login.isSuccess}>
-          {login.isPending ? "Logging in…" : "Log in"}
+          {login.isPending ? t("loggingIn") : t("logIn")}
         </Button>
       </form>
     </Form>

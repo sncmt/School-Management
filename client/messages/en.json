@@ -1,0 +1,113 @@
+{
+  "common": {
+    "appName": "School Management",
+    "loading": "Loading",
+    "tryAgain": "Try again",
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "cancel": "Cancel",
+    "language": "Language"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Can't reach the server. Check your connection.",
+    "pageNotFoundTitle": "Page not found",
+    "pageNotFoundMessage": "The page you're looking for doesn't exist.",
+    "schoolNotFoundTitle": "School not found",
+    "schoolNotFoundMessage": "There is no active school at this address. Please check the address and try again."
+  },
+  "validation": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Enter a valid email address",
+    "passwordRequired": "Password is required",
+    "identifierRequired": "Email or mobile number is required",
+    "currentPasswordRequired": "Current password is required",
+    "newPasswordMin": "Password must be at least 8 characters",
+    "newPasswordMax": "Password must be at most 72 characters",
+    "confirmPasswordRequired": "Confirm your new password",
+    "passwordsDontMatch": "Passwords don't match",
+    "newPasswordSameAsCurrent": "New password must be different from the current one"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "emailOrPhone": "Email or mobile number",
+    "emailOrPhoneHint": "Admins use the school email. Everyone else uses their mobile number.",
+    "logIn": "Log in",
+    "loggingIn": "Logging in…",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "sessionEnded": "Your session has ended. Please log in again.",
+    "sessionEndedTitle": "Your session has ended",
+    "sessionEndedMessage": "Please log in again.",
+    "loadFailedTitle": "We couldn't load your account",
+    "wrongAccountTitle": "Wrong account type",
+    "wrongAccountMessage": "This area needs a different login.",
+    "noAccessTitle": "You don't have access to this page",
+    "noAccessMessage": "Ask your school administrator if you need it.",
+    "platformLoginTitle": "Platform admin",
+    "platformLoginDescription": "Log in to manage schools on the platform.",
+    "platformLoginPageTitle": "Platform login",
+    "schoolLoginTitle": "Log in",
+    "changePassword": {
+      "pageTitle": "Change password",
+      "title": "Change password",
+      "titleForced": "Set a new password",
+      "description": "This logs you out on every other device.",
+      "descriptionForced": "You're using a temporary password. Choose your own to continue.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "newHint": "8 to 72 characters.",
+      "saving": "Saving…",
+      "submit": "Change password",
+      "logOutInstead": "Log out instead",
+      "success": "Password changed. Other devices have been logged out."
+    },
+    "userMenu": {
+      "changePassword": "Change password",
+      "logOutEverywhere": "Log out of all devices",
+      "logOut": "Log out"
+    }
+  },
+  "roles": {
+    "SCHOOL_SUPER_ADMIN": "School super admin",
+    "TEACHER": "Teacher",
+    "GUARDIAN": "Guardian"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "newSchool": "New school",
+    "platformAdmin": "Platform admin"
+  },
+  "platform": {
+    "welcome": "Welcome, {name}",
+    "dashboardIntro": "Platform dashboard. Schools, NCTB subjects and national holidays will live here.",
+    "newSchool": {
+      "title": "Create school",
+      "name": "School name",
+      "subdomain": "Subdomain",
+      "email": "School email",
+      "creating": "Creating…",
+      "create": "Create school",
+      "created": "School created. Activate it to create its super admin."
+    }
+  },
+  "school": {
+    "welcome": "Welcome, {name}",
+    "accessSummary": "{permissions, plural, one {# permission} other {# permissions}} · {modules, plural, one {# module} other {# modules}}",
+    "visibleWith": "Visible with {code}",
+    "areas": {
+      "students": "Students",
+      "teachers": "Teachers",
+      "sections": "Sections",
+      "subjects": "Subjects",
+      "exams": "Exams",
+      "routine": "Routine"
+    }
+  },
+  "marketing": {
+    "title": "School management built for Bangladesh",
+    "subtitle": "Students, teachers, attendance, exams, results and routines for your school, in English and Bangla, on your own school address."
+  }
+}

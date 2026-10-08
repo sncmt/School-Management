@@ -1,16 +1,20 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getErrorMessage, getFieldErrors } from "@/lib/api/errors";
+import { getFieldErrors } from "@/lib/api/errors";
 import { httpClient } from "@/lib/api/httpClient";
+import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 
 // Moved from app/(dashboardLayout)/admin/school/create. Still a plain demo form.
 export default function NewSchoolPage() {
+  const t = useTranslations("platform.newSchool");
+  const describeError = useErrorMessage();
   const [nameEn, setNameEn] = useState("");
   const [subdomain, setSubdomain] = useState("");
   const [email, setEmail] = useState("");
@@ -23,28 +27,28 @@ export default function NewSchoolPage() {
     setErrors({});
     try {
       await httpClient.post("/school/create", { nameEn, subdomain, email });
-      toast.success("School created. Activate it to create its super admin.");
+      toast.success(t("created"));
       setNameEn("");
       setSubdomain("");
       setEmail("");
     } catch (error) {
       setErrors(getFieldErrors(error));
-      toast.error(getErrorMessage(error));
+      toast.error(describeError(error));
     } finally {
       setSubmitting(false);
     }
   };
 
   const fields = [
-    { id: "nameEn", label: "School name", value: nameEn, set: setNameEn, type: "text" },
-    { id: "subdomain", label: "Subdomain", value: subdomain, set: setSubdomain, type: "text" },
-    { id: "email", label: "School email", value: email, set: setEmail, type: "email" },
+    { id: "nameEn", label: t("name"), value: nameEn, set: setNameEn, type: "text" },
+    { id: "subdomain", label: t("subdomain"), value: subdomain, set: setSubdomain, type: "text" },
+    { id: "email", label: t("email"), value: email, set: setEmail, type: "email" },
   ];
 
   return (
     <Card className="max-w-md">
       <CardHeader>
-        <CardTitle>Create school</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -56,7 +60,7 @@ export default function NewSchoolPage() {
             </div>
           ))}
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? "Creating…" : "Create school"}
+            {submitting ? t("creating") : t("create")}
           </Button>
         </form>
       </CardContent>

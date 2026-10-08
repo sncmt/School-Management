@@ -4,12 +4,13 @@ import { getErrorMessage, getFieldErrors } from "@/lib/api/errors";
 /**
  * Puts a failed request's errors on the form: field errors from a 400
  * "Validation failed" go under their fields, anything else is returned as the
- * form-level message.
+ * form-level message (worded by `describe`, normally useErrorMessage()).
  */
 export const applyServerErrors = <T extends FieldValues>(
   error: unknown,
   setError: UseFormSetError<T>,
   fields: readonly Path<T>[],
+  describe: (error: unknown) => string = getErrorMessage,
 ): string | null => {
   const fieldErrors = getFieldErrors(error);
   let placed = false;
@@ -20,5 +21,5 @@ export const applyServerErrors = <T extends FieldValues>(
       placed = true;
     }
   }
-  return placed ? null : getErrorMessage(error);
+  return placed ? null : describe(error);
 };

@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// per-request language: i18n/request.ts
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const apiUrl = process.env.API_URL ?? "http://localhost:5000";
 
@@ -22,4 +26,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

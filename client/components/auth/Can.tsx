@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { useCan } from "@/lib/auth/hooks";
 import type { PermissionCheck } from "@/lib/auth/permissions";
@@ -18,21 +19,20 @@ export function Can({ permission, any, fallback = null, children }: Props) {
   return can(permission, { any }) ? children : fallback;
 }
 
+function NoAccess() {
+  const t = useTranslations("auth");
+  return (
+    <div className="rounded-lg border border-dashed p-8 text-center">
+      <h2 className="font-semibold">{t("noAccessTitle")}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{t("noAccessMessage")}</p>
+    </div>
+  );
+}
+
 /** Page-level version of <Can>: shows a "no access" message instead of nothing. */
 export function RequirePermission({ permission, any, children }: Omit<Props, "fallback">) {
   return (
-    <Can
-      permission={permission}
-      any={any}
-      fallback={
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <h2 className="font-semibold">You don&apos;t have access to this page</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Ask your school administrator if you need it.
-          </p>
-        </div>
-      }
-    >
+    <Can permission={permission} any={any} fallback={<NoAccess />}>
       {children}
     </Can>
   );

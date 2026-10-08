@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -18,18 +19,22 @@ import {
 import { applyServerErrors } from "@/lib/auth/formErrors";
 import { useChangePassword, useLogout, useMe } from "@/lib/auth/hooks";
 import { safeNextPath } from "@/lib/auth/routes";
+import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import type { SessionType } from "@/lib/tenant";
 import { changePasswordSchema, type ChangePasswordInput } from "@/zod/auth";
 import { AuthCard, FormError } from "./AuthCard";
 import { PasswordInput } from "./PasswordInput";
 
 const FIELDS = [
-  { name: "currentPassword", label: "Current password", autoComplete: "current-password" },
-  { name: "newPassword", label: "New password", autoComplete: "new-password" },
-  { name: "confirmPassword", label: "Confirm new password", autoComplete: "new-password" },
+  { name: "currentPassword", label: "current", autoComplete: "current-password" },
+  { name: "newPassword", label: "new", autoComplete: "new-password" },
+  { name: "confirmPassword", label: "confirm", autoComplete: "new-password" },
 ] as const;
 
 export function ChangePasswordForm({ session }: { session: SessionType }) {
+  const t = useTranslations("auth.changePassword");
+  const tCommon = useTranslations("common");
+  const describeError = useErrorMessage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: me } = useMe();
@@ -48,29 +53,27 @@ export function ChangePasswordForm({ session }: { session: SessionType }) {
     setFormError(null);
     try {
       await changePassword.mutateAsync({ currentPassword, newPassword });
-      toast.success("Password changed. Other devices have been logged out.");
+      toast.success(t("success"));
       router.replace(safeNextPath(searchParams.get("next"), session));
     } catch (error) {
-      setFormError(applyServerErrors(error, form.setError, ["currentPassword", "newPassword"]));
+      setFormError(
+        applyServerErrors(error, form.setError, ["currentPassword", "newPassword"], describeError),
+      );
     }
   });
 
   return (
     <AuthCard
-      title={isForced ? "Set a new password" : "Change password"}
-      description={
-        isForced
-          ? "You're using a temporary password. Choose your own to continue."
-          : "This logs you out on every other device."
-      }
+      title={isForced ? t("titleForced") : t("title")}
+      description={isForced ? t("descriptionForced") : t("description")}
       footer={
         isForced ? (
           <button className="underline underline-offset-4" onClick={() => logout.mutate({})}>
-            Log out instead
+            {t("logOutInstead")}
           </button>
         ) : (
           <button className="underline underline-offset-4" onClick={() => router.back()}>
-            Cancel
+            {tCommon("cancel")}
           </button>
         )
       }
@@ -86,11 +89,11 @@ export function ChangePasswordForm({ session }: { session: SessionType }) {
               name={name}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{label}</FormLabel>
+                  <FormLabel>{t(label)}</FormLabel>
                   <FormControl>
                     <PasswordInput autoComplete={autoComplete} {...field} />
                   </FormControl>
-                  {name === "newPassword" && <FormDescription>8 to 72 characters.</FormDescription>}
+                  {name === "newPassword" && <FormDescription>{t("newHint")}</FormDescription>}
                   <FormMessage />
                 </FormItem>
               )}
@@ -102,7 +105,7 @@ export function ChangePasswordForm({ session }: { session: SessionType }) {
             className="w-full"
             disabled={changePassword.isPending || changePassword.isSuccess}
           >
-            {changePassword.isPending ? "Saving…" : "Change password"}
+            {changePassword.isPending ? t("saving") : t("submit")}
           </Button>
         </form>
       </Form>

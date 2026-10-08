@@ -4,13 +4,15 @@ import type { ReactNode } from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { AppShell, type NavItem } from "@/components/layout/AppShell";
 import { useSchoolMe } from "@/lib/auth/hooks";
+import { useLocalizedName } from "@/lib/i18n/names";
 
 // Links are public paths on the school's subdomain (middleware adds /school).
-const nav: NavItem[] = [{ href: "/dashboard", label: "Dashboard" }];
+const nav: NavItem[] = [{ href: "/dashboard", label: "dashboard" }];
 
 function SchoolTitle() {
   const me = useSchoolMe();
-  return <>{me?.school.nameEn}</>;
+  const name = useLocalizedName();
+  return <>{me ? name(me.school) : null}</>;
 }
 
 export default function SchoolAppLayout({ children }: { children: ReactNode }) {
