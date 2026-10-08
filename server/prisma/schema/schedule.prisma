@@ -1,0 +1,177 @@
+/**
+ * Different class hours for a period (Ramadan, winter timing) or a single day (exam day,
+ * sports day): fromDate = toDate. Each rule gives the hours for the whole school, one
+ * class or one section. A section's normal hours live on SectionYearConfig.
+ * Which hours apply to a section on a date: among the overrides covering that date, the
+ * one with the shortest date range wins (an exam day beats Ramadan), then the newest.
+ * Inside it, a section rule beats a class rule, which beats a school-wide rule.
+ */
+model ScheduleOverride {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  name String // "Ramadan timing", "Annual sports day"
+
+  fromDate DateTime @db.Date
+  toDate   DateTime @db.Date
+
+  rules ScheduleOverrideRule[]
+
+  createdBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, fromDate, toDate])
+  @@index([academicYearId])
+}
+
+model ScheduleOverrideRule {
+  id String @id @default(cuid())
+
+  overrideId String
+  override   ScheduleOverride @relation(fields: [overrideId], references: [id], onDelete: Cascade)
+
+  // both null = every section of the school; classId only = every section of that class;
+  // sectionId = that one section (classId is then its class)
+  classId String?
+  class   SchoolClass? @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  sectionId String?
+  section   Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  startTime String // 24-hour "HH:mm"
+  endTime   String // 24-hour "HH:mm"
+
+  // the period template for these days (shorter periods in Ramadan); null = the section's own
+  periodTemplateId String?
+  periodTemplate   PeriodTemplate? @relation(fields: [periodTemplateId], references: [id], onDelete: Restrict)
+
+  @@index([overrideId])
+  @@index([classId])
+  @@index([sectionId])
+}
+
+// ============================================================ class routine
+
+/*
+ * A bell schedule: the periods of a school day ("1st period 08:00-08:45", "Tiffin" as a
+ * break). A section uses one per year (SectionYearConfig); a schedule change can swap in
+ * another for some days (Ramadan). Templates line up by period number, so period 3 is
+ * period 3 on any template, only its times differ.
+ */
+model PeriodTemplate {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  nameEn String // "Regular day", "Ramadan"
+  nameBn String
+
+  periods TemplatePeriod[]
+
+  sectionConfigs SectionYearConfig[]
+  overrideRules  ScheduleOverrideRule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, nameEn])
+}
+
+model TemplatePeriod {
+  id String @id @default(cuid())
+
+  templateId String
+  template   PeriodTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  number    Int // 1, 2, 3... in the order of the day
+  nameEn    String // "1st period", "Tiffin"
+  nameBn    String
+  startTime String // "HH:mm"
+  endTime   String
+  isBreak   Boolean @default(false) // tiffin, prayer: no class is placed in it
+
+  @@unique([templateId, number])
+}
+
+/*
+ * One class in the weekly routine: on a weekday, in a period, a class subject is taught by
+ * a teacher to one section, or to several sections of the class together (combined).
+ * Several entries can share a section's period when they are for different students:
+ * different groups, different religions, or different optional subjects.
+ */
+model RoutineEntry {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  classId String
+  class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  weekday      Int // 0 = Sunday ... 6 = Saturday
+  periodNumber Int
+
+  classSubjectId String
+  classSubject   ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+
+  // any teacher of the school (not necessarily the subject's teacher); null = not yet decided
+  teacherId String?
+  teacher   TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+
+  sections      RoutineEntrySection[]
+  substitutions RoutineSubstitution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([academicYearId, classId, weekday])
+  @@index([teacherId, weekday])
+}
+
+model RoutineEntrySection {
+  id String @id @default(cuid())
+
+  entryId String
+  entry   RoutineEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  sectionId String
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, sectionId])
+  @@index([sectionId])
+}
+
+/* Another teacher takes a routine class on one date (the regular teacher is absent). */
+model RoutineSubstitution {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  entryId String
+  entry   RoutineEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  date DateTime @db.Date
+
+  teacherId String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+
+  note      String?
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  @@unique([entryId, date])
+  @@index([teacherId, date])
+  @@index([schoolId, date])
+}

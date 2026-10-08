@@ -1,0 +1,80 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { applyServerErrors } from "@/lib/auth/formErrors";
+import { usePlatformLogin } from "@/lib/auth/hooks";
+import { afterLoginPath } from "@/lib/auth/routes";
+import { platformLoginSchema, type PlatformLoginInput } from "@/zod/auth";
+import { FormError } from "./AuthCard";
+import { PasswordInput } from "./PasswordInput";
+
+export function PlatformLoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const login = usePlatformLogin();
+  const [formError, setFormError] = useState<string | null>(
+    searchParams.get("reason") === "expired" ? "Your session has ended. Please log in again." : null,
+  );
+
+  const form = useForm<PlatformLoginInput>({
+    resolver: zodResolver(platformLoginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  const onSubmit = form.handleSubmit(async (values) => {
+    console.log(values);
+    setFormError(null);
+    try {
+      const { user } = await login.mutateAsync(values);
+      router.replace(afterLoginPath("PLATFORM", user.mustChangePassword, searchParams.get("next")));
+    } catch (error) {
+      setFormError(applyServerErrors(error, form.setError, ["email", "password"]));
+    }
+  });
+
+  return (
+    <Form {...form}>
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <FormError message={formError} />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" autoComplete="username" autoFocus {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <PasswordInput autoComplete="current-password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={login.isPending || login.isSuccess}>
+          {login.isPending ? "Logging in…" : "Log in"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
