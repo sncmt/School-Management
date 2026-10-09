@@ -2,7 +2,13 @@ import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import httpStatus from "http-status";
 import { generateSchoolCode } from "../../helpers/schoolCode";
-import { CreateSchoolPayload, GetAllSchoolsQuery } from "./school.type";
+import type {
+  ChangeableSchoolStatus,
+  CreateSchoolPayload,
+  GetAllSchoolsQuery,
+  UpdateSchoolPayload,
+} from "./school.type";
+import type { SchoolStatus } from "../../../../generated/prisma/enums";
 import { buildQueryOptions, paginate } from "../../utils/queryBuilder";
 import { Prisma } from "../../../../generated/prisma/client";
 import { PasswordUtils } from "../../utils/password";
@@ -219,7 +225,7 @@ const activateSchool = async (schoolId: string) => {
 
 const getAllSchools = async (query: GetAllSchoolsQuery) => {
   const { where, orderBy, skip, take, page, limit } = buildQueryOptions(query, {
-    searchableFields: ["nameEn", "nameBn", "phone", "email"],
+    searchableFields: ["nameEn", "nameBn", "subdomain", "schoolCode", "phone", "email"],
   });
 
   const result = await paginate(
@@ -258,9 +264,162 @@ const getPublicSite = async (subdomain: string) => {
   return site;
 };
 
+// ------------------------------------------------------------- one school
+
+// the account created at activation, from the school's system super admin role
+const findSuperAdmin = (schoolId: string) =>
+  prisma.userRole
+    .findFirst({
+      where: { role: { schoolId, name: "SCHOOL_SUPER_ADMIN", isSystem: true } },
+      orderBy: { createdAt: "asc" },
+      select: {
+        user: {
+          select: { id: true, fullname: true, email: true, phone: true, isActive: true, mustChangePassword: true },
+        },
+      },
+    })
+    .then((userRole) => userRole?.user ?? null);
+
+/** A school with its super admin, how many are using it, and its enabled modules. */
+const getSchoolById = async (schoolId: string) => {
+  const school = await prisma.school.findUnique({ where: { id: schoolId } });
+  if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  const [superAdmin, activeStudents, activeTeachers, schoolModules] = await Promise.all([
+    findSuperAdmin(schoolId),
+    prisma.student.count({ where: { schoolId, status: "ACTIVE" } }),
+    prisma.teacherProfile.count({ where: { schoolId, status: { in: ["ACTIVE", "ON_LEAVE"] } } }),
+    prisma.schoolModule.findMany({
+      where: { schoolId, isEnabled: true },
+      select: { module: { select: { code: true, name: true, type: true } } },
+      orderBy: { module: { name: "asc" } },
+    }),
+  ]);
+
+  return {
+    ...school,
+    superAdmin,
+    stats: { activeStudents, activeTeachers },
+    modules: schoolModules.map((sm) => sm.module),
+  };
+};
+
+const updateSchool = async (schoolId: string, data: UpdateSchoolPayload) => {
+  const school = await prisma.school.findUnique({
+    where: { id: schoolId },
+    select: { id: true, email: true, activationDate: true },
+  });
+  if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  if (data.email && data.email !== school.email) {
+    // the super admin logs in with this email; changing only the school's copy would split them
+    if (school.activationDate) {
+      throw new AppError(
+        "The school email is its super admin's login, so it can't change after activation",
+        httpStatus.BAD_REQUEST,
+      );
+    }
+    const [emailTaken, emailUsedByUser] = await Promise.all([
+      prisma.school.findFirst({ where: { email: data.email, NOT: { id: schoolId } }, select: { id: true } }),
+      prisma.user.findUnique({ where: { email: data.email }, select: { id: true } }),
+    ]);
+    if (emailTaken) throw new AppError("Email is already in use by another school", httpStatus.CONFLICT);
+    if (emailUsedByUser) {
+      throw new AppError(
+        "This email already belongs to a user account. Every school needs its own email address",
+        httpStatus.CONFLICT,
+      );
+    }
+  }
+
+  if (data.phone) {
+    const phoneTaken = await prisma.school.findFirst({
+      where: { phone: data.phone, NOT: { id: schoolId } },
+      select: { id: true },
+    });
+    if (phoneTaken) throw new AppError("Phone is already in use by another school", httpStatus.CONFLICT);
+  }
+
+  return prisma.school.update({ where: { id: schoolId }, data });
+};
+
+/*
+ * Which status changes are allowed. PENDING -> ACTIVE is /activate (it creates
+ * the super admin); ACTIVE here means reactivating a school that was active
+ * before. Suspended, inactive and expired schools can't log in or open their
+ * site, since auth checks the status on every request.
+ */
+const STATUS_CHANGES: Record<SchoolStatus, ChangeableSchoolStatus[]> = {
+  PENDING: ["INACTIVE"],
+  ACTIVE: ["SUSPENDED", "INACTIVE"],
+  SUSPENDED: ["ACTIVE", "INACTIVE"],
+  INACTIVE: ["ACTIVE"],
+  EXPIRED: ["ACTIVE", "INACTIVE"],
+};
+
+const changeSchoolStatus = async (schoolId: string, status: ChangeableSchoolStatus) => {
+  const school = await prisma.school.findUnique({
+    where: { id: schoolId },
+    select: { status: true, activationDate: true },
+  });
+  if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  if (school.status === status) {
+    throw new AppError(`School is already ${status.toLowerCase()}`, httpStatus.BAD_REQUEST);
+  }
+  if (status === "ACTIVE" && !school.activationDate) {
+    throw new AppError(
+      "This school has never been activated. Activate it to create its super admin",
+      httpStatus.BAD_REQUEST,
+    );
+  }
+  if (!STATUS_CHANGES[school.status].includes(status)) {
+    throw new AppError(
+      `A ${school.status.toLowerCase()} school can't be changed to ${status.toLowerCase()}`,
+      httpStatus.BAD_REQUEST,
+    );
+  }
+
+  return prisma.school.update({ where: { id: schoolId }, data: { status } });
+};
+
+/**
+ * A new temporary password for the school's super admin (who must change it
+ * at next login). Every session they have is ended.
+ */
+const resetSuperAdminPassword = async (schoolId: string) => {
+  const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { id: true } });
+  if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  const superAdmin = await findSuperAdmin(schoolId);
+  if (!superAdmin) {
+    throw new AppError("This school has no super admin yet. Activate it first", httpStatus.BAD_REQUEST);
+  }
+
+  const temporaryPassword = PasswordUtils.generateTemporaryPassword();
+  const passwordHash = await PasswordUtils.hashPassword(temporaryPassword);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: superAdmin.id },
+      data: { password: passwordHash, mustChangePassword: true, tokensValidAfter: new Date() },
+    }),
+    prisma.refreshToken.deleteMany({ where: { userId: superAdmin.id } }),
+  ]);
+
+  return {
+    superAdmin: { id: superAdmin.id, fullname: superAdmin.fullname, email: superAdmin.email },
+    temporaryPassword,
+  };
+};
+
 export const SchoolService = {
   createSchool,
   activateSchool,
   getAllSchools,
   getPublicSite,
+  getSchoolById,
+  updateSchool,
+  changeSchoolStatus,
+  resetSuperAdminPassword,
 };

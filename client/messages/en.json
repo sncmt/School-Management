@@ -6,7 +6,13 @@
     "logIn": "Log in",
     "logOut": "Log out",
     "cancel": "Cancel",
-    "language": "Language"
+    "language": "Language",
+    "search": "Search",
+    "actions": "Actions",
+    "copy": "Copy",
+    "copied": "Copied",
+    "close": "Close",
+    "optional": "optional"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -26,7 +32,17 @@
     "newPasswordMax": "Password must be at most 72 characters",
     "confirmPasswordRequired": "Confirm your new password",
     "passwordsDontMatch": "Passwords don't match",
-    "newPasswordSameAsCurrent": "New password must be different from the current one"
+    "newPasswordSameAsCurrent": "New password must be different from the current one",
+    "nameEnRequired": "School name is required",
+    "nameMin": "Name must be at least 2 characters",
+    "subdomainRequired": "Subdomain is required",
+    "subdomainFormat": "Use 2–63 lowercase letters, numbers or hyphens",
+    "subdomainReserved": "This subdomain is reserved",
+    "phoneInvalid": "Enter a valid phone number",
+    "websiteInvalid": "Enter a full address, like https://school.edu.bd",
+    "numberInvalid": "Enter a number",
+    "feeNonNegative": "Fee can't be negative",
+    "discountRange": "Discount must be between 0 and 100"
   },
   "auth": {
     "email": "Email",
@@ -77,20 +93,172 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "newSchool": "New school",
-    "platformAdmin": "Platform admin"
+    "platformAdmin": "Platform admin",
+    "schools": "Schools"
   },
   "platform": {
     "welcome": "Welcome, {name}",
     "dashboardIntro": "Platform dashboard. Schools, NCTB subjects and national holidays will live here.",
-    "newSchool": {
-      "title": "Create school",
-      "name": "School name",
-      "subdomain": "Subdomain",
-      "email": "School email",
-      "creating": "Creating…",
+    "schools": {
+      "title": "Schools",
+      "description": "Every school on the platform.",
       "create": "Create school",
-      "created": "School created. Activate it to create its super admin."
+      "searchPlaceholder": "Search name, subdomain, code, email or phone",
+      "allStatuses": "All statuses",
+      "sort": {
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "nameAsc": "Name A–Z",
+        "nameDesc": "Name Z–A"
+      },
+      "columns": {
+        "school": "School",
+        "code": "Code",
+        "subdomain": "Subdomain",
+        "contact": "Contact",
+        "language": "Language",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "empty": "No schools yet.",
+      "emptyFiltered": "No schools match these filters.",
+      "clearFilters": "Clear filters",
+      "loadFailed": "Couldn't load schools.",
+      "openSite": "Open site",
+      "activate": {
+        "action": "Activate",
+        "title": "Activate {name}?",
+        "description": "This turns on the free modules and creates the school's super admin account, using the school email ({email}) and a temporary password.",
+        "confirm": "Activate",
+        "activating": "Activating…",
+        "doneTitle": "School activated",
+        "doneDescription": "Give these login details to the school. The temporary password is shown only once, and they'll be asked to change it at first login.",
+        "loginUrl": "Login page",
+        "email": "Email",
+        "password": "Temporary password"
+      },
+      "view": "View details",
+      "edit": "Edit"
+    },
+    "schoolForm": {
+      "title": "Create school",
+      "description": "The school starts as Pending. Activate it from the list to create its super admin.",
+      "back": "Back to schools",
+      "sections": {
+        "school": "School",
+        "contact": "Contact",
+        "billing": "Billing"
+      },
+      "nameEn": "Name (English)",
+      "nameBn": "Name (Bangla)",
+      "subdomain": "Subdomain",
+      "subdomainHint": "The school's address: {url}",
+      "email": "School email",
+      "emailHint": "Also the super admin's login. It can't belong to another account.",
+      "phone": "Phone",
+      "website": "Website",
+      "address": "Address",
+      "language": "Default language",
+      "languageHint": "The language the school's site opens in.",
+      "monthlyFee": "Monthly fee (৳)",
+      "discount": "Discount (%)",
+      "submit": "Create school",
+      "submitting": "Creating…",
+      "created": "{name} created.",
+      "editTitle": "Edit school",
+      "editDescription": "Changes apply right away.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "School updated.",
+      "subdomainLocked": "The address can't be changed.",
+      "emailLocked": "This is the super admin's login, so it can't change after activation."
+    },
+    "schoolDetail": {
+      "back": "Back to schools",
+      "loadFailed": "Couldn't load this school.",
+      "edit": "Edit",
+      "moreActions": "More actions",
+      "sections": {
+        "overview": "Overview",
+        "contact": "Contact",
+        "billing": "Billing",
+        "superAdmin": "Super admin",
+        "usage": "Usage",
+        "modules": "Modules"
+      },
+      "fields": {
+        "code": "School code",
+        "site": "Site",
+        "language": "Default language",
+        "created": "Created",
+        "activated": "Activated",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "address": "Address",
+        "monthlyFee": "Monthly fee",
+        "discount": "Discount",
+        "name": "Name",
+        "account": "Account"
+      },
+      "notSet": "Not set",
+      "notActivated": "Not activated yet",
+      "noSuperAdmin": "Created when the school is activated.",
+      "superAdminState": {
+        "temporaryPassword": "Using a temporary password",
+        "active": "Active",
+        "disabled": "Disabled"
+      },
+      "stats": {
+        "students": "{count, plural, one {# active student} other {# active students}}",
+        "teachers": "{count, plural, one {# active teacher} other {# active teachers}}"
+      },
+      "noModules": "No modules enabled.",
+      "moduleTypes": {
+        "FREE": "Free",
+        "PAID": "Paid"
+      },
+      "actions": {
+        "activate": "Activate",
+        "reactivate": "Reactivate",
+        "suspend": "Suspend",
+        "deactivate": "Deactivate",
+        "resetPassword": "Reset super admin password",
+        "openSite": "Open site"
+      },
+      "confirm": {
+        "working": "Working…",
+        "reactivate": {
+          "title": "Reactivate {name}?",
+          "description": "Its users can log in again and its site opens again.",
+          "confirm": "Reactivate"
+        },
+        "suspend": {
+          "title": "Suspend {name}?",
+          "description": "Nobody at the school can log in and its site goes offline until you reactivate it. Nothing is deleted.",
+          "confirm": "Suspend"
+        },
+        "deactivate": {
+          "title": "Deactivate {name}?",
+          "description": "The school is closed: nobody can log in and its site goes offline. Nothing is deleted, and you can reactivate it later.",
+          "confirm": "Deactivate"
+        },
+        "resetPassword": {
+          "title": "Reset the super admin's password?",
+          "description": "{email} gets a new temporary password and is logged out on every device. They'll choose a new password at their next login.",
+          "confirm": "Reset password"
+        }
+      },
+      "statusChanged": {
+        "ACTIVE": "{name} reactivated.",
+        "SUSPENDED": "{name} suspended.",
+        "INACTIVE": "{name} deactivated."
+      },
+      "resetDone": {
+        "title": "New temporary password",
+        "description": "Give these login details to the school. The password is shown only once."
+      }
     }
   },
   "school": {
@@ -109,5 +277,23 @@
   "marketing": {
     "title": "School management built for Bangladesh",
     "subtitle": "Students, teachers, attendance, exams, results and routines for your school, in English and Bangla, on your own school address."
+  },
+  "pagination": {
+    "summary": "Showing {from, number}–{to, number} of {total, number}",
+    "rowsPerPage": "Rows per page",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page, number} of {pages, number}"
+  },
+  "statuses": {
+    "PENDING": "Pending",
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "SUSPENDED": "Suspended",
+    "EXPIRED": "Expired"
+  },
+  "languages": {
+    "EN": "English",
+    "BN": "Bangla"
   }
 }

@@ -34,6 +34,12 @@ export const getSiteFromHost = (host: string | null | undefined): Site => {
   return { type: "MARKETING" };
 };
 
+const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+
+/** A school's own site, e.g. http://abc.localhost:3000/login */
+export const schoolSiteUrl = (subdomain: string, path = "/") =>
+  `${protocol}://${subdomain}.${ROOT_DOMAIN}${path}`;
+
 /** Browser only: the session type of the site this page is on (none on the marketing site). */
 export const currentSessionType = (): SessionType | null => {
   const site = getSiteFromHost(window.location.host);

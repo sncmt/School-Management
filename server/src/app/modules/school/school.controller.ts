@@ -29,9 +29,8 @@ const getAllSchools = catchAsync(async (req: Request, res: Response) => {
     const query = req.query as unknown as GetAllSchoolsQuery;
 
     const result = await SchoolService.getAllSchools(query);
-    
-      
-    sendResponse(res, {statusCode: httpStatus.OK, success: true, message: "School is activated successfully!", data: result})
+
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Schools retrieved successfully!", data: result });
 });
 
 const getPublicSite = catchAsync(async (req: Request, res: Response) => {
@@ -40,4 +39,37 @@ const getPublicSite = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "School site retrieved successfully!", data: result });
 });
 
-export const SchoolController = { createSchool, activateSchool, getAllSchools, getPublicSite };
+const getSchoolById = catchAsync(async (req: Request, res: Response) => {
+  const result = await SchoolService.getSchoolById(req.params.schoolId as string);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "School retrieved successfully!", data: result });
+});
+
+const updateSchool = catchAsync(async (req: Request, res: Response) => {
+  const result = await SchoolService.updateSchool(req.params.schoolId as string, req.body);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "School updated successfully!", data: result });
+});
+
+const changeSchoolStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await SchoolService.changeSchoolStatus(req.params.schoolId as string, req.body.status);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "School status changed successfully!", data: result });
+});
+
+const resetSuperAdminPassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await SchoolService.resetSuperAdminPassword(req.params.schoolId as string);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Super admin password reset successfully!", data: result });
+});
+
+export const SchoolController = {
+  createSchool,
+  activateSchool,
+  getAllSchools,
+  getPublicSite,
+  getSchoolById,
+  updateSchool,
+  changeSchoolStatus,
+  resetSuperAdminPassword,
+};

@@ -28,3 +28,7 @@ export type GetAllSchoolsQuery =
   z.infer<
     typeof SchoolValidation.getAllSchoolsQuerySchema
   >;
+
+export type UpdateSchoolPayload = z.infer<typeof SchoolValidation.updateSchoolSchema>;
+
+export type ChangeableSchoolStatus = z.infer<typeof SchoolValidation.changeSchoolStatusSchema>["status"];

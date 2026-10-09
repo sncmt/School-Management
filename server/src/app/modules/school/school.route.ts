@@ -33,4 +33,32 @@ router.get(
   SchoolController.getAllSchools,
 );
 
+// one school (keep below the fixed paths above)
+router.get(
+  "/:schoolId",
+  validateRequest({ params: SchoolValidation.schoolIdParamsSchema }),
+  SchoolController.getSchoolById,
+);
+router.patch(
+  "/:schoolId",
+  validateRequest({
+    params: SchoolValidation.schoolIdParamsSchema,
+    body: SchoolValidation.updateSchoolSchema,
+  }),
+  SchoolController.updateSchool,
+);
+router.patch(
+  "/:schoolId/status",
+  validateRequest({
+    params: SchoolValidation.schoolIdParamsSchema,
+    body: SchoolValidation.changeSchoolStatusSchema,
+  }),
+  SchoolController.changeSchoolStatus,
+);
+router.post(
+  "/:schoolId/super-admin/reset-password",
+  validateRequest({ params: SchoolValidation.schoolIdParamsSchema }),
+  SchoolController.resetSuperAdminPassword,
+);
+
 export const schoolRoutes = router;
