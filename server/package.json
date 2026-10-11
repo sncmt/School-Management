@@ -2,11 +2,14 @@
   "name": "school-management",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "concurrently -n redis,api -c red,blue \"npm:redis\" \"npm:dev:api\"",
     "dev:api": "tsx watch src/server.ts",
     "redis": "wsl -d Ubuntu -u root -- sh -c \"service redis-server start && exec sleep infinity\"",
+    "build": "prisma generate && esbuild src/server.ts --bundle --platform=node --format=esm --target=node24 --packages=external --sourcemap --outfile=dist/server.js",
+    "start": "node --enable-source-maps dist/server.js",
+    "typecheck": "tsc --noEmit",
     "db:deploy": "prisma migrate deploy",
     "db:status": "prisma migrate status",
     "db:seed": "prisma db seed"
@@ -17,13 +20,13 @@
   "type": "module",
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.1.1",
     "@types/pg": "^8.20.0",
     "concurrently": "^10.0.5",
+    "esbuild": "^0.28.2",
     "prisma": "^7.9.1",
     "tsx": "^4.23.0",
     "typescript": "^7.0.2"
@@ -35,8 +38,6 @@
     "@prisma/client": "^7.9.1",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.6",
-    "crypto": "^1.0.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "http-status": "^2.1.0",
@@ -47,5 +48,10 @@
     "rate-limiter-flexible": "^11.2.1",
     "sharp": "^0.35.5",
     "zod": "^4.4.3"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.9.1": true,
+    "esbuild@0.28.2": true,
+    "prisma@7.9.1": true
   }
 }

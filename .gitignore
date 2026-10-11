@@ -1,0 +1,2 @@
+# docker compose settings for this machine (.env.example is the template)
+.env

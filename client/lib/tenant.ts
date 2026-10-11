@@ -34,7 +34,8 @@ export const getSiteFromHost = (host: string | null | undefined): Site => {
   return { type: "MARKETING" };
 };
 
-const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+// NEXT_PUBLIC_SITE_PROTOCOL overrides it, e.g. "http" for a production build run on localhost
+const protocol = process.env.NEXT_PUBLIC_SITE_PROTOCOL ?? (process.env.NODE_ENV === "production" ? "https" : "http");
 
 /** A school's own site, e.g. http://abc.localhost:3000/login */
 export const schoolSiteUrl = (subdomain: string, path = "/") =>

@@ -7,6 +7,9 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const apiUrl = process.env.API_URL ?? "http://localhost:5000";
 
 const nextConfig: NextConfig = {
+  // a self-contained server in .next/standalone, for the Docker image
+  output: "standalone",
+
   // school subdomains in development (abc.localhost:3000) load dev assets from the same server
   allowedDevOrigins: ["*.localhost"],
 

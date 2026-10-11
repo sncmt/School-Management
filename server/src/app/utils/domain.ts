@@ -6,7 +6,11 @@
  * Mirrors client/lib/tenant.ts.
  */
 
-const ROOT_DOMAINS = ["sncmt.com", "localhost"];
+// ROOT_DOMAIN: the live domain (several can be given, comma-separated); localhost always works
+const ROOT_DOMAINS = [
+  ...(process.env.ROOT_DOMAIN ?? "sncmt.com").split(",").map((d) => d.trim().toLowerCase()).filter(Boolean),
+  "localhost",
+];
 
 // subdomains that are never a school (schools can't register them either)
 const NON_SCHOOL_SUBDOMAINS = new Set(["www", "admin"]);
