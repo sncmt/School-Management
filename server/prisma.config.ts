@@ -10,6 +10,8 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts"
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // migrations need a direct (or session-pooled) connection: on Supabase that is
+    // DIRECT_URL (port 5432). Locally both are the same database.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

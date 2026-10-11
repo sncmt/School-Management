@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "concurrently -n redis,api -c red,blue \"npm:redis\" \"npm:dev:api\"",
     "dev:api": "tsx watch src/server.ts",
-    "redis": "wsl -d Ubuntu -u root -- sh -c \"service redis-server start && exec sleep infinity\""
+    "redis": "wsl -d Ubuntu -u root -- sh -c \"service redis-server start && exec sleep infinity\"",
+    "db:deploy": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "db:seed": "prisma db seed"
   },
   "keywords": [],
   "author": "",
