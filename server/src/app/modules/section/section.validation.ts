@@ -12,9 +12,23 @@ const sectionName = z
 
 const optionalId = z.string().trim().min(1).optional();
 
+/*
+ * One or more section names for one or more classes: every class gets every name
+ * ("A" and "B" for classes 6, 7 and 8 = six sections). A class that already has one
+ * of the names keeps it and that pair is skipped.
+ */
 const createSectionSchema = z.object({
-  classId: idSchema("Class"),
-  name: sectionName,
+  classIds: z
+    .array(idSchema("Class"))
+    .min(1, "Choose at least one class")
+    .max(50)
+    .refine((ids) => new Set(ids).size === ids.length, "A class is listed twice"),
+  names: z
+    .array(sectionName)
+    .min(1, "Enter at least one section name")
+    .max(20)
+    // "A" and "a" are the same name
+    .refine((names) => new Set(names.map((n) => n.toLowerCase())).size === names.length, "A section name is listed twice"),
 });
 
 // the class of a section never changes: enrollments store both, so only a rename is allowed

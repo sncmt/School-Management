@@ -22,6 +22,8 @@ export const TEACHER_ROLE: SystemRole = { name: "TEACHER", description: "Teacher
  */
 const DEFAULT_PERMISSIONS: Record<string, string[]> = {
   TEACHER: [
+    "academic_year:view",
+    "class:view",
     "student:view",
     "section:view",
     "subject:view",
@@ -38,7 +40,11 @@ const DEFAULT_PERMISSIONS: Record<string, string[]> = {
 
 export type AccountResult = { userId: string; created: boolean; temporaryPassword: string | null };
 
-/* The account for this phone, or a new one with a generated password to change at first login. */
+/*
+ * The account for this phone, or a new one with a generated password. Teachers and
+ * guardians aren't made to change it at first login (for now; their password handling
+ * will be reworked).
+ */
 export const findOrCreateAccount = async (
   tx: Db,
   input: { phone: string; fullname: string },
@@ -53,7 +59,7 @@ export const findOrCreateAccount = async (
       fullname: input.fullname,
       phone: input.phone,
       password: await PasswordUtils.hashPassword(temporaryPassword),
-      mustChangePassword: true,
+      mustChangePassword: false,
     },
   });
   return { userId: user.id, created: true, temporaryPassword };

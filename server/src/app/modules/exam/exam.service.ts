@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertSchoolLanguageName, displayName } from "../../shared/names";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, loadCalendar } from "../calendar/calendar.resolver";
 import type {
@@ -96,6 +97,7 @@ const assertClassesInSchool = async (schoolId: string, classIds: string[]) => {
 // ---------------------------------------------------------------------- exams
 
 const createExam = async (schoolId: string, userId: string, data: CreateExamPayload) => {
+  await assertSchoolLanguageName(schoolId, data);
   const year = await resolveYear(schoolId, data.academicYearId);
   assertAttendancePeriod(year, data.attendanceFrom, data.attendanceTo);
 
@@ -111,8 +113,8 @@ const createExam = async (schoolId: string, userId: string, data: CreateExamPayl
     data: {
       schoolId,
       academicYearId: year.id,
-      nameEn: data.nameEn,
-      nameBn: data.nameBn,
+      nameEn: data.nameEn ?? null,
+      nameBn: data.nameBn ?? null,
       type: data.type,
       attendanceFrom: data.attendanceFrom ?? null,
       attendanceTo: data.attendanceTo ?? null,
@@ -160,6 +162,11 @@ const getExamById = async (schoolId: string, examId: string) => {
 
 const updateExam = async (schoolId: string, examId: string, data: UpdateExamPayload) => {
   const exam = await findExam(schoolId, examId);
+  // the names as they will be saved
+  await assertSchoolLanguageName(schoolId, {
+    nameEn: data.nameEn !== undefined ? data.nameEn : exam.nameEn,
+    nameBn: data.nameBn !== undefined ? data.nameBn : exam.nameBn,
+  });
   if (data.attendanceFrom !== undefined) {
     const year = await resolveYear(schoolId, exam.academicYear.id);
     assertAttendancePeriod(year, data.attendanceFrom, data.attendanceTo);
@@ -280,7 +287,7 @@ const setRoutine = async (schoolId: string, examId: string, classId: string, dat
     prisma.classSubject.findMany({
       where: { id: { in: data.subjects.map((s) => s.classSubjectId) }, schoolId, classId, academicYearId: year.id },
       include: {
-        subject: { select: { nameEn: true } },
+        subject: { select: { nameEn: true, nameBn: true } },
         parts: { orderBy: { sortOrder: "asc" }, select: { name: true, fullMarks: true, passMarks: true } },
       },
     }),
@@ -288,7 +295,7 @@ const setRoutine = async (schoolId: string, examId: string, classId: string, dat
       where: { examClassId: examClass.id },
       include: {
         parts: { orderBy: { sortOrder: "asc" }, select: { name: true, fullMarks: true, passMarks: true } },
-        classSubject: { select: { subject: { select: { nameEn: true } } } },
+        classSubject: { select: { subject: { select: { nameEn: true, nameBn: true } } } },
         _count: { select: { marks: true } },
       },
     }),
@@ -305,7 +312,7 @@ const setRoutine = async (schoolId: string, examId: string, classId: string, dat
   const droppedWithMarks = dropped.find((es) => es._count.marks > 0);
   if (droppedWithMarks) {
     throw new AppError(
-      `${droppedWithMarks.classSubject.subject.nameEn} already has marks and cannot be removed from the routine`,
+      `${displayName(droppedWithMarks.classSubject.subject)} already has marks and cannot be removed from the routine`,
       httpStatus.CONFLICT,
     );
   }
@@ -331,7 +338,7 @@ const setRoutine = async (schoolId: string, examId: string, classId: string, dat
     const parts: PartRow[] = s.fullMarks !== undefined ? (s.parts ?? []) : (existing?.parts ?? cs.parts);
     if (fullMarks === null || passMarks === null) {
       throw new AppError(
-        `Set the marks for ${cs.subject.nameEn}: here, or in the class subject's marks setup`,
+        `Set the marks for ${displayName(cs.subject)}: here, or in the class subject's marks setup`,
         httpStatus.BAD_REQUEST,
       );
     }
@@ -346,13 +353,13 @@ const setRoutine = async (schoolId: string, examId: string, classId: string, dat
     if (existing && hasMarks) {
       if (marksChanged) {
         throw new AppError(
-          `${cs.subject.nameEn} already has marks, so its full marks, pass marks and parts cannot change`,
+          `${displayName(cs.subject)} already has marks, so its full marks, pass marks and parts cannot change`,
           httpStatus.CONFLICT,
         );
       }
       if (dateChanged && date.getTime() > today) {
         throw new AppError(
-          `${cs.subject.nameEn} already has marks, so its exam day cannot move later than today`,
+          `${displayName(cs.subject)} already has marks, so its exam day cannot move later than today`,
           httpStatus.CONFLICT,
         );
       }
@@ -383,7 +390,7 @@ const setRoutine = async (schoolId: string, examId: string, classId: string, dat
       const status = dayStatus(calendar, day, { classId });
       if (!status.isSchoolDay) {
         throw new AppError(
-          `${dayKey(day)} is not a school day for this class (${status.source?.nameEn ?? status.reason.replace("_", " ").toLowerCase()})`,
+          `${dayKey(day)} is not a school day for this class (${(status.source && displayName(status.source)) || status.reason.replace("_", " ").toLowerCase()})`,
           httpStatus.BAD_REQUEST,
         );
       }

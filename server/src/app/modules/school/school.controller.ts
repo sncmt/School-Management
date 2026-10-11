@@ -63,7 +63,23 @@ const resetSuperAdminPassword = catchAsync(async (req: Request, res: Response) =
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Super admin password reset successfully!", data: result });
 });
 
+const brandingImage = (kind: "logo" | "favicon") => ({
+  set: catchAsync(async (req: Request, res: Response) => {
+    const result = await SchoolService.setBrandingImage(req.params.schoolId as string, kind, req.file!.buffer);
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: `School ${kind} saved!`, data: result });
+  }),
+  remove: catchAsync(async (req: Request, res: Response) => {
+    const result = await SchoolService.removeBrandingImage(req.params.schoolId as string, kind);
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: `School ${kind} removed!`, data: result });
+  }),
+});
+
+const logo = brandingImage("logo");
+const favicon = brandingImage("favicon");
+
 export const SchoolController = {
+  logo,
+  favicon,
   createSchool,
   activateSchool,
   getAllSchools,

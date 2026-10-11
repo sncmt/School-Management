@@ -12,6 +12,8 @@ import type { SchoolStatus } from "../../../../generated/prisma/enums";
 import { buildQueryOptions, paginate } from "../../utils/queryBuilder";
 import { Prisma } from "../../../../generated/prisma/client";
 import { PasswordUtils } from "../../utils/password";
+import { processImage } from "../../shared/imageUpload";
+import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
 
 
 const createSchool = async (data: CreateSchoolPayload) => {
@@ -236,7 +238,11 @@ const getAllSchools = async (query: GetAllSchoolsQuery) => {
     limit,
   );
 
-  return result;
+  // the stored logo keys as signed links
+  return {
+    ...result,
+    data: await Promise.all(result.data.map((school) => withFileUrls(school, ["logo", "favicon"]))),
+  };
 };
 
 /*
@@ -261,7 +267,7 @@ const getPublicSite = async (subdomain: string) => {
   }
 
   const { status: _status, ...site } = school;
-  return site;
+  return withFileUrls(site, ["logo", "favicon"]);
 };
 
 // ------------------------------------------------------------- one school
@@ -297,7 +303,7 @@ const getSchoolById = async (schoolId: string) => {
   ]);
 
   return {
-    ...school,
+    ...(await withFileUrls(school, ["logo", "favicon"])),
     superAdmin,
     stats: { activeStudents, activeTeachers },
     modules: schoolModules.map((sm) => sm.module),
@@ -384,8 +390,7 @@ const changeSchoolStatus = async (schoolId: string, status: ChangeableSchoolStat
 };
 
 /**
- * A new temporary password for the school's super admin (who must change it
- * at next login). Every session they have is ended.
+ * A new password for the school's super admin. Every session they have is ended.
  */
 const resetSuperAdminPassword = async (schoolId: string) => {
   const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { id: true } });
@@ -402,7 +407,7 @@ const resetSuperAdminPassword = async (schoolId: string) => {
   await prisma.$transaction([
     prisma.user.update({
       where: { id: superAdmin.id },
-      data: { password: passwordHash, mustChangePassword: true, tokensValidAfter: new Date() },
+      data: { password: passwordHash, mustChangePassword: false, tokensValidAfter: new Date() },
     }),
     prisma.refreshToken.deleteMany({ where: { userId: superAdmin.id } }),
   ]);
@@ -413,7 +418,44 @@ const resetSuperAdminPassword = async (schoolId: string) => {
   };
 };
 
+// ------------------------------------------------------------------ branding
+
+type BrandingImage = "logo" | "favicon";
+
+/* A school's logo (512 px WebP) or favicon (64 px PNG): stores the new one, drops the old. */
+const setBrandingImage = async (schoolId: string, kind: BrandingImage, upload: Buffer) => {
+  const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { logo: true, favicon: true } });
+  if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  const image = await processImage(upload, kind);
+  const key = fileKey(`schools/${schoolId}`, kind, image.extension);
+  await putFile(key, image.body, image.contentType);
+
+  const updated = await prisma.school.update({
+    where: { id: schoolId },
+    data: { [kind]: key },
+    select: { id: true, logo: true, favicon: true },
+  });
+  await deleteFile(school[kind]);
+  return withFileUrls(updated, ["logo", "favicon"]);
+};
+
+const removeBrandingImage = async (schoolId: string, kind: BrandingImage) => {
+  const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { logo: true, favicon: true } });
+  if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  const updated = await prisma.school.update({
+    where: { id: schoolId },
+    data: { [kind]: null },
+    select: { id: true, logo: true, favicon: true },
+  });
+  await deleteFile(school[kind]);
+  return withFileUrls(updated, ["logo", "favicon"]);
+};
+
 export const SchoolService = {
+  setBrandingImage,
+  removeBrandingImage,
   createSchool,
   activateSchool,
   getAllSchools,

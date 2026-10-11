@@ -31,7 +31,8 @@ const clearableNumber = (schema: z.ZodNumber) =>
 const phoneRule = z.string().regex(/^\+?\d{10,14}$/, "validation.phoneInvalid");
 
 const nameEn = z.string().trim().min(1, "validation.nameEnRequired").min(2, "validation.nameMin").max(200);
-const nameBnRule = z.string().min(2, "validation.nameMin").max(200);
+// a school needs both names, whatever its language
+const nameBn = z.string().trim().min(1, "validation.banglaNameRequired").min(2, "validation.nameMin").max(200);
 const email = z.string().trim().min(1, "validation.emailRequired").pipe(z.email("validation.emailInvalid"));
 const language = z.enum(["BN", "EN"]);
 const feeRule = z.number("validation.numberInvalid").nonnegative("validation.feeNonNegative");
@@ -42,7 +43,7 @@ const discountRule = z
 
 export const createSchoolSchema = z.object({
   nameEn,
-  nameBn: optionalText(nameBnRule),
+  nameBn,
   subdomain: z
     .string()
     .trim()
@@ -64,7 +65,7 @@ export const createSchoolSchema = z.object({
 // (the server keeps no "no discount" value).
 export const updateSchoolSchema = z.object({
   nameEn,
-  nameBn: clearableText(nameBnRule),
+  nameBn,
   email,
   phone: text.transform((v) => (v === "" ? null : asPhone(v))).pipe(phoneRule.nullable()),
   website: clearableText(z.url("validation.websiteInvalid")),

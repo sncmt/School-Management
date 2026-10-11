@@ -35,6 +35,18 @@ const listQuery = z.object({
   groupId: optionalId,
 });
 
+/* A class's whole subject order for a year: every class subject of it, once, first to last. */
+const reorder = z.strictObject({
+  // defaults to the current academic year
+  academicYearId: optionalId,
+  classId: idSchema("Class"),
+  classSubjectIds: z
+    .array(idSchema("Class subject"))
+    .min(1)
+    .max(200)
+    .refine((ids) => new Set(ids).size === ids.length, "A subject is listed twice"),
+});
+
 const classSubjectIdParams = z.object({ classSubjectId: idSchema("Class subject id") });
 
 // a different subject or group is a remove + assign
@@ -89,6 +101,7 @@ const setMarks = z
 
 export const ClassSubjectValidation = {
   setMarks,
+  reorder,
   assignSubjects,
   listQuery,
   classSubjectIdParams,

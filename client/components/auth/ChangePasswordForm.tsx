@@ -89,7 +89,7 @@ export function ChangePasswordForm({ session }: { session: SessionType }) {
               name={name}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t(label)}</FormLabel>
+                  <FormLabel required>{t(label)}</FormLabel>
                   <FormControl>
                     <PasswordInput autoComplete={autoComplete} {...field} />
                   </FormControl>

@@ -14,8 +14,8 @@ import { gradeOf, overallResult, type ResultRules, round2, type ScaleRules } fro
 
 export type FinalComponent = {
   id: string;
-  nameEn: string;
-  nameBn: string;
+  nameEn: string | null;
+  nameBn: string | null;
   weight: number; // all components add up to 100
   method: "AVERAGE" | "BEST";
   bestCount: number | null; // BEST: how many of the best exams count
@@ -26,7 +26,7 @@ export type FinalComponent = {
 export type ExamLine = { percentage: number; passPercentage: number; fullMarks: number; excluded: boolean };
 
 export type FinalSubjectInput = {
-  subject: { id: string; nameEn: string; nameBn: string; code: string | null };
+  subject: { id: string; nameEn: string | null; nameBn: string | null; code: string | null };
   isOptional: boolean;
   sortOrder: number;
   scale: ScaleRules | null;
@@ -36,8 +36,8 @@ export type FinalSubjectInput = {
 
 export type ComponentLine = {
   componentId: string;
-  nameEn: string;
-  nameBn: string;
+  nameEn: string | null;
+  nameBn: string | null;
   weight: number;
   percentage: number | null; // null = no exam of this component includes the subject
   exams: { examId: string; percentage: number; used: boolean }[];

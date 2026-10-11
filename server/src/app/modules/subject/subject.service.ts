@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertSchoolLanguageName } from "../../shared/names";
 import { isForeignKeyViolation, isUniqueViolation } from "../../utils/prismaError";
 import type { CreateSubjectPayload, ListSubjectsQuery, UpdateSubjectPayload } from "./subject.type";
 
@@ -53,7 +54,7 @@ const findOwned = async (owner: Owner, subjectId: string) => {
  */
 const assertNamesFree = async (
   owner: Owner,
-  values: { nameEn?: string; nameBn?: string; code?: string | null },
+  values: { nameEn?: string | null; nameBn?: string | null; code?: string | null },
   excludeId?: string,
 ) => {
   const fields: Prisma.SubjectWhereInput[] = [];
@@ -108,6 +109,9 @@ const assertParent = async (owner: Owner, parentId: string, self?: { id: string;
 // -------------------------------------------------------------------- create
 
 const createSubject = async (owner: Owner, data: CreateSubjectPayload) => {
+  // a school's own subject needs its name in the school's language (the NCTB list needs both,
+  // which its validation already checks)
+  if (owner) await assertSchoolLanguageName(owner, data);
   await assertNamesFree(owner, data);
   if (data.parentId) await assertParent(owner, data.parentId);
 
@@ -115,8 +119,8 @@ const createSubject = async (owner: Owner, data: CreateSubjectPayload) => {
     const subject = await prisma.subject.create({
       data: {
         schoolId: owner,
-        nameEn: data.nameEn,
-        nameBn: data.nameBn,
+        nameEn: data.nameEn ?? null,
+        nameBn: data.nameBn ?? null,
         code: data.code ?? null,
         parentId: data.parentId ?? null,
         religion: data.religion ?? null,
@@ -152,7 +156,7 @@ const getSubjects = async (owner: Owner, query: ListSubjectsQuery) => {
           : {},
       ],
     },
-    orderBy: [{ code: { sort: "asc", nulls: "last" } }, { nameEn: "asc" }],
+    orderBy: [{ code: { sort: "asc", nulls: "last" } }, { nameEn: { sort: "asc", nulls: "last" } }, { nameBn: "asc" }],
     include: subjectInclude(owner),
   });
 
@@ -172,6 +176,14 @@ const getSubjectById = async (owner: Owner, subjectId: string) => {
 
 const updateSubject = async (owner: Owner, subjectId: string, data: UpdateSubjectPayload) => {
   const subject = await findOwned(owner, subjectId);
+
+  if (owner) {
+    // the names as they will be saved
+    await assertSchoolLanguageName(owner, {
+      nameEn: data.nameEn !== undefined ? data.nameEn : subject.nameEn,
+      nameBn: data.nameBn !== undefined ? data.nameBn : subject.nameBn,
+    });
+  }
 
   await assertNamesFree(
     owner,

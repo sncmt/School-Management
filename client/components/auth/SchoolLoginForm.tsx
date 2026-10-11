@@ -62,7 +62,7 @@ export function SchoolLoginForm() {
           name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("emailOrPhone")}</FormLabel>
+              <FormLabel required>{t("emailOrPhone")}</FormLabel>
               <FormControl>
                 <Input autoComplete="username" autoFocus {...field} />
               </FormControl>
@@ -77,7 +77,7 @@ export function SchoolLoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("password")}</FormLabel>
+              <FormLabel required>{t("password")}</FormLabel>
               <FormControl>
                 <PasswordInput autoComplete="current-password" {...field} />
               </FormControl>

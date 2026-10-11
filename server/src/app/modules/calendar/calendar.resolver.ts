@@ -23,7 +23,7 @@ export type DayStatus = {
   isSchoolDay: boolean;
   reason: DayReason;
   // the holiday or working day behind it (null for an ordinary day or a weekly holiday)
-  source: { id: string; nameEn: string; nameBn: string; type: HolidayType | null } | null;
+  source: { id: string; nameEn: string | null; nameBn: string | null; type: HolidayType | null } | null;
 };
 
 export type Calendar = Awaited<ReturnType<typeof loadCalendar>>;
@@ -113,7 +113,7 @@ export const dayStatus = (calendar: Calendar, day: Date, who: { classId: string 
   return { isSchoolDay: true, reason: "SCHOOL_DAY", source: null };
 };
 
-type Source = { id: string; nameEn: string; nameBn: string; type: HolidayType | null };
+type Source = { id: string; nameEn: string | null; nameBn: string | null; type: HolidayType | null };
 
 const sourceOf = (s: Source) => ({ id: s.id, nameEn: s.nameEn, nameBn: s.nameBn, type: s.type });
 

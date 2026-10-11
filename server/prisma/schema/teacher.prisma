@@ -8,8 +8,8 @@ enum TeacherStatus {
 /*
  * A teacher is an ordinary account (User, logs in with a mobile number) with a membership
  * in the school, the TEACHER role, and this profile. The profile belongs to the membership,
- * so a person teaching at two schools has one account and one profile per school. The name
- * and phone live on User. Teachers are never deleted: their history (class teacher,
+ * so a person teaching at two schools has one account and one profile per school. The phone
+ * (the login) lives on User; the names are this school's, both required. Teachers are never deleted: their history (class teacher,
  * subject teacher, later attendance and marks) must survive.
  */
 model TeacherProfile {
@@ -21,7 +21,11 @@ model TeacherProfile {
   membershipId String           @unique
   membership   SchoolMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
 
-  // every profile field is optional
+  // the teacher's name as this school writes it; User.fullname is the account's own name
+  nameEn String
+  nameBn String
+
+  // every other profile field is optional
   designation    String? // "Assistant Teacher", "Head Teacher"...
   mpoIndex       String?
   joiningDate    DateTime? @db.Date

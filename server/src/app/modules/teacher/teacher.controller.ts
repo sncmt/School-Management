@@ -79,6 +79,18 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const setPhoto = catchAsync(async (req: Request, res: Response) => {
+  const result = await TeacherService.setPhoto(req.auth!.schoolId!, req.params.teacherId as string, req.file!.buffer);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Photo saved!", data: result });
+});
+
+const removePhoto = catchAsync(async (req: Request, res: Response) => {
+  const result = await TeacherService.removePhoto(req.auth!.schoolId!, req.params.teacherId as string);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Photo removed!", data: result });
+});
+
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
   const result = await TeacherService.getMyProfile(req.auth!);
 
@@ -113,6 +125,8 @@ const getMySchedule = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const TeacherController = {
+  setPhoto,
+  removePhoto,
   createTeacher,
   getTeachers,
   getTeacherById,

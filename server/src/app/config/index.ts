@@ -13,6 +13,13 @@ export default {
   openRouterApiKey: process.env.OPENROUTER_API_KEY,
   schoolMonthlyFee: process.env.DEFAULT_MONTHLY_FEE,
   redisUrl: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+  // Cloudflare R2 (S3-compatible) file storage; uploads are refused until all four are set
+  r2: {
+    accountId: process.env.R2_ACCOUNT_ID,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    bucket: process.env.R2_BUCKET,
+  },
   jwt: {
     access_secret: process.env.JWT_ACCESS_SECRET,
     access_expire: process.env.JWT_ACCESS_EXPIRE_IN,

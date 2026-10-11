@@ -153,8 +153,8 @@ model Exam {
   academicYearId String
   academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
 
-  nameEn String
-  nameBn String
+  nameEn String?
+  nameBn String?
   type   ExamType
 
   // the attendance shown on the result sheet is counted over this period;
@@ -352,8 +352,8 @@ model ExamResultSubject {
   result   ExamResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
 
   subjectId String
-  nameEn    String
-  nameBn    String
+  nameEn    String?
+  nameBn    String?
   code      String?
 
   isOptional Boolean // the 4th subject: only its bonus counts towards the GPA
@@ -405,8 +405,8 @@ model FinalResultFormula {
   classId String
   class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Restrict)
 
-  nameEn String
-  nameBn String
+  nameEn String?
+  nameBn String?
 
   // attendance on the final result sheet; null = year start to the last exam day
   attendanceFrom DateTime? @db.Date
@@ -434,8 +434,8 @@ model FinalResultComponent {
   formulaId String
   formula   FinalResultFormula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
 
-  nameEn String // "Class tests"
-  nameBn String
+  nameEn String? // "Class tests"
+  nameBn String?
 
   weight    Decimal              @db.Decimal(5, 2)
   method    FinalComponentMethod @default(AVERAGE)
@@ -509,8 +509,8 @@ model FinalResultSubject {
   result   FinalResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
 
   subjectId String
-  nameEn    String
-  nameBn    String
+  nameEn    String?
+  nameBn    String?
   code      String?
 
   isOptional Boolean

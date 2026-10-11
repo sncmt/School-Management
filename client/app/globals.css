@@ -125,4 +125,18 @@
   :lang(bn) body {
     line-height: 1.7;
   }
+  /* Tailwind 4 gives buttons the default arrow; show a hand on anything clickable */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"],
+  summary,
+  label[for],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    cursor: pointer;
+  }
 }

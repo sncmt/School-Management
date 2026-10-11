@@ -3,6 +3,7 @@ import validateRequest from "../../errorHandler/validateRequest";
 import authenticate from "../../middlewares/auth";
 import authorize from "../../middlewares/authorize";
 import { TeacherController } from "./teacher.controller";
+import { imageUploadMiddleware } from "../../shared/imageUpload";
 import { TeacherValidation } from "./teacher.validation";
 
 const router = express.Router();
@@ -73,6 +74,22 @@ router.post(
   authorize("teacher:reset_password"),
   validateRequest({ params: TeacherValidation.teacherIdParams }),
   TeacherController.resetPassword,
+);
+
+// the photo: one image in the "file" field (multipart), resized to 400 px
+router.put(
+  "/:teacherId/photo",
+  authorize("teacher:update"),
+  validateRequest({ params: TeacherValidation.teacherIdParams }),
+  imageUploadMiddleware,
+  TeacherController.setPhoto,
+);
+
+router.delete(
+  "/:teacherId/photo",
+  authorize("teacher:update"),
+  validateRequest({ params: TeacherValidation.teacherIdParams }),
+  TeacherController.removePhoto,
 );
 
 export const teacherRoutes = router;

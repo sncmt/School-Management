@@ -25,6 +25,8 @@ const subjectTeacherInclude = {
   teacher: {
     select: {
       id: true,
+      nameEn: true,
+      nameBn: true,
       designation: true,
       status: true,
       membership: { select: { user: { select: { id: true, fullname: true, phone: true } } } },

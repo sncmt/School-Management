@@ -12,7 +12,19 @@
     "copy": "Copy",
     "copied": "Copied",
     "close": "Close",
-    "optional": "optional"
+    "loginPage": "Login page",
+    "temporaryPassword": "Temporary password",
+    "email": "Email",
+    "mobileNumber": "Mobile number",
+    "back": "Back",
+    "upload": "Upload",
+    "change": "Change",
+    "remove": "Remove",
+    "uploading": "Uploading… {percent, number}%",
+    "imageTooLarge": "The image is too large: 5 MB at most.",
+    "imageWrongType": "Choose a JPG, PNG or WebP image.",
+    "noImage": "No image",
+    "photoUploadFailed": "{name} was saved, but the photo didn't upload: {error} You can add it from their page."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -38,11 +50,58 @@
     "subdomainRequired": "Subdomain is required",
     "subdomainFormat": "Use 2–63 lowercase letters, numbers or hyphens",
     "subdomainReserved": "This subdomain is reserved",
-    "phoneInvalid": "Enter a valid phone number",
+    "phoneInvalid": "Enter a Bangladeshi mobile number, like 01712345678",
     "websiteInvalid": "Enter a full address, like https://school.edu.bd",
     "numberInvalid": "Enter a number",
     "feeNonNegative": "Fee can't be negative",
-    "discountRange": "Discount must be between 0 and 100"
+    "discountRange": "Discount must be between 0 and 100",
+    "subjectNameEnRequired": "English name is required",
+    "subjectNameBnRequired": "Bangla name is required",
+    "max100": "At most 100 characters",
+    "codeFormat": "Use letters, digits and dashes only (at most 20)",
+    "parentRequired": "Choose the main subject",
+    "religionRequired": "Choose a religion",
+    "englishNameRequired": "English name is required",
+    "banglaNameRequired": "Bangla name is required",
+    "max500": "At most 500 characters",
+    "dateRequired": "Choose a date",
+    "dateOrder": "The end date can't be before the start date",
+    "holidayTooLong": "A national holiday can't be longer than 60 days",
+    "yearNameRequired": "Name the year, like 2027",
+    "endAfterStart": "The end date must be after the start date",
+    "classNameRequired": "Class name is required",
+    "levelRequired": "Enter the class level",
+    "levelRange": "Use a whole number from 0 to 30",
+    "chooseClasses": "Choose at least one class",
+    "sectionNamesRequired": "Enter at least one section name",
+    "sectionNameRequired": "Section name is required",
+    "sectionNameTooLong": "A section name can be at most 50 characters",
+    "sectionNamesRepeated": "A name is listed twice",
+    "capacityInvalid": "Use a whole number from 1 to 500",
+    "bothTimes": "Set both times, or clear both",
+    "endTimeAfterStart": "The end time must be after the start time",
+    "max50": "At most 50 characters",
+    "chooseSubjects": "Choose at least one subject",
+    "marksRequired": "Enter the marks",
+    "marksInvalid": "Use a number above 0, with at most 2 decimals",
+    "passAboveFull": "Pass marks can't be more than full marks",
+    "partNameRequired": "Name the part",
+    "partsAtLeastTwo": "Use no parts, or at least two",
+    "partsSum": "The parts' full marks must add up to the full marks",
+    "partNamesRepeated": "Each part needs its own name",
+    "fullnameRequired": "Name is required",
+    "nidInvalid": "NID must be 10, 13 or 17 digits",
+    "max200": "At most 200 characters",
+    "max150": "At most 150 characters",
+    "max300": "At most 300 characters",
+    "rollFormat": "Letters, digits and dashes only (at most 10)",
+    "genderRequired": "Choose a gender",
+    "dobPast": "The date of birth must be in the past",
+    "fatherNameRequired": "Father's name is required",
+    "motherNameRequired": "Mother's name is required",
+    "classRequired": "Choose a class",
+    "sectionRequired": "Choose a section",
+    "admissionNoRequired": "Admission number is required"
   },
   "auth": {
     "email": "Email",
@@ -94,7 +153,18 @@
   "nav": {
     "dashboard": "Dashboard",
     "platformAdmin": "Platform admin",
-    "schools": "Schools"
+    "schools": "Schools",
+    "subjects": "NCTB subjects",
+    "holidays": "National holidays",
+    "academicYears": "Academic years",
+    "classes": "Classes",
+    "sections": "Sections",
+    "groups": "Groups",
+    "schoolSubjects": "Subjects",
+    "classSubjects": "Class subjects",
+    "teachers": "Teachers",
+    "subjectTeachers": "Subject teachers",
+    "students": "Students"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -133,10 +203,7 @@
         "confirm": "Activate",
         "activating": "Activating…",
         "doneTitle": "School activated",
-        "doneDescription": "Give these login details to the school. The temporary password is shown only once, and they'll be asked to change it at first login.",
-        "loginUrl": "Login page",
-        "email": "Email",
-        "password": "Temporary password"
+        "doneDescription": "Give these login details to the school. The password is shown only once."
       },
       "view": "View details",
       "edit": "Edit"
@@ -172,7 +239,8 @@
       "saving": "Saving…",
       "saved": "School updated.",
       "subdomainLocked": "The address can't be changed.",
-      "emailLocked": "This is the super admin's login, so it can't change after activation."
+      "emailLocked": "This is the super admin's login, so it can't change after activation.",
+      "brandingAfterCreate": "You can add the logo and favicon on the school's page once it is created."
     },
     "schoolDetail": {
       "back": "Back to schools",
@@ -185,7 +253,8 @@
         "billing": "Billing",
         "superAdmin": "Super admin",
         "usage": "Usage",
-        "modules": "Modules"
+        "modules": "Modules",
+        "branding": "Branding"
       },
       "fields": {
         "code": "School code",
@@ -246,7 +315,7 @@
         },
         "resetPassword": {
           "title": "Reset the super admin's password?",
-          "description": "{email} gets a new temporary password and is logged out on every device. They'll choose a new password at their next login.",
+          "description": "{email} gets a new password and is logged out on every device.",
           "confirm": "Reset password"
         }
       },
@@ -258,6 +327,124 @@
       "resetDone": {
         "title": "New temporary password",
         "description": "Give these login details to the school. The password is shown only once."
+      },
+      "branding": {
+        "logo": "Logo",
+        "logoHint": "Shown on the school's login page and in its menu. Square or wide, PNG with a clear background works best.",
+        "favicon": "Favicon",
+        "faviconHint": "The small icon in the browser tab.",
+        "saved": "Saved.",
+        "removed": "Removed."
+      }
+    },
+    "subjects": {
+      "title": "NCTB subjects",
+      "description": "The shared subject list every school picks its subjects from.",
+      "add": "Add subject",
+      "searchPlaceholder": "Search name or code",
+      "types": {
+        "all": "All types",
+        "main": "Main subjects",
+        "paper": "Papers",
+        "religion": "Religion subjects"
+      },
+      "columns": {
+        "code": "Code",
+        "nameEn": "Name (English)",
+        "nameBn": "Name (Bangla)",
+        "type": "Type",
+        "actions": "Actions"
+      },
+      "type": {
+        "main": "Main subject",
+        "paper": "Paper of {parent}",
+        "religion": "Religion: {religion}"
+      },
+      "papersCount": "{count, plural, one {# paper} other {# papers}}",
+      "empty": "No subjects yet.",
+      "emptyFiltered": "No subjects match.",
+      "loadFailed": "Couldn't load subjects.",
+      "count": "{count, plural, one {# subject} other {# subjects}}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "form": {
+        "addTitle": "Add subject",
+        "editTitle": "Edit subject",
+        "description": "Both names are needed: schools work in Bangla or in English.",
+        "nameEn": "Name (English)",
+        "nameBn": "Name (Bangla)",
+        "code": "Code",
+        "codeHint": "The NCTB code, like 101.",
+        "kind": "Type",
+        "kinds": {
+          "main": "Main subject",
+          "paper": "Paper of a main subject",
+          "religion": "Religion subject"
+        },
+        "kindHints": {
+          "main": "A subject on its own, like Mathematics.",
+          "paper": "Part of a main subject, like Bangla 1st Paper.",
+          "religion": "Taken only by students of that religion, like Islam and Moral Education."
+        },
+        "parent": "Main subject",
+        "parentPlaceholder": "Choose the main subject",
+        "religion": "Religion",
+        "religionPlaceholder": "Choose a religion",
+        "save": "Save",
+        "saving": "Saving…",
+        "created": "{name} added.",
+        "updated": "{name} updated."
+      },
+      "deleteDialog": {
+        "title": "Delete {name}?",
+        "description": "It's removed from the shared list. This is only possible while no school uses it.",
+        "confirm": "Delete",
+        "deleting": "Deleting…",
+        "deleted": "{name} deleted."
+      }
+    },
+    "holidays": {
+      "title": "National holidays",
+      "description": "Holidays every school gets. A school can switch one off for itself.",
+      "add": "Add holiday",
+      "previousYear": "Previous year",
+      "nextYear": "Next year",
+      "columns": {
+        "dates": "Date",
+        "nameEn": "Name (English)",
+        "nameBn": "Name (Bangla)",
+        "days": "Days",
+        "schoolsOpen": "Schools staying open",
+        "actions": "Actions"
+      },
+      "days": "{count, plural, one {# day} other {# days}}",
+      "schoolsOpen": "{count, plural, =0 {None} one {# school} other {# schools}}",
+      "count": "{count, plural, one {# holiday} other {# holidays}} in {year, number, ::group-off}",
+      "empty": "No national holidays in {year, number, ::group-off} yet.",
+      "loadFailed": "Couldn't load national holidays.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "form": {
+        "addTitle": "Add national holiday",
+        "editTitle": "Edit national holiday",
+        "editNote": "A change reaches every school at once, for example moving Eid after the moon sighting.",
+        "nameEn": "Name (English)",
+        "nameBn": "Name (Bangla)",
+        "description": "Note",
+        "fromDate": "From",
+        "toDate": "To",
+        "toDateHint": "Leave as it is for a one-day holiday.",
+        "save": "Save",
+        "saving": "Saving…",
+        "created": "{name} added.",
+        "updated": "{name} updated."
+      },
+      "deleteDialog": {
+        "title": "Delete {name}?",
+        "description": "It's removed from every school's calendar. Schools that switched it off lose that setting too.",
+        "confirm": "Delete",
+        "deleting": "Deleting…",
+        "deleted": "{name} deleted."
       }
     }
   },
@@ -272,6 +459,594 @@
       "subjects": "Subjects",
       "exams": "Exams",
       "routine": "Routine"
+    },
+    "years": {
+      "title": "Academic years",
+      "description": "The school works in one year at a time: its classes, admissions, attendance and exams.",
+      "add": "New academic year",
+      "columns": {
+        "name": "Year",
+        "dates": "Dates",
+        "students": "Students",
+        "exams": "Exams",
+        "actions": "Actions"
+      },
+      "current": "Current",
+      "empty": "No academic years yet. Create the first one to start.",
+      "loadFailed": "Couldn't load academic years.",
+      "edit": "Edit",
+      "makeCurrent": "Make current",
+      "form": {
+        "addTitle": "New academic year",
+        "editTitle": "Edit academic year",
+        "addDescription": "Section settings, class subjects, subject teachers, result settings and the routine are copied from the year before.",
+        "name": "Name",
+        "namePlaceholder": "2027",
+        "startDate": "Starts",
+        "endDate": "Ends",
+        "makeCurrent": "Make it the current year",
+        "save": "Save",
+        "saving": "Saving…",
+        "created": "{name} created.",
+        "updated": "{name} updated.",
+        "carriedOver": "Copied from the year before: {sections, number} section settings, {subjects, number} class subjects, {teachers, number} subject teachers, {results, number} result settings and {routine, number} routine classes."
+      },
+      "currentDialog": {
+        "title": "Make {name} the current year?",
+        "description": "Lists, admissions and attendance open in the current year by default.",
+        "confirm": "Make current",
+        "working": "Saving…",
+        "done": "{name} is now the current year."
+      }
+    },
+    "classes": {
+      "title": "Classes",
+      "description": "The school's classes, in order. Sections are managed on their own page.",
+      "add": "New class",
+      "columns": {
+        "level": "Level",
+        "name": "Class",
+        "sections": "Sections",
+        "students": "Students",
+        "actions": "Actions"
+      },
+      "studentsIn": "Students in {year}",
+      "noSections": "One section",
+      "empty": "No classes yet.",
+      "loadFailed": "Couldn't load classes.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "form": {
+        "addTitle": "New class",
+        "editTitle": "Edit class",
+        "addDescription": "A class starts with one section. Add more sections when the class is split.",
+        "name": "Name",
+        "namePlaceholder": "Class 6",
+        "level": "Level",
+        "levelHint": "Orders the classes and decides promotion: Nursery 0, Class 1 is 1, Class 10 is 10.",
+        "save": "Save",
+        "saving": "Saving…",
+        "created": "{name} created.",
+        "updated": "{name} updated."
+      },
+      "deleteDialog": {
+        "title": "Delete {name}?",
+        "description": "Only possible while no student was ever enrolled in it and nothing is set up for it. Its sections are deleted too.",
+        "confirm": "Delete",
+        "deleting": "Deleting…",
+        "deleted": "{name} deleted."
+      }
+    },
+    "sections": {
+      "title": "Sections",
+      "description": "Split a class into sections. Each section has its own class teacher, capacity and class hours for the year.",
+      "add": "Add sections",
+      "allClasses": "All classes",
+      "columns": {
+        "class": "Class",
+        "section": "Section",
+        "classTeacher": "Class teacher",
+        "students": "Students",
+        "hours": "Class hours",
+        "bellSchedule": "Periods",
+        "actions": "Actions"
+      },
+      "settingsFor": "Settings for {year}",
+      "noYear": "Create an academic year to set class teachers, capacity and class hours.",
+      "wholeClass": "Whole class",
+      "notSet": "Not set",
+      "studentsOf": "{count, number} of {capacity, number}",
+      "overCapacity": "More students than the capacity",
+      "empty": "No sections yet. Add classes first, then their sections.",
+      "emptyFiltered": "This class has no sections.",
+      "loadFailed": "Couldn't load sections.",
+      "settings": "Year settings",
+      "rename": "Rename",
+      "delete": "Delete",
+      "addDialog": {
+        "title": "Add sections",
+        "description": "Pick the classes and the section names. Every class gets every name.",
+        "classes": "Classes",
+        "selectAll": "Select all",
+        "clear": "Clear",
+        "names": "Section names",
+        "namesHint": "Separate names with commas, like A, B, C.",
+        "preview": "{count, plural, =0 {Nothing to add yet} one {Adds # section} other {Adds # sections}}",
+        "save": "Add sections",
+        "saving": "Adding…",
+        "created": "{count, plural, one {# section added} other {# sections added}}",
+        "skipped": "Already there, so skipped: {list}",
+        "nothingNew": "Every chosen class already has these sections."
+      },
+      "renameDialog": {
+        "title": "Rename section",
+        "defaultNote": "This is the class's automatic section. Naming it makes it an ordinary section.",
+        "name": "Name",
+        "save": "Save",
+        "saving": "Saving…",
+        "renamed": "Section renamed to {name}."
+      },
+      "settingsDialog": {
+        "title": "{className} {section}: settings for {year}",
+        "titleWholeClass": "{className}: settings for {year}",
+        "description": "These can change during the year. Past attendance keeps the hours of its own day.",
+        "classTeacher": "Class teacher",
+        "noTeacher": "No class teacher",
+        "noTeachers": "No working teachers yet.",
+        "capacity": "Capacity",
+        "capacityHint": "Only a warning when it's exceeded; admission is never blocked.",
+        "startTime": "Classes start",
+        "endTime": "Classes end",
+        "bellSchedule": "Periods (bell schedule)",
+        "noBellSchedule": "No bell schedule",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Settings saved."
+      },
+      "deleteDialog": {
+        "title": "Delete {name}?",
+        "description": "Only possible while no student was ever enrolled in it. Its year settings are deleted too.",
+        "confirm": "Delete",
+        "deleting": "Deleting…",
+        "deleted": "{name} deleted."
+      }
+    },
+    "groups": {
+      "title": "Groups",
+      "description": "Streams like Science, Business Studies and Humanities. Students and subjects can belong to a group.",
+      "add": "New group",
+      "columns": {
+        "name": "Group",
+        "students": "Students",
+        "subjects": "Subjects",
+        "actions": "Actions"
+      },
+      "inYear": "Counts for {year}",
+      "empty": "No groups yet. Add them if your classes split into streams.",
+      "loadFailed": "Couldn't load groups.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "form": {
+        "addTitle": "New group",
+        "editTitle": "Edit group",
+        "nameEn": "Name (English)",
+        "nameBn": "Name (Bangla)",
+        "save": "Save",
+        "saving": "Saving…",
+        "created": "{name} created.",
+        "updated": "{name} updated."
+      },
+      "deleteDialog": {
+        "title": "Delete {name}?",
+        "description": "Only possible while no student was ever in it and no subject is assigned to it.",
+        "confirm": "Delete",
+        "deleting": "Deleting…",
+        "deleted": "{name} deleted."
+      }
+    },
+    "subjects": {
+      "title": "Subjects",
+      "description": "The NCTB subjects every school can use, plus your school's own. Choose each class's subjects on the class subjects page.",
+      "add": "Add our own subject",
+      "sources": {
+        "all": "All subjects",
+        "PLATFORM": "NCTB",
+        "SCHOOL": "Our own"
+      },
+      "columns": {
+        "source": "From"
+      },
+      "readOnly": "NCTB subjects are kept by the platform and can't be changed here.",
+      "deleteDescription": "Only possible while no class uses it and it has no papers."
+    },
+    "classSubjects": {
+      "title": "Class subjects",
+      "description": "The subjects each class takes this year, in the order mark sheets show them.",
+      "class": "Class",
+      "chooseClass": "Choose a class",
+      "noClasses": "Add classes first.",
+      "noYear": "Create an academic year and make it current to set up class subjects.",
+      "forYear": "For {year}",
+      "add": "Add subjects",
+      "columns": {
+        "code": "Code",
+        "subject": "Subject",
+        "for": "For",
+        "type": "Type",
+        "marks": "Marks",
+        "actions": "Actions"
+      },
+      "wholeClass": "Whole class",
+      "types": {
+        "COMPULSORY": "Compulsory",
+        "OPTIONAL": "Optional (4th subject)"
+      },
+      "marksNotSet": "Not set",
+      "marksSummary": "{full, number} · pass {pass, number}",
+      "ownScale": "Own scale: {name}",
+      "empty": "No subjects for this class yet.",
+      "loadFailed": "Couldn't load the class's subjects.",
+      "dragHint": "Drag the rows to change the order.",
+      "dragHandle": "Drag to reorder",
+      "orderSaved": "Order saved.",
+      "actions": {
+        "marks": "Marks setup",
+        "makeOptional": "Make optional (4th subject)",
+        "makeCompulsory": "Make compulsory",
+        "remove": "Remove"
+      },
+      "typeChanged": "{subject} is now {type}.",
+      "addDialog": {
+        "title": "Add subjects to {className}",
+        "description": "Pick subjects; they all get the same group and type, and go after the subjects already there.",
+        "subjects": "Subjects",
+        "searchPlaceholder": "Search name or code",
+        "assigned": "Already added",
+        "for": "For",
+        "wholeClass": "The whole class",
+        "type": "Type",
+        "optionalHint": "Students choose one optional subject as their 4th subject.",
+        "religionNote": "Religion subjects are always for the whole class.",
+        "selected": "{count, plural, =0 {None selected} one {# selected} other {# selected}}",
+        "save": "Add",
+        "saving": "Adding…",
+        "added": "{count, plural, one {# subject added} other {# subjects added}}"
+      },
+      "marksDialog": {
+        "title": "Marks setup: {subject}",
+        "description": "The default for every exam this year; each exam can change it.",
+        "fullMarks": "Full marks",
+        "passMarks": "Pass marks",
+        "parts": "Parts",
+        "partsHint": "Optional, like Written 70 + MCQ 30. Their full marks add up to the subject's.",
+        "addPart": "Add part",
+        "partName": "Part",
+        "partNamePlaceholder": "Written",
+        "partFull": "Full",
+        "partPass": "Pass",
+        "removePart": "Remove part",
+        "scale": "Grading scale",
+        "classScale": "The class's scale",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Marks setup saved."
+      },
+      "removeDialog": {
+        "title": "Remove {subject} from {className}?",
+        "description": "Only possible while it isn't in an exam routine and no student chose it as their 4th subject.",
+        "confirm": "Remove",
+        "removing": "Removing…",
+        "removed": "{subject} removed."
+      }
+    },
+    "teachers": {
+      "title": "Teachers",
+      "description": "The school's teachers. Each one logs in with their mobile number.",
+      "add": "Add teacher",
+      "searchPlaceholder": "Search name, phone or designation",
+      "allStatuses": "All teachers",
+      "columns": {
+        "name": "Teacher",
+        "phone": "Mobile",
+        "joined": "Joined",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "firstLogin": "Hasn't logged in yet",
+      "empty": "No teachers yet.",
+      "emptyFiltered": "No teachers match.",
+      "loadFailed": "Couldn't load teachers.",
+      "view": "View",
+      "edit": "Edit",
+      "form": {
+        "addTitle": "Add teacher",
+        "editTitle": "Edit teacher",
+        "addDescription": "The mobile number is their login. If someone already has an account with it (a guardian, say), that account is used and keeps its password.",
+        "sections": {
+          "person": "Person",
+          "work": "Work"
+        },
+        "phone": "Mobile number",
+        "accountNote": "Name and number belong to the login. They can only change here if this login isn't used at another school.",
+        "designation": "Designation",
+        "designationPlaceholder": "Assistant Teacher",
+        "joiningDate": "Joining date",
+        "mpoIndex": "MPO index",
+        "qualification": "Qualification",
+        "specialization": "Specialization",
+        "gender": "Gender",
+        "noGender": "Not given",
+        "nid": "NID",
+        "save": "Save",
+        "saving": "Saving…",
+        "added": "{name} added.",
+        "linked": "{name} added. They log in with their existing password.",
+        "rejoined": "{name} is back at work.",
+        "updated": "{name} updated.",
+        "photo": "Photo",
+        "nameEn": "Name in English",
+        "nameBn": "Name in Bangla"
+      },
+      "credentials": {
+        "title": "Login details for {name}",
+        "description": "Give these to the teacher. The password is shown only once."
+      },
+      "detail": {
+        "back": "Back to teachers",
+        "loadFailed": "Couldn't load this teacher.",
+        "sections": {
+          "profile": "Profile",
+          "login": "Login",
+          "assignments": "Duties in {year}"
+        },
+        "noYear": "Duties appear once the school has a current academic year.",
+        "classTeacherOf": "Class teacher of",
+        "subjects": "Teaches",
+        "none": "None",
+        "wholeClass": "whole class",
+        "left": "Left on {date}",
+        "loginPhone": "Logs in with",
+        "loginState": {
+          "temporary": "Using a temporary password",
+          "active": "Has set their own password",
+          "disabled": "Login disabled"
+        },
+        "notSet": "Not set",
+        "actions": {
+          "edit": "Edit",
+          "onLeave": "Mark on leave",
+          "backToWork": "Back to work",
+          "resetPassword": "Reset password",
+          "leave": "Leaves the school"
+        },
+        "statusChanged": "{name}: {status}.",
+        "loginStatus": "Status",
+        "dutiesTitle": "Duties",
+        "photo": "Photo",
+        "photoSaved": "Photo saved.",
+        "photoRemoved": "Photo removed."
+      },
+      "leaveDialog": {
+        "title": "{name} leaves the school?",
+        "description": "Nothing is deleted: past years keep them. They lose this school's teacher login, and stop being class teacher or subject teacher in years that haven't ended.",
+        "reason": "Reason",
+        "leftAt": "Last day",
+        "confirm": "Confirm",
+        "working": "Saving…",
+        "done": "{name} has left. Removed as class teacher of {classTeacher, number} and from {subjects, number} subjects."
+      },
+      "resetDialog": {
+        "title": "Reset {name}'s password?",
+        "description": "They get a new temporary password and are logged out on every device.",
+        "confirm": "Reset password",
+        "working": "Resetting…",
+        "doneTitle": "New temporary password"
+      }
+    },
+    "subjectTeachers": {
+      "title": "Subject teachers",
+      "description": "Who teaches each subject in each section this year. Several teachers can share a subject.",
+      "class": "Class",
+      "forYear": "For {year}",
+      "noYear": "Create an academic year and make it current to assign teachers.",
+      "noClasses": "Add classes first.",
+      "noSubjects": "This class has no subjects yet. Add them on the Class subjects page.",
+      "noTeachersYet": "No working teachers yet. Add teachers first.",
+      "subject": "Subject",
+      "wholeClass": "Whole class",
+      "notAssigned": "Not assigned",
+      "edit": "Change teachers",
+      "loadFailed": "Couldn't load the subject teachers.",
+      "dialog": {
+        "title": "{subject} · {section}",
+        "description": "Choose who teaches it here. Leave all unticked to remove the teachers.",
+        "searchPlaceholder": "Search teachers",
+        "onLeave": "On leave",
+        "selected": "{count, plural, =0 {No teacher} one {# teacher} other {# teachers}}",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Teachers saved."
+      }
+    },
+    "students": {
+      "title": "Students",
+      "description": "The school's students.",
+      "descriptionYear": "The school's students. Classes shown are for {year}.",
+      "add": "Admit student",
+      "searchPlaceholder": "Search name, admission no., father or phone",
+      "allStatuses": "All students",
+      "allClasses": "All classes",
+      "allSections": "All sections",
+      "section": "Section",
+      "columns": {
+        "student": "Student",
+        "class": "Class",
+        "father": "Father",
+        "family": "Family login",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "admissionNoShort": "Adm. {no}",
+      "roll": "Roll {roll}",
+      "noLogin": "No login",
+      "empty": "No students yet.",
+      "emptyFiltered": "No students match.",
+      "loadFailed": "Couldn't load students.",
+      "view": "View",
+      "edit": "Edit",
+      "form": {
+        "title": "Admit student",
+        "description": "Admits the student into the current academic year.",
+        "editTitle": "Edit student",
+        "editDescription": "To change the section, group or roll, use \"Change section or roll\" on the student's page.",
+        "back": "Back to students",
+        "sections": {
+          "student": "Student",
+          "admission": "Admission · {year}",
+          "family": "Parents and guardian",
+          "contact": "Family login and contact"
+        },
+        "photo": "Photo",
+        "nameEn": "Name in English",
+        "nameBn": "Name in Bangla",
+        "gender": "Gender",
+        "religion": "Religion",
+        "dob": "Date of birth",
+        "choose": "Choose…",
+        "class": "Class",
+        "section": "Section",
+        "wholeClass": "Whole class (no sections)",
+        "chooseClassFirst": "Choose a class first",
+        "group": "Group",
+        "noGroup": "No group",
+        "rollNumber": "Roll number",
+        "admissionNo": "Admission number",
+        "admissionNoHint": "Leave it blank to get the next number, like 20270001.",
+        "fatherName": "Father's name",
+        "motherName": "Mother's name",
+        "guardianName": "Guardian's name",
+        "guardianNameHint": "If someone other than the parents looks after the student.",
+        "guardianPhone": "Guardian's mobile",
+        "phone": "Family login number",
+        "phoneHint": "The family logs in with this number. Brothers and sisters share one login: use the same number for each.",
+        "phoneEditHint": "Changing it moves the student to that number's login. Clearing it removes the student from the family login.",
+        "email": "Email",
+        "whatsApp": "WhatsApp",
+        "presentAddress": "Present address",
+        "permanentAddress": "Permanent address",
+        "sameAsPresent": "Same as present",
+        "submit": "Admit student",
+        "save": "Save",
+        "saving": "Saving…",
+        "admitted": "{name} admitted. Admission number {admissionNo}.",
+        "updated": "{name} updated.",
+        "linked": "Added to the family login for {phone}{count, plural, =0 {} one { (with # other student)} other { (with # other students)}}. The family keeps its password.",
+        "noYear": "There's no current academic year, so students can't be admitted yet.",
+        "noYearLink": "Set the current year"
+      },
+      "credentials": {
+        "title": "Family login for {name}",
+        "description": "Give these to the family. The password is shown only once."
+      },
+      "detail": {
+        "back": "Back to students",
+        "loadFailed": "Couldn't load this student.",
+        "moreActions": "More actions",
+        "admissionNo": "Admission no. {no}",
+        "notSet": "Not set",
+        "sections": {
+          "personal": "Personal",
+          "family": "Parents and guardian",
+          "login": "Family login",
+          "contact": "Contact",
+          "history": "Classes by year"
+        },
+        "fields": {
+          "gender": "Gender",
+          "religion": "Religion",
+          "dob": "Date of birth",
+          "admitted": "Admitted",
+          "father": "Father",
+          "mother": "Mother",
+          "guardian": "Guardian",
+          "guardianPhone": "Guardian's mobile",
+          "loginPhone": "Logs in with",
+          "loginStatus": "Status",
+          "siblings": "Same login",
+          "email": "Email",
+          "whatsApp": "WhatsApp",
+          "presentAddress": "Present address",
+          "permanentAddress": "Permanent address"
+        },
+        "loginState": {
+          "temporary": "Using a temporary password",
+          "active": "Has set their own password",
+          "disabled": "Login disabled"
+        },
+        "siblings": "{count, plural, one {# other student} other {# other students}}",
+        "noLogin": "No family login. Add a family login number on the edit page to create one.",
+        "noEnrollments": "Not enrolled in any year.",
+        "history": {
+          "year": "Year",
+          "placement": "Class",
+          "status": "Status"
+        },
+        "enrollmentStatuses": {
+          "ACTIVE": "Studying",
+          "PROMOTED": "Promoted",
+          "TRANSFERRED": "Transferred",
+          "WITHDRAWN": "Withdrawn",
+          "GRADUATED": "Graduated"
+        },
+        "actions": {
+          "edit": "Edit",
+          "move": "Change section or roll",
+          "resetPassword": "Reset family password"
+        },
+        "statusActions": {
+          "ACTIVE": "Make active again",
+          "SUSPENDED": "Suspend",
+          "GRADUATED": "Mark graduated",
+          "INACTIVE": "Mark inactive"
+        },
+        "photoSaved": "Photo saved.",
+        "photoRemoved": "Photo removed.",
+        "resetDialog": {
+          "title": "Reset the family password for {name}?",
+          "description": "The family gets a new temporary password and is logged out on every device.{count, plural, =0 {} one { It is also the login of # other student.} other { It is also the login of # other students.}}",
+          "confirm": "Reset password",
+          "working": "Resetting…",
+          "doneTitle": "New temporary password"
+        }
+      },
+      "placement": {
+        "title": "Change section or roll",
+        "description": "{class}, {year}. Moving to another class happens at promotion.",
+        "section": "Section",
+        "group": "Group",
+        "noGroup": "No group",
+        "rollNumber": "Roll number",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "{name}'s placement updated."
+      },
+      "statusDialog": {
+        "title": {
+          "ACTIVE": "Make {name} active again?",
+          "SUSPENDED": "Suspend {name}?",
+          "GRADUATED": "Mark {name} as graduated?",
+          "INACTIVE": "Mark {name} as inactive?"
+        },
+        "description": {
+          "ACTIVE": "They are counted as a student of the school again.",
+          "SUSPENDED": "For a temporary removal. Nothing is deleted, and you can make them active again.",
+          "GRADUATED": "For a student who finished at this school. Nothing is deleted.",
+          "INACTIVE": "For a student who left. Nothing is deleted, and you can make them active again."
+        },
+        "confirm": "Confirm",
+        "working": "Saving…",
+        "done": "{name}: {status}."
+      }
     }
   },
   "marketing": {
@@ -281,9 +1056,11 @@
   "pagination": {
     "summary": "Showing {from, number}–{to, number} of {total, number}",
     "rowsPerPage": "Rows per page",
-    "previous": "Previous",
-    "next": "Next",
-    "page": "Page {page, number} of {pages, number}"
+    "first": "First",
+    "last": "Last",
+    "goToPage": "Page {page, number}",
+    "previous": "Previous page",
+    "next": "Next page"
   },
   "statuses": {
     "PENDING": "Pending",
@@ -295,5 +1072,29 @@
   "languages": {
     "EN": "English",
     "BN": "Bangla"
+  },
+  "religions": {
+    "ISLAM": "Islam",
+    "HINDUISM": "Hinduism",
+    "CHRISTIANITY": "Christianity",
+    "BUDDHISM": "Buddhism",
+    "OTHER": "Other"
+  },
+  "genders": {
+    "MALE": "Male",
+    "FEMALE": "Female",
+    "OTHER": "Other"
+  },
+  "teacherStatuses": {
+    "ACTIVE": "Working",
+    "ON_LEAVE": "On leave",
+    "RESIGNED": "Resigned",
+    "RETIRED": "Retired"
+  },
+  "studentStatuses": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "SUSPENDED": "Suspended",
+    "GRADUATED": "Graduated"
   }
 }

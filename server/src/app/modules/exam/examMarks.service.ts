@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { displayName } from "../../shared/names";
 import { checkPermission } from "../../middlewares/authorize";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { WORKING_STATUSES } from "../teacher/teacher.service";
@@ -95,7 +96,7 @@ const studentsOfSheet = async (ctx: Context) => {
 type SubjectMarks = {
   fullMarks: Prisma.Decimal;
   parts: { name: string; fullMarks: Prisma.Decimal }[];
-  classSubject?: { subject: { nameEn: string } };
+  classSubject?: { subject: { nameEn: string | null; nameBn?: string | null } };
 };
 
 /*
@@ -103,7 +104,7 @@ type SubjectMarks = {
  * full marks (total = their sum), or the total within the full marks. Absent = no marks.
  */
 const checkMark = (subject: SubjectMarks, m: MarkEntry, who: string) => {
-  const label = subject.classSubject ? `${who}, ${subject.classSubject.subject.nameEn}` : who;
+  const label = subject.classSubject ? `${who}, ${displayName(subject.classSubject.subject)}` : who;
   if (m.isAbsent) return { isAbsent: true, partMarks: null, total: null };
 
   const { parts, fullMarks } = subject;
@@ -359,13 +360,13 @@ const saveGrid = async (auth: Auth, data: SaveGridPayload) => {
     if (!student) throw new AppError("One or more students are not in this section for the exam", httpStatus.BAD_REQUEST);
     if (!student.examSubjectIds.has(subject.id)) {
       throw new AppError(
-        `${student.student.nameEn} does not sit ${subject.classSubject.subject.nameEn}`,
+        `${student.student.nameEn} does not sit ${displayName(subject.classSubject.subject)}`,
         httpStatus.BAD_REQUEST,
       );
     }
     if (!isOpen(subject.date)) {
       throw new AppError(
-        `${subject.classSubject.subject.nameEn}: marks can be entered from the exam day (${dayKey(subject.date)})`,
+        `${displayName(subject.classSubject.subject)}: marks can be entered from the exam day (${dayKey(subject.date)})`,
         httpStatus.CONFLICT,
       );
     }
@@ -439,7 +440,7 @@ const saveStudentMarks = async (auth: Auth, data: SaveStudentPayload) => {
     if (!subject) throw new AppError("One or more subjects are not sat by this student", httpStatus.BAD_REQUEST);
     if (!isOpen(subject.date)) {
       throw new AppError(
-        `${subject.classSubject.subject.nameEn}: marks can be entered from the exam day (${dayKey(subject.date)})`,
+        `${displayName(subject.classSubject.subject)}: marks can be entered from the exam day (${dayKey(subject.date)})`,
         httpStatus.CONFLICT,
       );
     }

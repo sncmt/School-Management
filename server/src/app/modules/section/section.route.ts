@@ -13,7 +13,7 @@ router.post(
     '/create',
     authorize("section:create"),
     validateRequest({body: SectionValidation.createSectionSchema}),
-    SectionController.createSection,
+    SectionController.createSections,
 );
 
 router.get(

@@ -16,6 +16,12 @@ const assignSubjects = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const reorderClassSubjects = catchAsync(async (req: Request, res: Response) => {
+  const result = await ClassSubjectService.reorderClassSubjects(req.auth!.schoolId!, req.body);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Subject order saved!", data: result });
+});
+
 const getClassSubjects = catchAsync(async (req: Request, res: Response) => {
   const result = await ClassSubjectService.getClassSubjects(
     req.auth!.schoolId!,
@@ -68,6 +74,7 @@ const setMarks = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const ClassSubjectController = {
+  reorderClassSubjects,
   setMarks,
   assignSubjects,
   getClassSubjects,

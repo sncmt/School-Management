@@ -24,7 +24,7 @@ export type ResultRules = {
   scale: ScaleRules | null;
 };
 
-type SubjectInfo = { id: string; nameEn: string; nameBn: string; code: string | null };
+type SubjectInfo = { id: string; nameEn: string | null; nameBn: string | null; code: string | null };
 
 export type SubjectInput = {
   examSubjectId: string;

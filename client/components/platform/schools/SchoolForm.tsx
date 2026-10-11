@@ -34,6 +34,7 @@ import {
   type SchoolFormInput,
   type UpdateSchoolValues,
 } from "@/zod/school";
+import { SchoolBrandingCard } from "./SchoolBrandingCard";
 
 type Props = { mode: "create" } | { mode: "edit"; school: SchoolDetail };
 
@@ -107,12 +108,6 @@ export function SchoolForm(props: Props) {
     }
   });
 
-  const optional = (label: string) => (
-    <>
-      {label} <span className="font-normal text-muted-foreground">({tCommon("optional")})</span>
-    </>
-  );
-
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <Button variant="ghost" size="sm" asChild className="-ml-2">
@@ -137,7 +132,7 @@ export function SchoolForm(props: Props) {
                 name="nameEn"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("nameEn")}</FormLabel>
+                    <FormLabel required>{t("nameEn")}</FormLabel>
                     <FormControl>
                       <Input autoFocus={!isEdit} {...field} />
                     </FormControl>
@@ -150,7 +145,7 @@ export function SchoolForm(props: Props) {
                 name="nameBn"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{optional(t("nameBn"))}</FormLabel>
+                    <FormLabel required>{t("nameBn")}</FormLabel>
                     <FormControl>
                       <Input lang="bn" {...field} />
                     </FormControl>
@@ -165,7 +160,7 @@ export function SchoolForm(props: Props) {
               name="subdomain"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("subdomain")}</FormLabel>
+                  <FormLabel required={!isEdit}>{t("subdomain")}</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-2">
                       <Input autoCapitalize="none" spellCheck={false} {...field} disabled={isEdit} />
@@ -185,7 +180,7 @@ export function SchoolForm(props: Props) {
               name="language"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("language")}</FormLabel>
+                  <FormLabel required>{t("language")}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="w-full sm:w-60">
@@ -204,13 +199,16 @@ export function SchoolForm(props: Props) {
             />
           </Section>
 
+          {/* the images save as soon as they are uploaded; the school needs to exist first */}
+          {school ? <SchoolBrandingCard school={school} /> : <BrandingLater />}
+
           <Section title={t("sections.contact")}>
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("email")}</FormLabel>
+                  <FormLabel required={!emailLocked}>{t("email")}</FormLabel>
                   <FormControl>
                     <Input type="email" autoCapitalize="none" {...field} disabled={emailLocked} />
                   </FormControl>
@@ -225,7 +223,7 @@ export function SchoolForm(props: Props) {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{optional(t("phone"))}</FormLabel>
+                    <FormLabel>{t("phone")}</FormLabel>
                     <FormControl>
                       <Input type="tel" inputMode="tel" {...field} />
                     </FormControl>
@@ -238,7 +236,7 @@ export function SchoolForm(props: Props) {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{optional(t("website"))}</FormLabel>
+                    <FormLabel>{t("website")}</FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://" {...field} />
                     </FormControl>
@@ -252,7 +250,7 @@ export function SchoolForm(props: Props) {
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{optional(t("address"))}</FormLabel>
+                  <FormLabel>{t("address")}</FormLabel>
                   <FormControl>
                     <Textarea rows={3} {...field} />
                   </FormControl>
@@ -269,7 +267,7 @@ export function SchoolForm(props: Props) {
                 name="monthlyFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{optional(t("monthlyFee"))}</FormLabel>
+                    <FormLabel>{t("monthlyFee")}</FormLabel>
                     <FormControl>
                       <Input inputMode="decimal" {...field} />
                     </FormControl>
@@ -282,7 +280,7 @@ export function SchoolForm(props: Props) {
                 name="discount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{optional(t("discount"))}</FormLabel>
+                    <FormLabel>{t("discount")}</FormLabel>
                     <FormControl>
                       <Input inputMode="decimal" placeholder="0" {...field} />
                     </FormControl>
@@ -305,6 +303,11 @@ export function SchoolForm(props: Props) {
       </Form>
     </div>
   );
+}
+
+function BrandingLater() {
+  const t = useTranslations("platform.schoolForm");
+  return <p className="px-1 text-sm text-muted-foreground">{t("brandingAfterCreate")}</p>;
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {

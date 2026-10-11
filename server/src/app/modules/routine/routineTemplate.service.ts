@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertSchoolLanguageNames, type Names } from "../../shared/names";
 import { isUniqueViolation } from "../../utils/prismaError";
 import type { TemplatePayload } from "./routine.validation";
 
@@ -18,19 +19,34 @@ const findTemplate = async (schoolId: string, templateId: string) => {
   return template;
 };
 
-const assertNameFree = async (schoolId: string, nameEn: string, excludeId?: string) => {
+/* "Ramadan" and "ramadan" are the same name, in English and in Bangla. */
+const assertNameFree = async (schoolId: string, names: Names, excludeId?: string) => {
+  const sameName = [
+    ...(names.nameEn ? [{ nameEn: { equals: names.nameEn, mode: "insensitive" as const } }] : []),
+    ...(names.nameBn ? [{ nameBn: { equals: names.nameBn, mode: "insensitive" as const } }] : []),
+  ];
+  if (sameName.length === 0) return;
+
   const clash = await prisma.periodTemplate.findFirst({
-    where: { schoolId, nameEn: { equals: nameEn, mode: "insensitive" }, ...(excludeId ? { id: { not: excludeId } } : {}) },
+    where: { schoolId, OR: sameName, ...(excludeId ? { id: { not: excludeId } } : {}) },
     select: { id: true },
   });
   if (clash) throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
 };
 
+/* The template and each of its periods named in the school's language. */
+const assertTemplateNames = (schoolId: string, data: TemplatePayload) =>
+  assertSchoolLanguageNames(schoolId, [
+    { names: data },
+    ...data.periods.map((p, i) => ({ names: p, path: `periods.${i}` })),
+  ]);
+
 const createTemplate = async (schoolId: string, data: TemplatePayload) => {
-  await assertNameFree(schoolId, data.nameEn);
+  await assertTemplateNames(schoolId, data);
+  await assertNameFree(schoolId, data);
   try {
     return await prisma.periodTemplate.create({
-      data: { schoolId, nameEn: data.nameEn, nameBn: data.nameBn, periods: { create: data.periods } },
+      data: { schoolId, nameEn: data.nameEn ?? null, nameBn: data.nameBn ?? null, periods: { create: data.periods } },
       include: templateInclude,
     });
   } catch (e) {
@@ -40,7 +56,11 @@ const createTemplate = async (schoolId: string, data: TemplatePayload) => {
 };
 
 const getTemplates = (schoolId: string) =>
-  prisma.periodTemplate.findMany({ where: { schoolId }, orderBy: { nameEn: "asc" }, include: templateInclude });
+  prisma.periodTemplate.findMany({
+    where: { schoolId },
+    orderBy: [{ nameEn: { sort: "asc", nulls: "last" } }, { nameBn: "asc" }],
+    include: templateInclude,
+  });
 
 const getTemplateById = (schoolId: string, templateId: string) => findTemplate(schoolId, templateId);
 
@@ -50,7 +70,15 @@ const getTemplateById = (schoolId: string, templateId: string) => findTemplate(s
  */
 const updateTemplate = async (schoolId: string, templateId: string, data: TemplatePayload) => {
   const template = await findTemplate(schoolId, templateId);
-  if (data.nameEn !== template.nameEn) await assertNameFree(schoolId, data.nameEn, templateId);
+  await assertTemplateNames(schoolId, data);
+  await assertNameFree(
+    schoolId,
+    {
+      nameEn: data.nameEn !== template.nameEn ? data.nameEn : undefined,
+      nameBn: data.nameBn !== template.nameBn ? data.nameBn : undefined,
+    },
+    templateId,
+  );
 
   const kept = new Set(data.periods.filter((p) => !p.isBreak).map((p) => p.number));
   const lost = template.periods.filter((p) => !p.isBreak && !kept.has(p.number)).map((p) => p.number);
@@ -82,7 +110,7 @@ const updateTemplate = async (schoolId: string, templateId: string, data: Templa
       await tx.templatePeriod.deleteMany({ where: { templateId } });
       return tx.periodTemplate.update({
         where: { id: templateId },
-        data: { nameEn: data.nameEn, nameBn: data.nameBn, periods: { create: data.periods } },
+        data: { nameEn: data.nameEn ?? null, nameBn: data.nameBn ?? null, periods: { create: data.periods } },
         include: templateInclude,
       });
     });

@@ -1,23 +1,15 @@
 import { z } from "zod";
 import { idSchema } from "../../shared/financeSchemas";
+import { schoolLanguageNames } from "../../shared/names";
 
-// both names are required: a school can work in Bangla or in English
-const nameEn = z
-  .string({ error: "English name is required!" })
-  .trim()
-  .min(1, "English name is required!")
-  .max(50, "English name cannot exceed 50 characters");
+// the name in the school's language is required (the service checks it); the other is optional
+const names = schoolLanguageNames(50);
 
-const nameBn = z
-  .string({ error: "Bangla name is required!" })
-  .trim()
-  .min(1, "Bangla name is required!")
-  .max(50, "Bangla name cannot exceed 50 characters");
+const createGroup = z.strictObject(names);
 
-const createGroup = z.strictObject({ nameEn, nameBn });
-
+// missing = leave as it is, null or "" = clear (unless it's the school's language)
 const updateGroup = z
-  .strictObject({ nameEn: nameEn.optional(), nameBn: nameBn.optional() })
+  .strictObject(names)
   .refine((d) => d.nameEn !== undefined || d.nameBn !== undefined, {
     message: "Provide a name to change",
   });

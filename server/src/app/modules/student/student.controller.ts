@@ -73,7 +73,28 @@ const resetGuardianPassword = catchAsync(async (req: Request, res: Response) => 
   });
 });
 
+const changePlacement = catchAsync(async (req: Request, res: Response) => {
+  const result = await StudentService.changePlacement(req.auth!.schoolId!, req.params.studentId as string, req.body);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Placement updated!", data: result });
+});
+
+const setPhoto = catchAsync(async (req: Request, res: Response) => {
+  const result = await StudentService.setPhoto(req.auth!.schoolId!, req.params.studentId as string, req.file!.buffer);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Photo saved!", data: result });
+});
+
+const removePhoto = catchAsync(async (req: Request, res: Response) => {
+  const result = await StudentService.removePhoto(req.auth!.schoolId!, req.params.studentId as string);
+
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Photo removed!", data: result });
+});
+
 export const StudentController = {
+  changePlacement,
+  setPhoto,
+  removePhoto,
   createStudent,
   updateStudent,
   getStudentById,

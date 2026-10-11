@@ -11,7 +11,6 @@ const name = (label: string) =>
   z.string({ error: `${label} is required!` }).trim().min(2, `${label} is required!`).max(150);
 
 const dob = z.coerce.date().refine((d) => d.getTime() < Date.now(), "Date of birth must be in the past");
-const url = z.string().trim().url("Enter a valid URL").max(500);
 const admissionNo = z.string().trim().min(1).max(30);
 
 // optional on create ("" and missing both mean not provided)
@@ -21,15 +20,15 @@ const clearable = <T extends z.ZodType>(schema: T) => z.preprocess(blankToNull, 
 
 const text = (max: number) => z.string().trim().max(max);
 
+const rollNumber = z.string().trim().regex(/^[A-Za-z0-9-]{1,10}$/, "Roll number: letters, digits and dashes only (max 10)");
+
 const enrollmentInput = z.object({
   // defaults to the school's current academic year
   academicYearId: opt(z.string().trim().min(1)),
   classId: idSchema("Class"),
   sectionId: idSchema("Section"),
   groupId: opt(z.string().trim().min(1)),
-  rollNumber: opt(
-    z.string().trim().regex(/^[A-Za-z0-9-]{1,10}$/, "Roll number: letters, digits and dashes only (max 10)"),
-  ),
+  rollNumber: opt(rollNumber),
 });
 
 const createStudent = z.object({
@@ -47,7 +46,6 @@ const createStudent = z.object({
   whatsApp: opt(text(20)),
   presentAddress: opt(text(300)),
   permanentAddress: opt(text(300)),
-  photo: opt(url),
   // required: it decides which religion subject the student takes
   religion: z.enum(Religion, { error: "Religion is required!" }),
   guardianName: opt(text(150)),
@@ -72,11 +70,19 @@ const updateStudent = z
     whatsApp: clearable(text(20)),
     presentAddress: clearable(text(300)),
     permanentAddress: clearable(text(300)),
-    photo: clearable(url),
     // can be changed but not cleared
     religion: z.enum(Religion).optional(),
     guardianName: clearable(text(150)),
     guardianPhone: clearable(bdPhoneSchema),
+  })
+  .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" });
+
+// the current year's placement inside the same class (another class is a promotion)
+const changePlacement = z
+  .strictObject({
+    sectionId: idSchema("Section").optional(),
+    groupId: clearable(z.string().trim().min(1)),
+    rollNumber: clearable(rollNumber),
   })
   .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" });
 
@@ -101,6 +107,7 @@ const listStudentsQuery = z.object({
 export const StudentValidation = {
   createStudent,
   updateStudent,
+  changePlacement,
   studentIdParams,
   listStudentsQuery,
 };

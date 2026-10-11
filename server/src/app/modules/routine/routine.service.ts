@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { displayName } from "../../shared/names";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, loadCalendar, weeklyHolidaysOn } from "../calendar/calendar.resolver";
 import { resolveSectionHours } from "../schedule/schedule.service";
@@ -20,11 +21,13 @@ import type {
 } from "./routine.validation";
 
 type Auth = NonNullable<Express.Request["auth"]>;
-type Period = { number: number; nameEn: string; nameBn: string; startTime: string; endTime: string; isBreak: boolean };
-type Template = { id: string; nameEn: string; nameBn: string; periods: Map<number, Period> };
+type Period = { number: number; nameEn: string | null; nameBn: string | null; startTime: string; endTime: string; isBreak: boolean };
+type Template = { id: string; nameEn: string | null; nameBn: string | null; periods: Map<number, Period> };
 
 const teacherBrief = {
   id: true,
+  nameEn: true,
+  nameBn: true,
   designation: true,
   membership: { select: { user: { select: { id: true, fullname: true, phone: true } } } },
 } satisfies Prisma.TeacherProfileSelect;
@@ -46,7 +49,8 @@ const entryInclude = {
 
 type Entry = Prisma.RoutineEntryGetPayload<{ include: typeof entryInclude }>;
 
-const teacherName = (t: { membership: { user: { fullname: string } } } | null) => t?.membership.user.fullname ?? null;
+// for the API's (English) messages
+const teacherName = (t: { nameEn: string } | null) => t?.nameEn ?? null;
 
 // ------------------------------------------------------------------- helpers
 
@@ -71,7 +75,7 @@ const yearCovering = async (schoolId: string, date: Date) => {
   return year;
 };
 
-const toTemplate = (t: { id: string; nameEn: string; nameBn: string; periods: Period[] }): Template => ({
+const toTemplate = (t: { id: string; nameEn: string | null; nameBn: string | null; periods: Period[] }): Template => ({
   id: t.id,
   nameEn: t.nameEn,
   nameBn: t.nameBn,
@@ -145,7 +149,7 @@ const saveEntry = async (schoolId: string, data: EntryPayload, entryId?: string)
     prisma.section.findMany({ where: { id: { in: data.sectionIds }, schoolId, classId: data.classId }, select: { id: true, name: true } }),
     prisma.classSubject.findFirst({
       where: { id: data.classSubjectId, schoolId, classId: data.classId, academicYearId: year.id },
-      select: { id: true, type: true, groupId: true, subject: { select: { nameEn: true, religion: true } } },
+      select: { id: true, type: true, groupId: true, subject: { select: { nameEn: true, nameBn: true, religion: true } } },
     }),
     data.teacherId
       ? prisma.teacherProfile.findFirst({ where: { id: data.teacherId, schoolId, status: { in: WORKING_STATUSES } }, select: teacherBrief })
@@ -175,7 +179,7 @@ const saveEntry = async (schoolId: string, data: EntryPayload, entryId?: string)
     }
     const period = template.periods.get(data.periodNumber);
     if (!period) throw new AppError(`Section ${section.name}'s periods have no period ${data.periodNumber}`, httpStatus.BAD_REQUEST);
-    if (period.isBreak) throw new AppError(`Period ${data.periodNumber} (${period.nameEn}) is a break`, httpStatus.BAD_REQUEST);
+    if (period.isBreak) throw new AppError(`Period ${data.periodNumber} (${displayName(period)}) is a break`, httpStatus.BAD_REQUEST);
     if (time && (time.startTime !== period.startTime || time.endTime !== period.endTime)) {
       throw new AppError("Sections taught together must have this period at the same time", httpStatus.BAD_REQUEST);
     }
@@ -198,7 +202,7 @@ const saveEntry = async (schoolId: string, data: EntryPayload, entryId?: string)
     if (!audiencesDisjoint(audience, audienceOf(other.classSubject))) {
       const shared = other.sections.find((s) => data.sectionIds.includes(s.section.id))!.section;
       throw new AppError(
-        `Section ${shared.name} already has ${other.classSubject.subject.nameEn} in period ${data.periodNumber} on ${weekdayName}`,
+        `Section ${shared.name} already has ${displayName(other.classSubject.subject)} in period ${data.periodNumber} on ${weekdayName}`,
         httpStatus.CONFLICT,
       );
     }
@@ -215,7 +219,7 @@ const saveEntry = async (schoolId: string, data: EntryPayload, entryId?: string)
       const period = theirTemplates.get(other.sections[0].section.id)?.periods.get(other.periodNumber);
       if (period && timesOverlap(period, time!)) {
         throw new AppError(
-          `${teacherName(teacher)} already teaches ${other.classSubject.subject.nameEn} to ${other.class.name} ` +
+          `${teacherName(teacher)} already teaches ${displayName(other.classSubject.subject)} to ${other.class.name} ` +
             `${other.sections.map((s) => s.section.name).join(" + ")} at ${period.startTime}-${period.endTime} on ${weekdayName}`,
           httpStatus.CONFLICT,
         );

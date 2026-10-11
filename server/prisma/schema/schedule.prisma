@@ -71,8 +71,8 @@ model PeriodTemplate {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  nameEn String // "Regular day", "Ramadan"
-  nameBn String
+  nameEn String? // "Regular day", "Ramadan"
+  nameBn String?
 
   periods TemplatePeriod[]
 
@@ -92,8 +92,8 @@ model TemplatePeriod {
   template   PeriodTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   number    Int // 1, 2, 3... in the order of the day
-  nameEn    String // "1st period", "Tiffin"
-  nameBn    String
+  nameEn    String? // "1st period", "Tiffin"
+  nameBn    String?
   startTime String // "HH:mm"
   endTime   String
   isBreak   Boolean @default(false) // tiffin, prayer: no class is placed in it

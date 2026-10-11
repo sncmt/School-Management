@@ -4,3 +4,4 @@ import { StudentValidation } from "./student.validation";
 export type CreateStudentPayload = z.infer<typeof StudentValidation.createStudent>;
 export type UpdateStudentPayload = z.infer<typeof StudentValidation.updateStudent>;
 export type ListStudentsQuery = z.infer<typeof StudentValidation.listStudentsQuery>;
+export type ChangePlacementPayload = z.infer<typeof StudentValidation.changePlacement>;

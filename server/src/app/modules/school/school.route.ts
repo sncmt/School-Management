@@ -3,6 +3,7 @@ import express from "express";
 import { SchoolController } from "./school.controller";
 import { SchoolValidation } from "./school.validation";
 import authenticate from "../../middlewares/auth";
+import { imageUploadMiddleware } from "../../shared/imageUpload";
 
 const router = express.Router();
 
@@ -60,5 +61,20 @@ router.post(
   validateRequest({ params: SchoolValidation.schoolIdParamsSchema }),
   SchoolController.resetSuperAdminPassword,
 );
+
+// branding: one image in the "file" field (multipart); logo 512 px WebP, favicon 64 px PNG
+for (const kind of ["logo", "favicon"] as const) {
+  router.put(
+    `/:schoolId/${kind}`,
+    validateRequest({ params: SchoolValidation.schoolIdParamsSchema }),
+    imageUploadMiddleware,
+    SchoolController[kind].set,
+  );
+  router.delete(
+    `/:schoolId/${kind}`,
+    validateRequest({ params: SchoolValidation.schoolIdParamsSchema }),
+    SchoolController[kind].remove,
+  );
+}
 
 export const schoolRoutes = router;

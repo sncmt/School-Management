@@ -23,6 +23,14 @@ router.get(
   ClassSubjectController.getClassSubjects,
 );
 
+// a class's whole subject order at once (drag and drop); before "/:classSubjectId"
+router.put(
+  "/reorder",
+  authorize("class_subject:manage"),
+  validateRequest({ body: ClassSubjectValidation.reorder }),
+  ClassSubjectController.reorderClassSubjects,
+);
+
 router.patch(
   "/:classSubjectId",
   authorize("class_subject:manage"),

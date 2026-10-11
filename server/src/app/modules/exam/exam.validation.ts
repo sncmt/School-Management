@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { ExamType } from "../../../../generated/prisma/enums";
 import { idSchema } from "../../shared/financeSchemas";
+import { schoolLanguageNames } from "../../shared/names";
 import { dateOnlySchema, timeSchema } from "../../shared/scheduleSchemas";
 
 const optionalId = z.string().trim().min(1).optional();
 const hasMaxTwoDecimals = (n: number) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6;
 
-const nameEn = z.string({ error: "English name is required!" }).trim().min(1, "English name is required!").max(100);
-const nameBn = z.string({ error: "Bangla name is required!" }).trim().min(1, "Bangla name is required!").max(100);
+// the name in the school's language is required (the service checks it); the other is optional
+const names = schoolLanguageNames(100);
 
 const marks = (label: string) =>
   z
@@ -24,8 +25,7 @@ const createExam = z
   .strictObject({
     // defaults to the current academic year
     academicYearId: optionalId,
-    nameEn,
-    nameBn,
+    ...names,
     type: z.enum(ExamType),
     // true = every class ("select all"); false = only the classes in classIds
     allClasses: z.boolean().default(true),
@@ -50,8 +50,7 @@ const createExam = z
 // missing = leave as it is; null attendance dates = back to the default period
 const updateExam = z
   .strictObject({
-    nameEn: nameEn.optional(),
-    nameBn: nameBn.optional(),
+    ...names,
     attendanceFrom: dateOnlySchema.nullable().optional(),
     attendanceTo: dateOnlySchema.nullable().optional(),
   })

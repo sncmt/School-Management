@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { ClassSubjectValidation } from "./classSubject.validation";
 
+export type ReorderPayload = z.infer<typeof ClassSubjectValidation.reorder>;
 export type AssignSubjectsPayload = z.infer<typeof ClassSubjectValidation.assignSubjects>;
 export type ListClassSubjectsQuery = z.infer<typeof ClassSubjectValidation.listQuery>;
 export type UpdateClassSubjectPayload = z.infer<typeof ClassSubjectValidation.updateClassSubject>;

@@ -1,8 +1,13 @@
 import { z } from "zod";
 import { Religion } from "../../../../generated/prisma/enums";
 import { idSchema } from "../../shared/financeSchemas";
+import { schoolLanguageNames } from "../../shared/names";
 
-// both names are required: a school can work in Bangla or in English
+/*
+ * Names: the shared NCTB list needs both (every school reads it, in either
+ * language); a school's own subject needs the name in the school's language,
+ * which the service checks, and the other is optional.
+ */
 const nameEn = z
   .string({ error: "English name is required!" })
   .trim()
@@ -15,6 +20,9 @@ const nameBn = z
   .min(1, "Bangla name is required!")
   .max(100, "Bangla name cannot exceed 100 characters");
 
+const platformNames = { nameEn, nameBn };
+const schoolNames = schoolLanguageNames(100);
+
 // NCTB code such as "101"
 const code = z
   .string()
@@ -23,35 +31,43 @@ const code = z
   .max(20, "Code cannot exceed 20 characters")
   .regex(/^[A-Za-z0-9-]+$/, "Code: letters, digits and dashes only");
 
-const createSubject = z
-  .strictObject({
-    nameEn,
-    nameBn,
-    code: code.optional(),
-    // set for a paper: "Bangla 1st Paper" -> "Bangla"
-    parentId: z.string().trim().min(1).optional(),
-    // set for a religion subject: "Islam and Moral Education" -> ISLAM
-    religion: z.enum(Religion).optional(),
-  })
-  .refine((d) => !(d.parentId && d.religion), {
-    message: "A religion subject cannot be a paper",
-    path: ["religion"],
-  });
+const religionNotPaper = {
+  message: "A religion subject cannot be a paper",
+  path: ["religion"],
+};
+
+const createFields = {
+  code: code.optional(),
+  // set for a paper: "Bangla 1st Paper" -> "Bangla"
+  parentId: z.string().trim().min(1).optional(),
+  // set for a religion subject: "Islam and Moral Education" -> ISLAM
+  religion: z.enum(Religion).optional(),
+};
 
 // missing = leave as it is, null = clear
+const updateFields = {
+  code: code.nullable().optional(),
+  parentId: z.string().trim().min(1).nullable().optional(),
+  religion: z.enum(Religion).nullable().optional(),
+};
+
+const createSubject = z
+  .strictObject({ ...platformNames, ...createFields })
+  .refine((d) => !(d.parentId && d.religion), religionNotPaper);
+
+const createSchoolSubject = z
+  .strictObject({ ...schoolNames, ...createFields })
+  .refine((d) => !(d.parentId && d.religion), religionNotPaper);
+
 const updateSubject = z
-  .strictObject({
-    nameEn: nameEn.optional(),
-    nameBn: nameBn.optional(),
-    code: code.nullable().optional(),
-    parentId: z.string().trim().min(1).nullable().optional(),
-    religion: z.enum(Religion).nullable().optional(),
-  })
+  .strictObject({ nameEn: nameEn.optional(), nameBn: nameBn.optional(), ...updateFields })
   .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" })
-  .refine((d) => !(d.parentId && d.religion), {
-    message: "A religion subject cannot be a paper",
-    path: ["religion"],
-  });
+  .refine((d) => !(d.parentId && d.religion), religionNotPaper);
+
+const updateSchoolSubject = z
+  .strictObject({ ...schoolNames, ...updateFields })
+  .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" })
+  .refine((d) => !(d.parentId && d.religion), religionNotPaper);
 
 const subjectIdParams = z.object({ subjectId: idSchema("Subject id") });
 
@@ -63,7 +79,9 @@ const listSubjectsQuery = z.object({
 
 export const SubjectValidation = {
   createSubject,
+  createSchoolSubject,
   updateSubject,
+  updateSchoolSubject,
   subjectIdParams,
   listSubjectsQuery,
 };

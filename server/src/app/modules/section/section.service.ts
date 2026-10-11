@@ -29,16 +29,16 @@ const yearConfigSelect = {
   periodTemplate: { select: { id: true, nameEn: true, nameBn: true } },
   classTeacherMembershipId: true,
   classTeacherMembership: {
-    select: { id: true, user: { select: { id: true, fullname: true, phone: true, email: true } } },
+    select: {
+      id: true,
+      user: { select: { id: true, fullname: true, phone: true, email: true } },
+      // the class teacher's names as this school writes them
+      teacherProfile: { select: { id: true, nameEn: true, nameBn: true } },
+    },
   },
 } satisfies Prisma.SectionYearConfigSelect;
 
 // ------------------------------------------------------------------- helpers
-
-const findClass = async (schoolId: string, classId: string) => {
-  const found = await prisma.schoolClass.findFirst({ where: { id: classId, schoolId }, select: { id: true } });
-  if (!found) throw new AppError("Class not found for this school", httpStatus.NOT_FOUND);
-};
 
 const findSection = async (schoolId: string, sectionId: string) => {
   const section = await prisma.section.findFirst({
@@ -135,25 +135,56 @@ const loadYearData = async (academicYearId: string, sectionIds: string[]) => {
 
 // -------------------------------------------------------------------- create
 
-const createSection = async (schoolId: string, data: CreateSectionPayload) => {
-  const { classId, name } = data;
-  await findClass(schoolId, classId);
+/*
+ * Every listed class gets every listed name, in one transaction. A class that already has
+ * a section with one of the names (ignoring case) keeps it, and that pair is reported as
+ * skipped instead of failing the whole request. Each class that gets a new section loses
+ * its unused automatic "Default" section.
+ */
+const createSections = async (schoolId: string, data: CreateSectionPayload) => {
+  const classes = await prisma.schoolClass.findMany({
+    where: { id: { in: data.classIds }, schoolId },
+    orderBy: [{ numericLevel: "asc" }, { name: "asc" }],
+    select: { id: true, name: true },
+  });
+  if (classes.length !== data.classIds.length) {
+    throw new AppError("One or more classes were not found for this school", httpStatus.NOT_FOUND);
+  }
 
   try {
-    const { section, removedDefaults } = await prisma.$transaction(async (tx) => {
-      // the default section (if unused) makes way for the real ones, even if the names match
-      const removedDefaults = await removeUnusedDefaults(tx, schoolId, classId);
-      await assertNameFree(tx, schoolId, classId, name);
-
-      const section = await tx.section.create({
-        data: { schoolId, classId, name },
-        include: sectionInclude,
+    return await prisma.$transaction(async (tx) => {
+      // what each class already has; an unused default is about to make way, so it doesn't count
+      const existing = await tx.section.findMany({
+        where: {
+          schoolId,
+          classId: { in: data.classIds },
+          NOT: { isDefault: true, enrollments: { none: {} } },
+        },
+        select: { classId: true, name: true },
       });
-      return { section, removedDefaults };
-    });
+      const taken = new Set(existing.map((s) => `${s.classId}:${s.name.toLowerCase()}`));
 
-    return { ...section, replacedDefaultSection: removedDefaults > 0 };
+      const created = [];
+      const skipped: { classId: string; className: string; name: string }[] = [];
+      let replacedDefaultSections = 0;
+
+      for (const schoolClass of classes) {
+        const names = data.names.filter((name) => !taken.has(`${schoolClass.id}:${name.toLowerCase()}`));
+        for (const name of data.names) {
+          if (!names.includes(name)) skipped.push({ classId: schoolClass.id, className: schoolClass.name, name });
+        }
+        if (names.length === 0) continue;
+
+        replacedDefaultSections += await removeUnusedDefaults(tx, schoolId, schoolClass.id);
+        for (const name of names) {
+          created.push(await tx.section.create({ data: { schoolId, classId: schoolClass.id, name }, include: sectionInclude }));
+        }
+      }
+
+      return { created, skipped, replacedDefaultSections };
+    });
   } catch (e) {
+    // created by someone else at the same moment
     if (isUniqueViolation(e)) throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
     throw e;
   }
@@ -357,7 +388,7 @@ const getYearConfig = async (schoolId: string, sectionId: string, query: YearCon
 };
 
 export const SectionService = {
-  createSection,
+  createSections,
   getSections,
   getSectionById,
   updateSection,

@@ -6,6 +6,7 @@ import { AppError } from "../../errorHandler/AppError";
 import { JwtUtils } from "../../utils/jwt";
 import { PasswordUtils } from "../../utils/password";
 import type { ChangePasswordPayload, PlatformLoginPayload, SchoolLoginPayload } from "./auth.type";
+import { withFileUrls } from "../../shared/storage";
 import { RefreshTokenService, type ClientMeta } from "./refreshToken.service";
 
 type AuthContext = NonNullable<Express.Request["auth"]>;
@@ -320,7 +321,8 @@ const getMe = async (auth: AuthContext) => {
   return {
     sessionType: "SCHOOL" as const,
     user,
-    school,
+    // the logo and favicon keys as signed links
+    school: school && (await withFileUrls(school, ["logo", "favicon"])),
     roles: userRoles.map((ur) => ({ id: ur.role.id, name: ur.role.name })),
     isSuperAdmin,
     permissions: permissions.sort(),

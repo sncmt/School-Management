@@ -12,9 +12,13 @@ const opt = <T extends z.ZodType>(schema: T) => z.preprocess(blank, schema.optio
 const clearable = <T extends z.ZodType>(schema: T) => z.preprocess(blankToNull, schema.nullable().optional());
 
 const text = (max: number) => z.string().trim().max(max);
-const fullname = z.string({ error: "Name is required!" }).trim().min(2, "Name is required!").max(150);
+// both names are required, whatever the school's language
+const name = (label: string) =>
+  z.string({ error: `${label} is required!` }).trim().min(2, `${label} is required!`).max(150);
+const nameEn = name("English name");
+const nameBn = name("Bangla name");
 
-// every profile field is optional
+// every profile field is optional; the photo is uploaded on its own (PUT /:teacherId/photo)
 const profileFields = {
   designation: text(100),
   mpoIndex: text(30),
@@ -22,12 +26,12 @@ const profileFields = {
   qualification: text(200),
   specialization: text(200),
   gender: z.enum(Gender),
-  photo: z.string().trim().url("Enter a valid URL").max(500),
   nid: z.string().trim().regex(/^\d{10}$|^\d{13}$|^\d{17}$/, "NID must be 10, 13 or 17 digits"),
 };
 
 const createTeacher = z.strictObject({
-  fullname,
+  nameEn,
+  nameBn,
   // the teacher's login; an existing account with this number is linked, not replaced
   phone: bdPhoneSchema,
   designation: opt(profileFields.designation),
@@ -36,15 +40,16 @@ const createTeacher = z.strictObject({
   qualification: opt(profileFields.qualification),
   specialization: opt(profileFields.specialization),
   gender: opt(profileFields.gender),
-  photo: opt(profileFields.photo),
   nid: opt(profileFields.nid),
 });
 
 // missing = leave as it is, null or "" = clear
 const updateTeacher = z
   .strictObject({
-    // name and phone belong to the account: only changeable when it is used in this school alone
-    fullname: fullname.optional(),
+    // the names are this school's; the phone is the account's login, only changeable
+    // when the account is used in this school alone
+    nameEn: nameEn.optional(),
+    nameBn: nameBn.optional(),
     phone: bdPhoneSchema.optional(),
     designation: clearable(profileFields.designation),
     mpoIndex: clearable(profileFields.mpoIndex),
@@ -52,7 +57,6 @@ const updateTeacher = z
     qualification: clearable(profileFields.qualification),
     specialization: clearable(profileFields.specialization),
     gender: clearable(profileFields.gender),
-    photo: clearable(profileFields.photo),
     nid: clearable(profileFields.nid),
     // a working teacher is ACTIVE or ON_LEAVE; leaving goes through /deactivate
     status: z.enum(["ACTIVE", "ON_LEAVE"]).optional(),

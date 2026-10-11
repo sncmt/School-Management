@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertSchoolLanguageName } from "../../shared/names";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, eachDay, loadCalendar, weeklyHolidaysOn } from "./calendar.resolver";
 import type {
@@ -151,6 +152,7 @@ const restoreNationalHoliday = async (schoolId: string, nationalHolidayId: strin
 
 /* The year must belong to the school and contain the dates; the classes must be the school's. */
 const assertEntryValid = async (schoolId: string, data: EntryPayload) => {
+  await assertSchoolLanguageName(schoolId, data);
   const year = await prisma.academicYear.findFirst({
     where: { id: data.academicYearId, schoolId },
     select: { startDate: true, endDate: true },
@@ -175,8 +177,8 @@ const entryData = (data: EntryPayload) => ({
   academicYearId: data.academicYearId,
   kind: data.kind,
   type: data.type ?? null,
-  nameEn: data.nameEn,
-  nameBn: data.nameBn,
+  nameEn: data.nameEn ?? null,
+  nameBn: data.nameBn ?? null,
   description: data.description ?? null,
   fromDate: data.fromDate,
   toDate: data.toDate,

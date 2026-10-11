@@ -20,9 +20,10 @@ model Subject {
   schoolId String?
   school   School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  // both are required: a school can work in Bangla or in English
-  nameEn String
-  nameBn String
+  // platform (NCTB) subjects need both names; a school's own subjects need the name in
+  // the school's language (the other is optional and the apps fall back to it)
+  nameEn String?
+  nameBn String?
   code   String? // NCTB code, e.g. "101"
 
   // set for a religion subject ("Islam and Moral Education" = ISLAM): only students of that

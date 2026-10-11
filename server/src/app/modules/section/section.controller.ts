@@ -5,14 +5,14 @@ import sendResponse from "../../shared/sendResponse";
 import { SectionService } from "./section.service";
 import type { ListSectionsQuery, SectionQuery, YearConfigQuery } from "./section.type";
 
-const createSection = catchAsync(async (req: Request, res: Response) => {
-  const section = await SectionService.createSection(req.auth!.schoolId!, req.body);
+const createSections = catchAsync(async (req: Request, res: Response) => {
+  const result = await SectionService.createSections(req.auth!.schoolId!, req.body);
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: "Section created successfully!",
-    data: section,
+    message: `${result.created.length} section(s) created${result.skipped.length ? `, ${result.skipped.length} already existed` : ""}`,
+    data: result,
   });
 });
 
@@ -102,7 +102,7 @@ const getYearConfig = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const SectionController = {
-  createSection,
+  createSections,
   getSections,
   getSectionById,
   updateSection,

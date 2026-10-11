@@ -2,6 +2,7 @@ import express from "express";
 import validateRequest from "../../errorHandler/validateRequest";
 import authenticate from "../../middlewares/auth";
 import authorize from "../../middlewares/authorize";
+import { imageUploadMiddleware } from "../../shared/imageUpload";
 import { StudentController } from "./student.controller";
 import { StudentValidation } from "./student.validation";
 
@@ -45,6 +46,30 @@ router.post(
   authorize("student:reset_password"),
   validateRequest({ params: StudentValidation.studentIdParams }),
   StudentController.resetGuardianPassword,
+);
+
+// section, group or roll in the current year (same class)
+router.patch(
+  "/:studentId/enrollment",
+  authorize("student:update"),
+  validateRequest({ params: StudentValidation.studentIdParams, body: StudentValidation.changePlacement }),
+  StudentController.changePlacement,
+);
+
+// the photo: one image in the "file" field (multipart), resized to 400 px
+router.put(
+  "/:studentId/photo",
+  authorize("student:update"),
+  validateRequest({ params: StudentValidation.studentIdParams }),
+  imageUploadMiddleware,
+  StudentController.setPhoto,
+);
+
+router.delete(
+  "/:studentId/photo",
+  authorize("student:update"),
+  validateRequest({ params: StudentValidation.studentIdParams }),
+  StudentController.removePhoto,
 );
 
 export const studentRoutes = router;

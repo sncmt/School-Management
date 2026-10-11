@@ -16,7 +16,17 @@ type Props = {
   disabled?: boolean;
 };
 
-/** "Showing 1–10 of 45 · Rows per page [10] · Page 1 of 5 ‹ ›" under a server-paginated table. */
+// how many page numbers to show at once
+const PAGE_WINDOW = 5;
+
+/** Up to PAGE_WINDOW page numbers around the current page, kept inside 1..totalPages. */
+const visiblePages = (page: number, totalPages: number) => {
+  const start = Math.max(1, Math.min(page - Math.floor(PAGE_WINDOW / 2), totalPages - PAGE_WINDOW + 1));
+  const end = Math.min(totalPages, start + PAGE_WINDOW - 1);
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+};
+
+/** "Showing 1–10 of 45 · Rows per page [10] · First ‹ 1 2 3 4 5 › Last" under a server-paginated table. */
 export function TablePagination({
   page,
   limit,
@@ -53,9 +63,15 @@ export function TablePagination({
           </Select>
         </div>
 
-        <span>{t("page", { page, pages: totalPages })}</span>
-
-        <div className="flex gap-1">
+        <nav className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(1)}
+            disabled={disabled || page <= 1}
+          >
+            {t("first")}
+          </Button>
           <Button
             variant="outline"
             size="icon"
@@ -66,6 +82,22 @@ export function TablePagination({
           >
             <ChevronLeft />
           </Button>
+
+          {visiblePages(page, totalPages).map((n) => (
+            <Button
+              key={n}
+              variant={n === page ? "default" : "outline"}
+              size="sm"
+              className="min-w-8"
+              onClick={() => onPageChange(n)}
+              disabled={disabled}
+              aria-current={n === page ? "page" : undefined}
+              aria-label={t("goToPage", { page: n })}
+            >
+              {format.number(n)}
+            </Button>
+          ))}
+
           <Button
             variant="outline"
             size="icon"
@@ -76,7 +108,15 @@ export function TablePagination({
           >
             <ChevronRight />
           </Button>
-        </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(totalPages)}
+            disabled={disabled || page >= totalPages}
+          >
+            {t("last")}
+          </Button>
+        </nav>
       </div>
     </div>
   );

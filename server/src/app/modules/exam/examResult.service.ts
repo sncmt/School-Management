@@ -3,6 +3,7 @@ import { Prisma } from "../../../../generated/prisma/client";
 import type { AttendanceStatus } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { displayName } from "../../shared/names";
 import { dayKey } from "../../shared/scheduleSchemas";
 import {
   computeStudentResult,
@@ -316,11 +317,11 @@ const unlockResult = async (schoolId: string, data: ExamClassPayload) => {
       status: "PUBLISHED",
       components: { some: { exams: { some: { examId: data.examId } } } },
     },
-    select: { nameEn: true },
+    select: { nameEn: true, nameBn: true },
   });
   if (finalResult) {
     throw new AppError(
-      `The final result "${finalResult.nameEn}" uses this exam. Unlock that final result first`,
+      `The final result "${displayName(finalResult)}" uses this exam. Unlock that final result first`,
       httpStatus.CONFLICT,
     );
   }
@@ -388,7 +389,7 @@ const getTabulation = async (schoolId: string, query: TabulationQuery) => {
   results.sort(query.sort === "merit" ? (a, b) => a.classPosition - b.classPosition || byRoll(a, b) : byRoll);
 
   // the subject columns, in the class's order
-  const columns = new Map<string, { subjectId: string; nameEn: string; nameBn: string; code: string | null; isOptional: boolean; sortOrder: number }>();
+  const columns = new Map<string, { subjectId: string; nameEn: string | null; nameBn: string | null; code: string | null; isOptional: boolean; sortOrder: number }>();
   for (const r of results) {
     for (const s of r.subjects) {
       if (!columns.has(s.subjectId)) {

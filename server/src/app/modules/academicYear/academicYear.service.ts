@@ -1,6 +1,7 @@
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
-import { CreateAcademicYearPayload } from "./academicYear.type";
+import { dayKey } from "../../shared/scheduleSchemas";
+import type { CreateAcademicYearPayload, UpdateAcademicYearPayload } from "./academicYear.type";
 import httpStatus from 'http-status'
 import type { Prisma } from "../../../../generated/prisma/client";
 
@@ -27,6 +28,8 @@ const createAcademicYear = async (
         httpStatus.CONFLICT
       );
     }
+
+    await assertNoOverlap(tx, schoolId, startDate, endDate);
 
     // 2. If this year should become current,
     //    remove current status from existing year
@@ -304,6 +307,152 @@ const carryOverSectionConfigs = async (
   return result.count;
 };
 
+// ------------------------------------------------------------------- helpers
+
+type Db = Prisma.TransactionClient | typeof prisma;
+
+/*
+ * Two years of one school never cover the same day: "the year of a date" (attendance,
+ * calendar, exams) must have one answer.
+ */
+const assertNoOverlap = async (db: Db, schoolId: string, startDate: Date, endDate: Date, excludeId?: string) => {
+  const clash = await db.academicYear.findFirst({
+    where: {
+      schoolId,
+      startDate: { lte: endDate },
+      endDate: { gte: startDate },
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
+    select: { name: true, startDate: true, endDate: true },
+  });
+  if (clash) {
+    throw new AppError(
+      `These dates overlap ${clash.name} (${dayKey(clash.startDate)} to ${dayKey(clash.endDate)})`,
+      httpStatus.CONFLICT,
+    );
+  }
+};
+
+const findYear = async (schoolId: string, academicYearId: string) => {
+  const year = await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId } });
+  if (!year) throw new AppError("Academic year not found", httpStatus.NOT_FOUND);
+  return year;
+};
+
+/*
+ * Records dated inside the year that would fall outside new dates. Moving a year's dates
+ * must not leave holidays, schedule changes, attendance or exam days outside it.
+ */
+const firstDatedOutside = async (academicYearId: string, start: Date, end: Date) => {
+  const [entry, change, attendance, examDay] = await Promise.all([
+    prisma.calendarEntry.findFirst({
+      where: { academicYearId, OR: [{ fromDate: { lt: start } }, { toDate: { gt: end } }] },
+      select: { id: true },
+    }),
+    prisma.scheduleOverride.findFirst({
+      where: { academicYearId, OR: [{ fromDate: { lt: start } }, { toDate: { gt: end } }] },
+      select: { id: true },
+    }),
+    prisma.attendanceSession.findFirst({
+      where: { academicYearId, OR: [{ date: { lt: start } }, { date: { gt: end } }] },
+      select: { id: true },
+    }),
+    prisma.examSubject.findFirst({
+      where: {
+        examClass: { exam: { academicYearId } },
+        OR: [{ date: { lt: start } }, { date: { gt: end } }],
+      },
+      select: { id: true },
+    }),
+  ]);
+  if (entry) return "calendar entries";
+  if (change) return "schedule changes";
+  if (attendance) return "attendance";
+  if (examDay) return "exam days";
+  return null;
+};
+
+// ------------------------------------------------------------------- reading
+
+/** Newest first, with how much each year holds. */
+const getAcademicYears = async (schoolId: string) => {
+  const years = await prisma.academicYear.findMany({
+    where: { schoolId },
+    orderBy: { startDate: "desc" },
+    include: { _count: { select: { enrollments: true, exams: true } } },
+  });
+  return years;
+};
+
+const getAcademicYearById = async (schoolId: string, academicYearId: string) => {
+  await findYear(schoolId, academicYearId);
+  return prisma.academicYear.findUniqueOrThrow({
+    where: { id: academicYearId },
+    include: { _count: { select: { enrollments: true, exams: true } } },
+  });
+};
+
+// -------------------------------------------------------------------- update
+
+/* Rename, or move the dates (they must still hold everything dated inside the year). */
+const updateAcademicYear = async (schoolId: string, academicYearId: string, data: UpdateAcademicYearPayload) => {
+  const year = await findYear(schoolId, academicYearId);
+
+  if (data.name !== undefined && data.name !== year.name) {
+    const taken = await prisma.academicYear.findFirst({
+      where: { schoolId, name: { equals: data.name, mode: "insensitive" }, id: { not: academicYearId } },
+      select: { id: true },
+    });
+    if (taken) throw new AppError(`Academic year "${data.name}" already exists`, httpStatus.CONFLICT);
+  }
+
+  const startDate = data.startDate ?? year.startDate;
+  const endDate = data.endDate ?? year.endDate;
+  const datesChange = dayKey(startDate) !== dayKey(year.startDate) || dayKey(endDate) !== dayKey(year.endDate);
+
+  if (datesChange) {
+    if (endDate <= startDate) {
+      throw new AppError("End date must be after start date", httpStatus.BAD_REQUEST, [
+        { path: "endDate", message: "End date must be after start date" },
+      ]);
+    }
+    await assertNoOverlap(prisma, schoolId, startDate, endDate, academicYearId);
+    const stranded = await firstDatedOutside(academicYearId, startDate, endDate);
+    if (stranded) {
+      throw new AppError(
+        `This year already has ${stranded} outside the new dates. Move or remove them first`,
+        httpStatus.CONFLICT,
+      );
+    }
+  }
+
+  return prisma.academicYear.update({
+    where: { id: academicYearId },
+    data: {
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(datesChange ? { startDate, endDate } : {}),
+    },
+    include: { _count: { select: { enrollments: true, exams: true } } },
+  });
+};
+
+/* The year the school works in by default (lists, admission, attendance). Only one at a time. */
+const setCurrentAcademicYear = async (schoolId: string, academicYearId: string) => {
+  await findYear(schoolId, academicYearId);
+  return prisma.$transaction(async (tx) => {
+    await tx.academicYear.updateMany({ where: { schoolId, isCurrent: true }, data: { isCurrent: false } });
+    return tx.academicYear.update({
+      where: { id: academicYearId },
+      data: { isCurrent: true },
+      include: { _count: { select: { enrollments: true, exams: true } } },
+    });
+  });
+};
+
 export const AcademicYearService = {
   createAcademicYear,
+  getAcademicYears,
+  getAcademicYearById,
+  updateAcademicYear,
+  setCurrentAcademicYear,
 };

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CalendarEntryKind, HolidayType } from "../../../../generated/prisma/enums";
 import { idSchema } from "../../shared/financeSchemas";
+import { schoolLanguageNames } from "../../shared/names";
 import { dateOnlySchema } from "../../shared/scheduleSchemas";
 
 const DAY_MS = 86_400_000;
@@ -57,8 +58,8 @@ const entryBody = z
     kind: z.enum(CalendarEntryKind),
     // required for holidays, left out for working days
     type: z.enum(HolidayType).optional(),
-    nameEn,
-    nameBn,
+    // the name in the school's language is required (the service checks it); the other is optional
+    ...schoolLanguageNames(100),
     description: description.optional(),
     // one day: fromDate = toDate
     fromDate: dateOnlySchema,

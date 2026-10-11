@@ -2,7 +2,7 @@ model School {
   id         String  @id @default(cuid())
   schoolCode String  @unique
   nameEn     String
-  nameBn     String?
+  nameBn     String
 
   subdomain      String       @unique
   email          String       @unique
@@ -249,9 +249,9 @@ model Group {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  // both are required: a school can work in Bangla or in English
-  nameEn String
-  nameBn String
+  // the name in the school's language is required; the other is optional (apps fall back to it)
+  nameEn String?
+  nameBn String?
 
   enrollments   Enrollment[]
   classSubjects ClassSubject[]

@@ -11,8 +11,9 @@ const RESERVED_SUBDOMAINS = new Set([
 ]);
 
 export const createSchoolSchema = z.object({
-    nameEn: z.string().min(2).max(200),
-    nameBn: z.string().min(2).max(200).optional(), 
+    // a school needs both names, whatever its language
+    nameEn: z.string({ error: "English name is required!" }).trim().min(2, "English name is required!").max(200),
+    nameBn: z.string({ error: "Bangla name is required!" }).trim().min(2, "Bangla name is required!").max(200),
     subdomain: z
       .string()
       .min(2)
@@ -67,7 +68,7 @@ const schoolIdParamsSchema = z.object({
 const updateSchoolSchema = z
   .object({
     nameEn: z.string().trim().min(2).max(200).optional(),
-    nameBn: z.string().trim().min(2).max(200).nullable().optional(),
+    nameBn: z.string().trim().min(2).max(200).optional(), // required, so it can change but not be cleared
     email: emailSchema.optional(),
     phone: z.string().trim().min(10).max(15).nullable().optional(),
     website: z.string().url().nullable().optional(),

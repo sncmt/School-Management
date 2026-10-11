@@ -1,6 +1,7 @@
 import httpStatus from "http-status";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { displayName } from "../../shared/names";
 import type { OptionalQuery, SetOptionalChoicesPayload } from "./exam.validation";
 
 /*
@@ -104,7 +105,7 @@ const setChoices = async (schoolId: string, userId: string, data: SetOptionalCho
   const chosenIds = [...new Set(data.choices.flatMap((c) => (c.classSubjectId ? [c.classSubjectId] : [])))];
   const options = await prisma.classSubject.findMany({
     where: { id: { in: chosenIds }, schoolId },
-    select: { id: true, classId: true, academicYearId: true, groupId: true, type: true, subject: { select: { nameEn: true } } },
+    select: { id: true, classId: true, academicYearId: true, groupId: true, type: true, subject: { select: { nameEn: true, nameBn: true } } },
   });
   const optionOf = new Map(options.map((o) => [o.id, o]));
 
@@ -116,10 +117,10 @@ const setChoices = async (schoolId: string, userId: string, data: SetOptionalCho
       throw new AppError("Only an optional subject of the class can be chosen", httpStatus.BAD_REQUEST);
     }
     if (option.classId !== enrollment.classId || option.academicYearId !== enrollment.academicYearId) {
-      throw new AppError(`${option.subject.nameEn} is not an optional subject of the student's class`, httpStatus.BAD_REQUEST);
+      throw new AppError(`${displayName(option.subject)} is not an optional subject of the student's class`, httpStatus.BAD_REQUEST);
     }
     if (!openTo(option, enrollment.groupId)) {
-      throw new AppError(`${option.subject.nameEn} is not open to the student's group`, httpStatus.BAD_REQUEST);
+      throw new AppError(`${displayName(option.subject)} is not open to the student's group`, httpStatus.BAD_REQUEST);
     }
   }
 

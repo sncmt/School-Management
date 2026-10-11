@@ -3,6 +3,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
+import { uploadFile } from "@/lib/api/upload";
 
 // ------------------------------------------------------------------- types
 
@@ -15,14 +16,16 @@ export type School = {
   id: string;
   schoolCode: string;
   nameEn: string;
-  nameBn: string | null;
+  nameBn: string;
   subdomain: string;
   email: string;
   phone: string | null;
   website: string | null;
   address: string | null;
   language: SchoolLanguage;
+  // signed links to the stored images, or null
   logo: string | null;
+  favicon: string | null;
   status: SchoolStatus;
   activationDate: string | null;
   monthlyFee: string | null; // Prisma Decimal arrives as a string
@@ -52,7 +55,7 @@ export type SchoolListQuery = {
 
 export type CreateSchoolBody = {
   nameEn: string;
-  nameBn?: string;
+  nameBn: string;
   subdomain: string;
   email: string;
   phone?: string;
@@ -85,7 +88,7 @@ export type SchoolDetail = School & {
 // subdomain can't change; null clears an optional field
 export type UpdateSchoolBody = Partial<{
   nameEn: string;
-  nameBn: string | null;
+  nameBn: string;
   email: string;
   phone: string | null;
   website: string | null;
@@ -94,6 +97,9 @@ export type UpdateSchoolBody = Partial<{
   monthlyFee: number | null;
   discount: number;
 }>;
+
+export type BrandingImage = "logo" | "favicon";
+export type SchoolBranding = Pick<School, "id" | "logo" | "favicon">;
 
 export type ChangeableSchoolStatus = "ACTIVE" | "SUSPENDED" | "INACTIVE";
 
@@ -150,6 +156,13 @@ export const schoolsApi = {
         `/school/${schoolId}/super-admin/reset-password`,
       )
     ).data.data,
+
+  // the server resizes it: logo 512 px WebP, favicon 64 px PNG
+  setBranding: ({ schoolId, kind, file, onProgress }: { schoolId: string; kind: BrandingImage; file: File; onProgress?: (percent: number) => void }) =>
+    uploadFile<SchoolBranding>(`/school/${schoolId}/${kind}`, file, onProgress),
+
+  removeBranding: async ({ schoolId, kind }: { schoolId: string; kind: BrandingImage }) =>
+    (await httpClient.delete<ApiResponse<SchoolBranding>>(`/school/${schoolId}/${kind}`)).data.data,
 };
 
 // ------------------------------------------------------------------- hooks
@@ -192,3 +205,5 @@ export const useUpdateSchool = () => useSchoolMutation(schoolsApi.update);
 export const useChangeSchoolStatus = () => useSchoolMutation(schoolsApi.changeStatus);
 // the detail page shows the super admin as "using a temporary password" afterwards
 export const useResetSuperAdminPassword = () => useSchoolMutation(schoolsApi.resetSuperAdminPassword);
+export const useSetSchoolBranding = () => useSchoolMutation(schoolsApi.setBranding);
+export const useRemoveSchoolBranding = () => useSchoolMutation(schoolsApi.removeBranding);

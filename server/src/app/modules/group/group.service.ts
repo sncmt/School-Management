@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertSchoolLanguageName } from "../../shared/names";
 import { isForeignKeyViolation, isUniqueViolation } from "../../utils/prismaError";
 import type { CreateGroupPayload, GroupQuery, UpdateGroupPayload } from "./group.type";
 
@@ -18,7 +19,7 @@ const findGroup = async (schoolId: string, groupId: string) => {
 /* "Science" and "science" are the same name, in English and in Bangla. */
 const assertNamesFree = async (
   schoolId: string,
-  names: { nameEn?: string; nameBn?: string },
+  names: { nameEn?: string | null; nameBn?: string | null },
   excludeGroupId?: string,
 ) => {
   const fields: Prisma.GroupWhereInput[] = [];
@@ -72,10 +73,13 @@ const loadYearCounts = async (academicYearId: string, groupIds: string[]) => {
 // ---------------------------------------------------------------------- crud
 
 const createGroup = async (schoolId: string, data: CreateGroupPayload) => {
+  await assertSchoolLanguageName(schoolId, data);
   await assertNamesFree(schoolId, data);
 
   try {
-    return await prisma.group.create({ data: { schoolId, nameEn: data.nameEn, nameBn: data.nameBn } });
+    return await prisma.group.create({
+      data: { schoolId, nameEn: data.nameEn ?? null, nameBn: data.nameBn ?? null },
+    });
   } catch (e) {
     if (isUniqueViolation(e)) throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
     throw e;
@@ -85,7 +89,10 @@ const createGroup = async (schoolId: string, data: CreateGroupPayload) => {
 const getGroups = async (schoolId: string, query: GroupQuery) => {
   const year = await resolveYear(schoolId, query.academicYearId);
 
-  const groups = await prisma.group.findMany({ where: { schoolId }, orderBy: { nameEn: "asc" } });
+  const groups = await prisma.group.findMany({
+    where: { schoolId },
+    orderBy: [{ nameEn: { sort: "asc", nulls: "last" } }, { nameBn: "asc" }],
+  });
   const countsOf = year ? await loadYearCounts(year.id, groups.map((g) => g.id)) : null;
 
   return {
@@ -107,6 +114,11 @@ const getGroupById = async (schoolId: string, groupId: string, query: GroupQuery
 const updateGroup = async (schoolId: string, groupId: string, data: UpdateGroupPayload) => {
   const group = await findGroup(schoolId, groupId);
 
+  // the names as they will be saved
+  await assertSchoolLanguageName(schoolId, {
+    nameEn: data.nameEn !== undefined ? data.nameEn : group.nameEn,
+    nameBn: data.nameBn !== undefined ? data.nameBn : group.nameBn,
+  });
   await assertNamesFree(
     schoolId,
     {

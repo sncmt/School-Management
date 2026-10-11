@@ -1,18 +1,19 @@
 import { z } from "zod";
 import { idSchema } from "../../shared/financeSchemas";
+import { schoolLanguageNames } from "../../shared/names";
 import { dateOnlySchema, timeSchema } from "../../shared/scheduleSchemas";
 
 const optionalId = z.string().trim().min(1).optional();
-const nameEn = z.string({ error: "English name is required!" }).trim().min(1, "English name is required!").max(50);
-const nameBn = z.string({ error: "Bangla name is required!" }).trim().min(1, "Bangla name is required!").max(50);
+// a template's and each period's name in the school's language is required (the service
+// checks it); the other is optional
+const names = schoolLanguageNames(50);
 
 // ------------------------------------------------------------ period templates
 
 const period = z
   .strictObject({
     number: z.number().int().min(1).max(20),
-    nameEn, // "1st period", "Tiffin"
-    nameBn,
+    ...names, // "1st period", "Tiffin"
     startTime: timeSchema,
     endTime: timeSchema,
     // tiffin, prayer: no class can be placed in it
@@ -23,8 +24,7 @@ const period = z
 /* A template's periods, in order: numbered once each, one after another without overlapping. */
 const templateBody = z
   .strictObject({
-    nameEn,
-    nameBn,
+    ...names,
     periods: z.array(period).min(1, "Add at least one period").max(20),
   })
   .superRefine((d, ctx) => {

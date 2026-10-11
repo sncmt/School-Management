@@ -3,10 +3,12 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import type { Religion } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { displayName } from "../../shared/names";
 import { isUniqueViolation } from "../../utils/prismaError";
 import type {
   AssignSubjectsPayload,
   ListClassSubjectsQuery,
+  ReorderPayload,
   SetMarksPayload,
   UpdateClassSubjectPayload,
 } from "./classSubject.type";
@@ -59,7 +61,7 @@ const findClassSubject = async (schoolId: string, classSubjectId: string) => {
 type Row = {
   subjectId: string;
   groupId: string | null;
-  subject: { nameEn: string; parentId: string | null; religion: Religion | null };
+  subject: { nameEn: string | null; nameBn: string | null; parentId: string | null; religion: Religion | null };
 };
 
 /*
@@ -74,7 +76,7 @@ const assertConsistent = (rows: Row[], groupNames: Map<string, string>) => {
     const key = `${r.subjectId}:${r.groupId ?? ""}`;
     if (seen.has(key)) {
       const forWhom = r.groupId ? ` for the ${groupNames.get(r.groupId) ?? "same"} group` : "";
-      throw new AppError(`${r.subject.nameEn} is already assigned to this class${forWhom}`, httpStatus.CONFLICT);
+      throw new AppError(`${displayName(r.subject)} is already assigned to this class${forWhom}`, httpStatus.CONFLICT);
     }
     seen.add(key);
   }
@@ -85,7 +87,7 @@ const assertConsistent = (rows: Row[], groupNames: Map<string, string>) => {
   for (const list of bySubject.values()) {
     if (list.some((r) => r.groupId === null) && list.some((r) => r.groupId !== null)) {
       throw new AppError(
-        `${list[0].subject.nameEn} cannot be both for the whole class and for a group`,
+        `${displayName(list[0].subject)} cannot be both for the whole class and for a group`,
         httpStatus.CONFLICT,
       );
     }
@@ -96,7 +98,7 @@ const assertConsistent = (rows: Row[], groupNames: Map<string, string>) => {
     const parent = parentId ? bySubject.get(parentId)?.[0] : undefined;
     if (parent) {
       throw new AppError(
-        `Assign either ${parent.subject.nameEn} or its papers (like ${r.subject.nameEn}), not both`,
+        `Assign either ${displayName(parent.subject)} or its papers (like ${displayName(r.subject)}), not both`,
         httpStatus.CONFLICT,
       );
     }
@@ -107,12 +109,12 @@ const assertConsistent = (rows: Row[], groupNames: Map<string, string>) => {
     const religion = r.subject.religion;
     if (!religion) continue;
     if (r.groupId !== null) {
-      throw new AppError(`${r.subject.nameEn} is a religion subject and must be for the whole class`, httpStatus.BAD_REQUEST);
+      throw new AppError(`${displayName(r.subject)} is a religion subject and must be for the whole class`, httpStatus.BAD_REQUEST);
     }
     const other = byReligion.get(religion);
     if (other && other.subjectId !== r.subjectId) {
       throw new AppError(
-        `This class already has ${other.subject.nameEn} for the same religion, so ${r.subject.nameEn} cannot be added`,
+        `This class already has ${displayName(other.subject)} for the same religion, so ${displayName(r.subject)} cannot be added`,
         httpStatus.CONFLICT,
       );
     }
@@ -139,14 +141,14 @@ const assignSubjects = async (schoolId: string, data: AssignSubjectsPayload) => 
     // the shared NCTB list or this school's own
     prisma.subject.findMany({
       where: { id: { in: subjectIds }, OR: [{ schoolId: null }, { schoolId }] },
-      select: { id: true, nameEn: true, parentId: true, religion: true },
+      select: { id: true, nameEn: true, nameBn: true, parentId: true, religion: true },
     }),
-    prisma.group.findMany({ where: { schoolId }, select: { id: true, nameEn: true } }),
+    prisma.group.findMany({ where: { schoolId }, select: { id: true, nameEn: true, nameBn: true } }),
   ]);
   if (subjects.length !== subjectIds.length) {
     throw new AppError("One or more subjects were not found", httpStatus.NOT_FOUND);
   }
-  const groupNames = new Map(groups.map((g) => [g.id, g.nameEn]));
+  const groupNames = new Map(groups.map((g) => [g.id, displayName(g)]));
   if (groupIds.some((id) => !groupNames.has(id))) {
     throw new AppError("One or more groups were not found for this school", httpStatus.NOT_FOUND);
   }
@@ -156,7 +158,7 @@ const assignSubjects = async (schoolId: string, data: AssignSubjectsPayload) => 
     return await prisma.$transaction(async (tx) => {
       const existing = await tx.classSubject.findMany({
         where: { academicYearId: year.id, classId: data.classId },
-        select: { subjectId: true, groupId: true, sortOrder: true, subject: { select: { nameEn: true, parentId: true, religion: true } } },
+        select: { subjectId: true, groupId: true, sortOrder: true, subject: { select: { nameEn: true, nameBn: true, parentId: true, religion: true } } },
       });
 
       const added = data.items.map((i) => ({
@@ -164,6 +166,7 @@ const assignSubjects = async (schoolId: string, data: AssignSubjectsPayload) => 
         groupId: i.groupId ?? null,
         subject: {
           nameEn: subjectById.get(i.subjectId)!.nameEn,
+          nameBn: subjectById.get(i.subjectId)!.nameBn,
           parentId: subjectById.get(i.subjectId)!.parentId,
           religion: subjectById.get(i.subjectId)!.religion,
         },
@@ -236,6 +239,35 @@ const updateClassSubject = async (schoolId: string, classSubjectId: string, data
   });
 };
 
+/*
+ * Saves a class's subject order for a year in one go (drag and drop): the list must hold
+ * exactly the class's subjects, so a stale or partial order can't scramble the positions.
+ * Mark sheets and the tabulation sheet follow this order.
+ */
+const reorderClassSubjects = async (schoolId: string, data: ReorderPayload) => {
+  const year = await resolveYear(schoolId, data.academicYearId);
+  const current = await prisma.classSubject.findMany({
+    where: { schoolId, academicYearId: year.id, classId: data.classId },
+    select: { id: true },
+  });
+
+  const listed = new Set(data.classSubjectIds);
+  if (current.length !== data.classSubjectIds.length || current.some((c) => !listed.has(c.id))) {
+    throw new AppError(
+      "The order must list every subject of this class exactly once. Reload and try again",
+      httpStatus.CONFLICT,
+    );
+  }
+
+  // one after another: the pg driver can't run queries side by side on one connection
+  await prisma.$transaction(async (tx) => {
+    for (const [sortOrder, id] of data.classSubjectIds.entries()) {
+      await tx.classSubject.update({ where: { id }, data: { sortOrder } });
+    }
+  }, TX_OPTIONS);
+  return getClassSubjects(schoolId, { academicYearId: year.id, classId: data.classId });
+};
+
 // -------------------------------------------------------------------- remove
 
 const removeClassSubject = async (schoolId: string, classSubjectId: string) => {
@@ -289,6 +321,7 @@ const setMarks = async (schoolId: string, classSubjectId: string, data: SetMarks
 
 export const ClassSubjectService = {
   setMarks,
+  reorderClassSubjects,
   assignSubjects,
   getClassSubjects,
   updateClassSubject,

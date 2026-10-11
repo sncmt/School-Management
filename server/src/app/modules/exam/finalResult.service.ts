@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertSchoolLanguageNames, displayName, type Names } from "../../shared/names";
 import { dayKey } from "../../shared/scheduleSchemas";
 import { rankResults, type ResultRules, round2, type ScaleRules } from "./examResult.calc";
 import { attendanceOver, attendancePercent, scaleInclude, summarize, toScaleRules } from "./examResult.service";
@@ -49,13 +50,13 @@ const findFormula = async (schoolId: string, formulaId: string) => {
 const assertExams = async (schoolId: string, academicYearId: string, classId: string, examIds: string[]) => {
   const exams = await prisma.exam.findMany({
     where: { id: { in: examIds }, schoolId, academicYearId },
-    select: { id: true, nameEn: true, classes: { where: { classId }, select: { id: true } } },
+    select: { id: true, nameEn: true, nameBn: true, classes: { where: { classId }, select: { id: true } } },
   });
   if (exams.length !== examIds.length) {
     throw new AppError("One or more exams were not found in this academic year", httpStatus.NOT_FOUND);
   }
   const without = exams.find((e) => e.classes.length === 0);
-  if (without) throw new AppError(`${without.nameEn} does not include this class`, httpStatus.BAD_REQUEST);
+  if (without) throw new AppError(`${displayName(without)} does not include this class`, httpStatus.BAD_REQUEST);
 };
 
 const assertAttendancePeriod = (year: { startDate: Date; endDate: Date }, from?: Date, to?: Date) => {
@@ -67,8 +68,8 @@ const assertAttendancePeriod = (year: { startDate: Date; endDate: Date }, from?:
 
 const componentsCreate = (data: UpdateFormulaPayload) => ({
   create: data.components.map((c, i) => ({
-    nameEn: c.nameEn,
-    nameBn: c.nameBn,
+    nameEn: c.nameEn ?? null,
+    nameBn: c.nameBn ?? null,
     weight: c.weight,
     method: c.method,
     bestCount: c.bestCount ?? null,
@@ -77,18 +78,32 @@ const componentsCreate = (data: UpdateFormulaPayload) => ({
   })),
 });
 
-const assertNameFree = async (academicYearId: string, classId: string, nameEn: string, excludeId?: string) => {
+/* "Annual Result" and "annual result" are the same name, in English and in Bangla. */
+const assertNameFree = async (academicYearId: string, classId: string, names: Names, excludeId?: string) => {
+  const sameName = [
+    ...(names.nameEn ? [{ nameEn: { equals: names.nameEn, mode: "insensitive" as const } }] : []),
+    ...(names.nameBn ? [{ nameBn: { equals: names.nameBn, mode: "insensitive" as const } }] : []),
+  ];
+  if (sameName.length === 0) return;
+
   const clash = await prisma.finalResultFormula.findFirst({
     where: {
       academicYearId,
       classId,
-      nameEn: { equals: nameEn, mode: "insensitive" },
+      OR: sameName,
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },
     select: { id: true },
   });
   if (clash) throw new AppError("This class already has a final result with this name", httpStatus.CONFLICT);
 };
+
+/* The formula and each of its components named in the school's language. */
+const assertFormulaNames = (schoolId: string, data: UpdateFormulaPayload) =>
+  assertSchoolLanguageNames(schoolId, [
+    { names: data },
+    ...data.components.map((c, i) => ({ names: c, path: `components.${i}` })),
+  ]);
 
 // ------------------------------------------------------------------- formulas
 
@@ -99,15 +114,16 @@ const createFormula = async (schoolId: string, userId: string, data: CreateFormu
 
   await assertExams(schoolId, year.id, data.classId, data.components.flatMap((c) => c.examIds));
   assertAttendancePeriod(year, data.attendanceFrom, data.attendanceTo);
-  await assertNameFree(year.id, data.classId, data.nameEn);
+  await assertFormulaNames(schoolId, data);
+  await assertNameFree(year.id, data.classId, data);
 
   return prisma.finalResultFormula.create({
     data: {
       schoolId,
       academicYearId: year.id,
       classId: data.classId,
-      nameEn: data.nameEn,
-      nameBn: data.nameBn,
+      nameEn: data.nameEn ?? null,
+      nameBn: data.nameBn ?? null,
       attendanceFrom: data.attendanceFrom ?? null,
       attendanceTo: data.attendanceTo ?? null,
       createdBy: userId,
@@ -153,15 +169,24 @@ const updateFormula = async (schoolId: string, formulaId: string, data: UpdateFo
   const year = await resolveYear(schoolId, formula.academicYearId);
   await assertExams(schoolId, year.id, formula.classId, data.components.flatMap((c) => c.examIds));
   assertAttendancePeriod(year, data.attendanceFrom, data.attendanceTo);
-  if (data.nameEn !== formula.nameEn) await assertNameFree(year.id, formula.classId, data.nameEn, formulaId);
+  await assertFormulaNames(schoolId, data);
+  await assertNameFree(
+    year.id,
+    formula.classId,
+    {
+      nameEn: data.nameEn !== formula.nameEn ? data.nameEn : undefined,
+      nameBn: data.nameBn !== formula.nameBn ? data.nameBn : undefined,
+    },
+    formulaId,
+  );
 
   return prisma.$transaction(async (tx) => {
     await tx.finalResultComponent.deleteMany({ where: { formulaId } });
     return tx.finalResultFormula.update({
       where: { id: formulaId },
       data: {
-        nameEn: data.nameEn,
-        nameBn: data.nameBn,
+        nameEn: data.nameEn ?? null,
+        nameBn: data.nameBn ?? null,
         attendanceFrom: data.attendanceFrom ?? null,
         attendanceTo: data.attendanceTo ?? null,
         components: componentsCreate(data),
@@ -194,12 +219,12 @@ const publishFinal = async (auth: Auth, formulaId: string) => {
   const examIds = formula.components.flatMap((c) => c.exams.map((e) => e.exam.id));
   const examClasses = await prisma.examClass.findMany({
     where: { examId: { in: examIds }, classId: formula.classId },
-    select: { id: true, examId: true, status: true, exam: { select: { nameEn: true } } },
+    select: { id: true, examId: true, status: true, exam: { select: { nameEn: true, nameBn: true } } },
   });
   const notPublished = examClasses.filter((ec) => ec.status !== "PUBLISHED");
   if (notPublished.length > 0 || examClasses.length !== examIds.length) {
     throw new AppError(
-      `Publish these exam results for the class first: ${notPublished.map((ec) => ec.exam.nameEn).join(", ")}`,
+      `Publish these exam results for the class first: ${notPublished.map((ec) => displayName(ec.exam)).join(", ")}`,
       httpStatus.CONFLICT,
     );
   }
@@ -456,7 +481,7 @@ const getTabulation = async (schoolId: string, formulaId: string, query: FinalTa
     (a.enrollment.rollNumber ?? "").localeCompare(b.enrollment.rollNumber ?? "", undefined, { numeric: true });
   results.sort(query.sort === "merit" ? (a, b) => a.classPosition - b.classPosition || byRoll(a, b) : byRoll);
 
-  const columns = new Map<string, { subjectId: string; nameEn: string; nameBn: string; code: string | null; isOptional: boolean; sortOrder: number }>();
+  const columns = new Map<string, { subjectId: string; nameEn: string | null; nameBn: string | null; code: string | null; isOptional: boolean; sortOrder: number }>();
   for (const r of results) {
     for (const s of r.subjects) {
       if (!columns.has(s.subjectId)) {

@@ -3,7 +3,9 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import type { TeacherStatus } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { processImage } from "../../shared/imageUpload";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
+import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
 import {
   assertAccountOnlyInSchool,
   findOrCreateAccount,
@@ -42,6 +44,12 @@ const teacherInclude = {
 } satisfies Prisma.TeacherProfileInclude;
 
 // ------------------------------------------------------------------- helpers
+
+/* Teachers in alphabetical order of their name in the school's language. */
+export const teacherOrder = async (schoolId: string): Promise<Prisma.TeacherProfileOrderByWithRelationInput[]> => {
+  const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { language: true } });
+  return [school?.language === "EN" ? { nameEn: "asc" } : { nameBn: "asc" }, { id: "asc" }];
+};
 
 const findTeacher = async (schoolId: string, teacherId: string) => {
   const teacher = await prisma.teacherProfile.findFirst({
@@ -114,14 +122,15 @@ const findMyProfile = async (auth: Auth) => {
   return teacher;
 };
 
-const profileData = (data: Partial<CreateTeacherPayload>) => ({
+const profileData = (data: CreateTeacherPayload) => ({
+  nameEn: data.nameEn,
+  nameBn: data.nameBn,
   designation: data.designation,
   mpoIndex: data.mpoIndex,
   joiningDate: data.joiningDate,
   qualification: data.qualification,
   specialization: data.specialization,
   gender: data.gender,
-  photo: data.photo,
   nid: data.nid,
 });
 
@@ -129,12 +138,12 @@ const profileData = (data: Partial<CreateTeacherPayload>) => ({
 
 /*
  * Adds a teacher. The phone decides the account: an existing account (for example a
- * guardian's) is linked and keeps its name and password; otherwise a new one is created
+ * guardian's) is linked and keeps its own name and password; otherwise a new one is created
  * with a generated password. A teacher who left earlier is taken back on the same profile.
  */
 const createTeacher = async (schoolId: string, data: CreateTeacherPayload) => {
   const result = await prisma.$transaction(async (tx) => {
-    const account = await findOrCreateAccount(tx, { phone: data.phone, fullname: data.fullname });
+    const account = await findOrCreateAccount(tx, { phone: data.phone, fullname: data.nameEn });
     const membershipId = await grantSchoolRole(tx, schoolId, account.userId, TEACHER_ROLE);
 
     const existing = await tx.teacherProfile.findUnique({ where: { membershipId } });
@@ -178,7 +187,8 @@ const getTeachers = async (schoolId: string, query: ListTeachersQuery) => {
     ...(query.search
       ? {
           OR: [
-            { membership: { user: { fullname: { contains: query.search, mode: "insensitive" } } } },
+            { nameEn: { contains: query.search, mode: "insensitive" } },
+            { nameBn: { contains: query.search, mode: "insensitive" } },
             { membership: { user: { phone: { contains: query.search } } } },
             { designation: { contains: query.search, mode: "insensitive" } },
           ],
@@ -186,10 +196,11 @@ const getTeachers = async (schoolId: string, query: ListTeachersQuery) => {
       : {}),
   };
 
+  const orderBy = await teacherOrder(schoolId);
   const [items, total] = await Promise.all([
     prisma.teacherProfile.findMany({
       where,
-      orderBy: [{ membership: { user: { fullname: "asc" } } }, { id: "asc" }],
+      orderBy,
       skip: (query.page - 1) * query.limit,
       take: query.limit,
       include: teacherInclude,
@@ -198,7 +209,8 @@ const getTeachers = async (schoolId: string, query: ListTeachersQuery) => {
   ]);
 
   return {
-    items,
+    // the stored photo keys as signed links
+    items: await Promise.all(items.map((teacher) => withFileUrls(teacher, ["photo"]))),
     meta: { page: query.page, limit: query.limit, total, totalPages: Math.ceil(total / query.limit) },
   };
 };
@@ -210,7 +222,7 @@ const getTeacherById = async (schoolId: string, teacherId: string, query: YearQu
   ]);
 
   const assignments = year ? await loadAssignments(teacher, year.id) : null;
-  return { ...teacher, academicYear: year, assignments };
+  return { ...(await withFileUrls(teacher, ["photo"])), academicYear: year, assignments };
 };
 
 // -------------------------------------------------------------------- update
@@ -218,28 +230,22 @@ const getTeacherById = async (schoolId: string, teacherId: string, query: YearQu
 const updateTeacher = async (schoolId: string, teacherId: string, data: UpdateTeacherPayload) => {
   const teacher = await findTeacher(schoolId, teacherId);
   const user = teacher.membership.user;
-  const { fullname, phone, status, ...profile } = data;
+  const { phone, status, ...profile } = data;
 
   if (status && !WORKING_STATUSES.includes(teacher.status)) {
     throw new AppError("This teacher has left. Add them as a teacher again to take them back", httpStatus.CONFLICT);
   }
 
-  const nameChanged = fullname !== undefined && fullname !== user.fullname;
   const phoneChanged = phone !== undefined && phone !== user.phone;
 
   try {
     return await prisma.$transaction(async (tx) => {
-      if (nameChanged || phoneChanged) {
-        // the name and phone belong to the account, which may be used at another school
+      if (phoneChanged) {
+        // the phone is the account's login, which may be used at another school
         await assertAccountOnlyInSchool(tx, schoolId, user.id);
-        await tx.user.update({
-          where: { id: user.id },
-          data: { ...(nameChanged ? { fullname } : {}), ...(phoneChanged ? { phone } : {}) },
-        });
-        if (phoneChanged) {
-          // the same account may be this school's family login: keep the students in step
-          await tx.student.updateMany({ where: { schoolId, userId: user.id }, data: { phone } });
-        }
+        await tx.user.update({ where: { id: user.id }, data: { phone } });
+        // the same account may be this school's family login: keep the students in step
+        await tx.student.updateMany({ where: { schoolId, userId: user.id }, data: { phone } });
       }
 
       return tx.teacherProfile.update({
@@ -314,7 +320,7 @@ const resetPassword = async (schoolId: string, teacherId: string) => {
   await prisma.$transaction([
     prisma.user.update({
       where: { id: user.id },
-      data: { password: passwordHash, mustChangePassword: true, tokensValidAfter: new Date() },
+      data: { password: passwordHash, mustChangePassword: false, tokensValidAfter: new Date() },
     }),
     prisma.refreshToken.deleteMany({ where: { userId: user.id } }),
   ]);
@@ -324,7 +330,7 @@ const resetPassword = async (schoolId: string, teacherId: string) => {
 
 // ---------------------------------------------------------- the teacher's own
 
-const getMyProfile = (auth: Auth) => findMyProfile(auth);
+const getMyProfile = async (auth: Auth) => withFileUrls(await findMyProfile(auth), ["photo"]);
 
 const getMyAssignments = async (auth: Auth, query: YearQuery) => {
   const teacher = await findMyProfile(auth);
@@ -399,7 +405,30 @@ const getMySchedule = async (auth: Auth, query: ScheduleQuery) => {
   };
 };
 
+// ------------------------------------------------------------------- photo
+
+/* Stores a new photo (resized to 400 px) and drops the old one. */
+const setPhoto = async (schoolId: string, teacherId: string, upload: Buffer) => {
+  const teacher = await findTeacher(schoolId, teacherId);
+  const image = await processImage(upload, "photo");
+  const key = fileKey(`schools/${schoolId}/teachers/${teacherId}`, "photo", image.extension);
+
+  await putFile(key, image.body, image.contentType);
+  const updated = await prisma.teacherProfile.update({ where: { id: teacherId }, data: { photo: key }, include: teacherInclude });
+  await deleteFile(teacher.photo);
+  return withFileUrls(updated, ["photo"]);
+};
+
+const removePhoto = async (schoolId: string, teacherId: string) => {
+  const teacher = await findTeacher(schoolId, teacherId);
+  const updated = await prisma.teacherProfile.update({ where: { id: teacherId }, data: { photo: null }, include: teacherInclude });
+  await deleteFile(teacher.photo);
+  return updated;
+};
+
 export const TeacherService = {
+  setPhoto,
+  removePhoto,
   createTeacher,
   getTeachers,
   getTeacherById,

@@ -53,7 +53,7 @@ export function PlatformLoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("email")}</FormLabel>
+              <FormLabel required>{t("email")}</FormLabel>
               <FormControl>
                 <Input type="email" autoComplete="username" autoFocus {...field} />
               </FormControl>
@@ -67,7 +67,7 @@ export function PlatformLoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("password")}</FormLabel>
+              <FormLabel required>{t("password")}</FormLabel>
               <FormControl>
                 <PasswordInput autoComplete="current-password" {...field} />
               </FormControl>

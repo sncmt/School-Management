@@ -3,6 +3,7 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import type { AttendanceStatus } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { displayName } from "../../shared/names";
 import { checkPermission } from "../../middlewares/authorize";
 import { dayKey, endOfBangladeshDay, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, eachDay, loadCalendar } from "../calendar/calendar.resolver";
@@ -125,13 +126,15 @@ const teachersOnRoll = async (schoolId: string, date: Date) => {
     },
     select: {
       id: true,
+      nameEn: true,
+      nameBn: true,
       designation: true,
       status: true,
       photo: true,
       membership: { select: { user: { select: { id: true, fullname: true, phone: true } } } },
     },
   });
-  return teachers.sort((a, b) => a.membership.user.fullname.localeCompare(b.membership.user.fullname));
+  return teachers.sort((a, b) => a.nameEn.localeCompare(b.nameEn));
 };
 
 // ======================================================= student roll call
@@ -212,7 +215,7 @@ const saveStudentSheet = async (auth: Auth, data: SaveStudentSheetPayload) => {
   const day = dayStatus(calendar, date, { classId: section.classId });
   if (!day.isSchoolDay) {
     throw new AppError(
-      `No attendance on a day off (${day.source?.nameEn ?? day.reason.replace("_", " ").toLowerCase()})`,
+      `No attendance on a day off (${(day.source && displayName(day.source)) || day.reason.replace("_", " ").toLowerCase()})`,
       httpStatus.BAD_REQUEST,
     );
   }
@@ -604,7 +607,14 @@ const saveTeacherSheet = async (auth: Auth, data: SaveTeacherSheetPayload) => {
 const getTeacherReport = async (schoolId: string, teacherId: string, query: RangeQuery) => {
   const teacher = await prisma.teacherProfile.findFirst({
     where: { id: teacherId, schoolId },
-    select: { id: true, designation: true, status: true, membership: { select: { user: { select: { fullname: true, phone: true } } } } },
+    select: {
+      id: true,
+      nameEn: true,
+      nameBn: true,
+      designation: true,
+      status: true,
+      membership: { select: { user: { select: { fullname: true, phone: true } } } },
+    },
   });
   if (!teacher) throw new AppError("Teacher not found", httpStatus.NOT_FOUND);
 

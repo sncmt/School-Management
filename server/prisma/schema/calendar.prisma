@@ -93,8 +93,8 @@ model CalendarEntry {
   kind CalendarEntryKind
   type HolidayType? // set for holidays, null for working days
 
-  nameEn      String
-  nameBn      String
+  nameEn      String?
+  nameBn      String?
   description String?
 
   fromDate DateTime @db.Date

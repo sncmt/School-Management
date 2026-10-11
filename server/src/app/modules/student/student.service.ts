@@ -5,11 +5,14 @@ import { AppError } from "../../errorHandler/AppError";
 import { PasswordUtils } from "../../utils/password";
 import { generateStudentFees } from "../studentFee/studentFee.service";
 import type {
+  ChangePlacementPayload,
   CreateStudentPayload,
   ListStudentsQuery,
   UpdateStudentPayload,
 } from "./student.type";
 import { isUniqueViolation } from "../../utils/prismaError";
+import { processImage } from "../../shared/imageUpload";
+import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
 import {
   type AccountResult,
   findOrCreateAccount,
@@ -371,7 +374,7 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
         : 0;
 
       return {
-        student: saved,
+        student: await withFileUrls(saved, ["photo"]),
         // only present when this update created or linked an account
         account: account ? accountPayload(account, phone ?? null, siblingsInSchool) : null,
       };
@@ -380,6 +383,43 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
     if (isUniqueViolation(e)) throw new AppError(CONFLICT_MESSAGE, httpStatus.CONFLICT);
     throw e;
   }
+};
+
+// ----------------------------------------------------------------- placement
+
+/*
+ * Moves a student to another section, group or roll number in the current academic
+ * year, inside the same class. Changing class is a promotion, done elsewhere.
+ */
+const changePlacement = async (schoolId: string, studentId: string, data: ChangePlacementPayload) => {
+  await prisma.$transaction(async (tx) => {
+    const year = await resolveAcademicYear(tx, schoolId);
+    const enrollment = await tx.enrollment.findFirst({
+      where: { studentId, academicYearId: year.id, student: { schoolId } },
+    });
+    if (!enrollment) {
+      throw new AppError(`This student isn't enrolled in ${year.name}`, httpStatus.NOT_FOUND);
+    }
+
+    const sectionId = data.sectionId ?? enrollment.sectionId;
+    const groupId = data.groupId === undefined ? enrollment.groupId : data.groupId;
+    const rollNumber = data.rollNumber === undefined ? enrollment.rollNumber : data.rollNumber;
+    await assertPlacement(tx, schoolId, { classId: enrollment.classId, sectionId, groupId: groupId ?? undefined });
+
+    if (rollNumber && (rollNumber !== enrollment.rollNumber || sectionId !== enrollment.sectionId)) {
+      const taken = await tx.enrollment.findFirst({
+        where: { academicYearId: year.id, sectionId, rollNumber, status: "ACTIVE", id: { not: enrollment.id } },
+        select: { id: true },
+      });
+      if (taken) {
+        throw new AppError(`Roll number ${rollNumber} is already used in this section`, httpStatus.CONFLICT);
+      }
+    }
+
+    await tx.enrollment.update({ where: { id: enrollment.id }, data: { sectionId, groupId, rollNumber } });
+  }, TX_OPTIONS);
+
+  return getStudentById(schoolId, studentId);
 };
 
 // ------------------------------------------------------------------- reading
@@ -402,7 +442,7 @@ const getStudentById = async (schoolId: string, studentId: string) => {
     : 0;
 
   return {
-    ...rest,
+    ...(await withFileUrls(rest, ["photo"])),
     account: {
       hasAccount: user !== null,
       loginPhone: user?.phone ?? null,
@@ -480,11 +520,13 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
     prisma.student.count({ where }),
   ]);
 
-  const items = rows.map(({ enrollments, ...student }) => ({
-    ...student,
-    hasAccount: student.userId !== null,
-    enrollment: enrollments[0] ?? null,
-  }));
+  const items = await Promise.all(
+    rows.map(async ({ enrollments, ...student }) => ({
+      ...(await withFileUrls(student, ["photo"])),
+      hasAccount: student.userId !== null,
+      enrollment: enrollments[0] ?? null,
+    })),
+  );
 
   return { items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 };
@@ -534,7 +576,7 @@ const resetGuardianPassword = async (schoolId: string, studentId: string) => {
   await prisma.$transaction([
     prisma.user.update({
       where: { id: user.id },
-      data: { password: passwordHash, mustChangePassword: true, tokensValidAfter: new Date() },
+      data: { password: passwordHash, mustChangePassword: false, tokensValidAfter: new Date() },
     }),
     prisma.refreshToken.deleteMany({ where: { userId: user.id } }),
   ]);
@@ -542,7 +584,37 @@ const resetGuardianPassword = async (schoolId: string, studentId: string) => {
   return { loginPhone: user.phone, temporaryPassword };
 };
 
+// ------------------------------------------------------------------- photo
+
+const findStudent = async (schoolId: string, studentId: string) => {
+  const student = await prisma.student.findFirst({ where: { id: studentId, schoolId }, select: { id: true, photo: true } });
+  if (!student) throw new AppError("Student not found", httpStatus.NOT_FOUND);
+  return student;
+};
+
+/* Stores a new photo (resized to 400 px) and drops the old one. */
+const setPhoto = async (schoolId: string, studentId: string, upload: Buffer) => {
+  const student = await findStudent(schoolId, studentId);
+  const image = await processImage(upload, "photo");
+  const key = fileKey(`schools/${schoolId}/students/${studentId}`, "photo", image.extension);
+
+  await putFile(key, image.body, image.contentType);
+  const updated = await prisma.student.update({ where: { id: studentId }, data: { photo: key }, include: withEnrollments });
+  await deleteFile(student.photo);
+  return withFileUrls(updated, ["photo"]);
+};
+
+const removePhoto = async (schoolId: string, studentId: string) => {
+  const student = await findStudent(schoolId, studentId);
+  const updated = await prisma.student.update({ where: { id: studentId }, data: { photo: null }, include: withEnrollments });
+  await deleteFile(student.photo);
+  return updated;
+};
+
 export const StudentService = {
+  changePlacement,
+  setPhoto,
+  removePhoto,
   createStudent,
   updateStudent,
   getStudentById,

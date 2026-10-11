@@ -15,7 +15,7 @@ router.use(authenticate("SCHOOL"));
 router.post(
   "/",
   authorize("subject:create"),
-  validateRequest({ body: SubjectValidation.createSubject }),
+  validateRequest({ body: SubjectValidation.createSchoolSubject }),
   SubjectController.createSubject,
 );
 
@@ -36,7 +36,7 @@ router.get(
 router.patch(
   "/:subjectId",
   authorize("subject:update"),
-  validateRequest({ params: SubjectValidation.subjectIdParams, body: SubjectValidation.updateSubject }),
+  validateRequest({ params: SubjectValidation.subjectIdParams, body: SubjectValidation.updateSchoolSubject }),
   SubjectController.updateSubject,
 );
 

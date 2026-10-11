@@ -1,16 +1,17 @@
 import { z } from "zod";
 import { FinalComponentMethod } from "../../../../generated/prisma/enums";
 import { idSchema } from "../../shared/financeSchemas";
+import { schoolLanguageNames } from "../../shared/names";
 import { dateOnlySchema } from "../../shared/scheduleSchemas";
 
 const hasMaxTwoDecimals = (n: number) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6;
-const nameEn = z.string({ error: "English name is required!" }).trim().min(1, "English name is required!").max(100);
-const nameBn = z.string({ error: "Bangla name is required!" }).trim().min(1, "Bangla name is required!").max(100);
+// the formula's and each component's name in the school's language is required (the service
+// checks it); the other is optional
+const names = schoolLanguageNames(100);
 
 const component = z
   .strictObject({
-    nameEn,
-    nameBn,
+    ...names,
     // the components' weights add up to 100
     weight: z
       .number({ error: "Weight is required!" })
@@ -41,8 +42,7 @@ const component = z
 
 /* What a formula is made of: the same for create and update (an update replaces it all). */
 const formulaFields = {
-  nameEn,
-  nameBn,
+  ...names,
   // the attendance period on the final result sheet; left out = year start to the last exam day
   attendanceFrom: dateOnlySchema.optional(),
   attendanceTo: dateOnlySchema.optional(),

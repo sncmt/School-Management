@@ -28,6 +28,7 @@ import { schoolActions, type SchoolDetail } from "@/lib/platform/schools";
 import { schoolSiteUrl } from "@/lib/tenant";
 import { ActivateSchoolDialog } from "./ActivateSchoolDialog";
 import { ResetSuperAdminPasswordDialog } from "./ResetSuperAdminPasswordDialog";
+import { SchoolBrandingCard } from "./SchoolBrandingCard";
 import { SchoolStatusBadge } from "./SchoolStatusBadge";
 import { SchoolStatusDialog, type StatusAction } from "./SchoolStatusDialog";
 
@@ -176,6 +177,8 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
             <p className="text-sm text-muted-foreground">{t("noSuperAdmin")}</p>
           )}
         </InfoCard>
+
+        <SchoolBrandingCard school={school} />
 
         <InfoCard title={t("sections.billing")}>
           <Field label={t("fields.monthlyFee")}>
