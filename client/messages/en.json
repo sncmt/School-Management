@@ -13,7 +13,6 @@
     "copied": "Copied",
     "close": "Close",
     "loginPage": "Login page",
-    "temporaryPassword": "Temporary password",
     "email": "Email",
     "mobileNumber": "Mobile number",
     "back": "Back",
@@ -24,7 +23,8 @@
     "imageTooLarge": "The image is too large: 5 MB at most.",
     "imageWrongType": "Choose a JPG, PNG or WebP image.",
     "noImage": "No image",
-    "photoUploadFailed": "{name} was saved, but the photo didn't upload: {error} You can add it from their page."
+    "photoUploadFailed": "{name} was saved, but the photo didn't upload: {error} You can add it from their page.",
+    "password": "Password"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -58,7 +58,7 @@
     "subjectNameEnRequired": "English name is required",
     "subjectNameBnRequired": "Bangla name is required",
     "max100": "At most 100 characters",
-    "codeFormat": "Use letters, digits and dashes only (at most 20)",
+    "codeFormat": "The code is 6 digits",
     "parentRequired": "Choose the main subject",
     "religionRequired": "Choose a religion",
     "englishNameRequired": "English name is required",
@@ -101,7 +101,41 @@
     "motherNameRequired": "Mother's name is required",
     "classRequired": "Choose a class",
     "sectionRequired": "Choose a section",
-    "admissionNoRequired": "Admission number is required"
+    "admissionNoRequired": "Admission number is required",
+    "yearRequired": "Choose an academic year",
+    "holidayTypeRequired": "Choose the holiday type",
+    "entryTooLong": "An entry can be at most 120 days",
+    "oneSchoolDay": "At least one day of the week must be a school day",
+    "timeRequired": "Enter a time",
+    "periodsRequired": "Add at least one part of the year",
+    "periodsMax": "At most 20 periods",
+    "periodOverlap": "Starts before the period above ends",
+    "nameRequired": "Name is required",
+    "rulesRequired": "Add the hours for at least the whole school, a class or a section",
+    "targetTwice": "Already listed above",
+    "numberRequired": "Enter a number",
+    "decimal2": "A number with at most 2 decimals",
+    "numberRange": "Outside the allowed range",
+    "gradeRequired": "Enter the grade",
+    "max10": "At most 10 characters",
+    "bandsMin": "Add at least two bands",
+    "markBandZero": "One band must start at 0%",
+    "gpaBandZero": "One band must start at GPA 0",
+    "bandsUnique": "Each band needs its own start and its own grade",
+    "pointsRise": "A higher band can't have fewer points than a lower one",
+    "aboveMaxGpa": "More than the maximum GPA",
+    "bothDates": "Give both dates, or neither",
+    "admissionFuture": "The admission date can't be in the future",
+    "weightRange": "Enter a weight above 0, up to 100",
+    "chooseExams": "Choose at least one exam",
+    "bestCountRange": "Between 1 and the number of exams",
+    "weightTotal": "The weights must add up to 100%",
+    "examTwice": "An exam can be in only one component",
+    "codeRequired": "Enter the code from the email",
+    "amountRange": "Enter an amount above 0",
+    "chooseFund": "Choose a fund",
+    "chooseFeeType": "Choose a fee type",
+    "monthsOverlap": "These months are already in another part of the year"
   },
   "auth": {
     "email": "Email",
@@ -127,22 +161,40 @@
     "changePassword": {
       "pageTitle": "Change password",
       "title": "Change password",
-      "titleForced": "Set a new password",
       "description": "This logs you out on every other device.",
-      "descriptionForced": "You're using a temporary password. Choose your own to continue.",
       "current": "Current password",
       "new": "New password",
       "confirm": "Confirm new password",
       "newHint": "8 to 72 characters.",
       "saving": "Saving…",
       "submit": "Change password",
-      "logOutInstead": "Log out instead",
-      "success": "Password changed. Other devices have been logged out."
+      "success": "Password changed. Other devices have been logged out.",
+      "descriptionByEmail": "A code is sent to your email to confirm the change. This logs you out on every other device.",
+      "askSuperAdmin": "To change your password, ask your school's super admin. They can set a new one for you.",
+      "backHome": "Back to dashboard"
     },
     "userMenu": {
       "changePassword": "Change password",
       "logOutEverywhere": "Log out of all devices",
       "logOut": "Log out"
+    },
+    "setPassword": {
+      "title": "Change password: {name}",
+      "description": "Logs in with {login}. They are logged out on every device; give them the new password.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "newHint": "8 to 72 characters.",
+      "codeHint": "To confirm, a code is sent to your email.",
+      "sendCode": "Send code",
+      "sending": "Sending…",
+      "resend": "Send again",
+      "resendIn": "Send again in {seconds}s",
+      "sentTo": "Code sent to {email}",
+      "codeSent": "A code was sent to {email}. It expires in 10 minutes.",
+      "code": "Code from the email",
+      "saving": "Saving…",
+      "submit": "Change password",
+      "done": "Password changed for {name}."
     }
   },
   "roles": {
@@ -164,7 +216,14 @@
     "classSubjects": "Class subjects",
     "teachers": "Teachers",
     "subjectTeachers": "Subject teachers",
-    "students": "Students"
+    "students": "Students",
+    "calendar": "Calendar",
+    "routine": "Routine",
+    "attendance": "Attendance",
+    "exams": "Exams",
+    "finance": "Finance",
+    "promotion": "Promotion",
+    "roles": "Roles and staff"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -199,7 +258,7 @@
       "activate": {
         "action": "Activate",
         "title": "Activate {name}?",
-        "description": "This turns on the free modules and creates the school's super admin account, using the school email ({email}) and a temporary password.",
+        "description": "This turns on the free modules and creates the school's super admin account, using the school email ({email}) and a generated password.",
         "confirm": "Activate",
         "activating": "Activating…",
         "doneTitle": "School activated",
@@ -275,7 +334,6 @@
       "notActivated": "Not activated yet",
       "noSuperAdmin": "Created when the school is activated.",
       "superAdminState": {
-        "temporaryPassword": "Using a temporary password",
         "active": "Active",
         "disabled": "Disabled"
       },
@@ -325,7 +383,7 @@
         "INACTIVE": "{name} deactivated."
       },
       "resetDone": {
-        "title": "New temporary password",
+        "title": "New password",
         "description": "Give these login details to the school. The password is shown only once."
       },
       "branding": {
@@ -752,7 +810,6 @@
         "status": "Status",
         "actions": "Actions"
       },
-      "firstLogin": "Hasn't logged in yet",
       "empty": "No teachers yet.",
       "emptyFiltered": "No teachers match.",
       "loadFailed": "Couldn't load teachers.",
@@ -807,7 +864,6 @@
         "left": "Left on {date}",
         "loginPhone": "Logs in with",
         "loginState": {
-          "temporary": "Using a temporary password",
           "active": "Has set their own password",
           "disabled": "Login disabled"
         },
@@ -816,8 +872,8 @@
           "edit": "Edit",
           "onLeave": "Mark on leave",
           "backToWork": "Back to work",
-          "resetPassword": "Reset password",
-          "leave": "Leaves the school"
+          "leave": "Leaves the school",
+          "changePassword": "Change password"
         },
         "statusChanged": "{name}: {status}.",
         "loginStatus": "Status",
@@ -834,13 +890,6 @@
         "confirm": "Confirm",
         "working": "Saving…",
         "done": "{name} has left. Removed as class teacher of {classTeacher, number} and from {subjects, number} subjects."
-      },
-      "resetDialog": {
-        "title": "Reset {name}'s password?",
-        "description": "They get a new temporary password and are logged out on every device.",
-        "confirm": "Reset password",
-        "working": "Resetting…",
-        "doneTitle": "New temporary password"
       }
     },
     "subjectTeachers": {
@@ -942,11 +991,17 @@
         "updated": "{name} updated.",
         "linked": "Added to the family login for {phone}{count, plural, =0 {} one { (with # other student)} other { (with # other students)}}. The family keeps its password.",
         "noYear": "There's no current academic year, so students can't be admitted yet.",
-        "noYearLink": "Set the current year"
+        "noYearLink": "Set the current year",
+        "admissionDate": "Admission date",
+        "admissionDateHint": "The day the student joined the school. For students who were here before, give their real date: exams and attendance count them from it.",
+        "admissionDateLocked": "Changing it needs the Change Admission Date permission.",
+        "admissionTypeHint": "Entering students who were already at the school? Choose Old.",
+        "academicYear": "Academic year",
+        "currentYearOption": "{year} (current)"
       },
       "credentials": {
         "title": "Family login for {name}",
-        "description": "Give these to the family. The password is shown only once."
+        "description": "Give these to the family. The password is the mobile number; the family can change it after logging in."
       },
       "detail": {
         "back": "Back to students",
@@ -979,7 +1034,6 @@
           "permanentAddress": "Permanent address"
         },
         "loginState": {
-          "temporary": "Using a temporary password",
           "active": "Has set their own password",
           "disabled": "Login disabled"
         },
@@ -996,12 +1050,14 @@
           "PROMOTED": "Promoted",
           "TRANSFERRED": "Transferred",
           "WITHDRAWN": "Withdrawn",
-          "GRADUATED": "Graduated"
+          "GRADUATED": "Graduated",
+          "REPEATED": "Repeated"
         },
         "actions": {
           "edit": "Edit",
-          "move": "Change section or roll",
-          "resetPassword": "Reset family password"
+          "move": "Change section, roll or admission type",
+          "changePassword": "Change family password",
+          "fees": "Fees"
         },
         "statusActions": {
           "ACTIVE": "Make active again",
@@ -1011,16 +1067,10 @@
         },
         "photoSaved": "Photo saved.",
         "photoRemoved": "Photo removed.",
-        "resetDialog": {
-          "title": "Reset the family password for {name}?",
-          "description": "The family gets a new temporary password and is logged out on every device.{count, plural, =0 {} one { It is also the login of # other student.} other { It is also the login of # other students.}}",
-          "confirm": "Reset password",
-          "working": "Resetting…",
-          "doneTitle": "New temporary password"
-        }
+        "familyLogin": "Family login of {name}"
       },
       "placement": {
-        "title": "Change section or roll",
+        "title": "Change section, roll or admission type",
         "description": "{class}, {year}. Moving to another class happens at promotion.",
         "section": "Section",
         "group": "Group",
@@ -1028,7 +1078,10 @@
         "rollNumber": "Roll number",
         "save": "Save",
         "saving": "Saving…",
-        "saved": "{name}'s placement updated."
+        "saved": "{name}'s placement updated.",
+        "admissionTypeHint": "Changing it swaps the admission and re-admission fees for this year (unpaid ones only).",
+        "feesSwapped": "Now {type}: this year's admission fees were changed to match.",
+        "feesKept": "{count, plural, one {# fee that no longer applies already has a payment, so it was kept.} other {# fees that no longer apply already have payments, so they were kept.}} Change them with a discount if needed."
       },
       "statusDialog": {
         "title": {
@@ -1046,6 +1099,1852 @@
         "confirm": "Confirm",
         "working": "Saving…",
         "done": "{name}: {status}."
+      },
+      "admissionType": {
+        "label": "Admission type",
+        "allTypes": "New and old",
+        "types": {
+          "NEW": "New",
+          "OLD": "Old"
+        },
+        "hints": {
+          "NEW": "New to the school this year: pays the admission fee",
+          "OLD": "Was here before: pays the re-admission fee"
+        }
+      }
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "Which days are school days: weekly days off, national holidays, and the school's own holidays and make-up days.",
+      "noYears": "Add an academic year first: holidays and working days belong to a year.",
+      "tabs": {
+        "month": "Month",
+        "entries": "Holidays & working days",
+        "national": "National holidays",
+        "weekly": "Weekly days off"
+      },
+      "reasons": {
+        "SCHOOL_DAY": "School day",
+        "WORKING_DAY": "Make-up working day",
+        "HOLIDAY": "School holiday",
+        "NATIONAL_HOLIDAY": "National holiday",
+        "WEEKLY_HOLIDAY": "Weekly day off"
+      },
+      "holidayTypes": {
+        "PUBLIC": "Public holiday",
+        "SCHOOL": "School holiday",
+        "VACATION": "Vacation"
+      },
+      "month": {
+        "previous": "Previous month",
+        "next": "Next month",
+        "today": "Today",
+        "showFor": "Show for",
+        "teachers": "Teachers (whole school)",
+        "forClass": "Class {name}",
+        "schoolDays": "{count, plural, one {# school day} other {# school days}}",
+        "loadFailed": "Couldn't load the calendar.",
+        "teachersWork": "Teachers work this day.",
+        "teachersOff": "Teachers are off this day.",
+        "workingDay": "Working day",
+        "national": "National",
+        "allClasses": "All classes",
+        "teachersStillWork": "teachers still work",
+        "nothingOn": "No holidays or working days on this day.",
+        "addHoliday": "Add holiday",
+        "addWorkingDay": "Add working day"
+      },
+      "entryForm": {
+        "addTitle": "Add holiday or working day",
+        "editTitle": "Edit holiday or working day",
+        "description": "One day, or several in a row. It can cover all classes or only some.",
+        "kind": "What is it",
+        "kinds": {
+          "HOLIDAY": "Holiday",
+          "WORKING_DAY": "Working day"
+        },
+        "kindHints": {
+          "HOLIDAY": "No classes: a vacation, festival or school's own day off.",
+          "WORKING_DAY": "Classes on a day that would be off, like a make-up Saturday."
+        },
+        "type": "Holiday type",
+        "chooseType": "Choose…",
+        "nameEn": "Name in English",
+        "nameBn": "Name in Bangla",
+        "fromDate": "From",
+        "toDate": "To",
+        "academicYear": "Academic year",
+        "academicYearHint": "The dates must be inside this year.",
+        "appliesTo": "Applies to",
+        "allClasses": "All classes",
+        "someClasses": "Only some classes",
+        "teachersOff": "Teachers are off too",
+        "teachersOffHint": "Untick it when teachers still come in, for exam duty or office work.",
+        "teachersOffSomeClasses": "A holiday for only some classes never gives teachers a day off.",
+        "notes": "Notes",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving…",
+        "added": "{name} added.",
+        "updated": "{name} updated."
+      },
+      "entries": {
+        "year": "Academic year",
+        "add": "Add holiday or working day",
+        "columns": {
+          "dates": "Dates",
+          "name": "Name",
+          "kind": "Kind",
+          "appliesTo": "Applies to",
+          "actions": "Actions"
+        },
+        "loadFailed": "Couldn't load holidays.",
+        "empty": "No holidays or working days in this year yet.",
+        "days": "{count, plural, one {# day} other {# days}}",
+        "workingDay": "Working day",
+        "allClasses": "All classes",
+        "teachersWork": "Teachers still work",
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleteDialog": {
+          "title": "Delete {name}?",
+          "description": "Its days go back to what they would be without it.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "{name} deleted."
+        }
+      },
+      "national": {
+        "description": "Set by the platform for every school. They are days off unless you switch one off to keep the school open.",
+        "previousYear": "Previous year",
+        "nextYear": "Next year",
+        "count": "{count, plural, =0 {No national holidays} one {# national holiday} other {# national holidays}}",
+        "openOn": "{count, plural, one {open on #} other {open on #}}",
+        "columns": {
+          "dates": "Dates",
+          "name": "Holiday",
+          "dayOff": "Day off"
+        },
+        "loadFailed": "Couldn't load national holidays.",
+        "empty": "No national holidays for this year yet.",
+        "days": "{count, plural, one {# day} other {# days}}",
+        "off": "Day off",
+        "open": "School open",
+        "nowOff": "{name} is a day off again.",
+        "nowOpen": "The school stays open on {name}."
+      },
+      "weekly": {
+        "loadFailed": "Couldn't load the weekly days off.",
+        "none": "None",
+        "currentTitle": "Weekly days off now",
+        "currentDescription": "Every week these days have no classes, unless a working day says otherwise.",
+        "noRule": "Not set yet: every day is a school day.",
+        "from": "From",
+        "daysOff": "Days off",
+        "upcoming": "Upcoming",
+        "inForce": "In force",
+        "past": "Past",
+        "deleteUpcoming": "Delete this upcoming change",
+        "deleted": "Upcoming change deleted.",
+        "changeTitle": "Change the weekly days off",
+        "setTitle": "Set the weekly days off",
+        "changeDescription": "The change starts on the date you choose. Days before it keep the old days off.",
+        "daysOffHint": "Click the days to turn them on or off.",
+        "startsOn": "Starts on",
+        "startsOnHint": "A rule that has already started can't be edited: add a change from a later date.",
+        "saving": "Saving…",
+        "save": "Save",
+        "saved": "Weekly days off saved."
+      }
+    },
+    "routine": {
+      "title": "Routine",
+      "description": "Class timetables, teachers' weeks, substitutes and the school's bell schedules.",
+      "tabs": {
+        "bell": "Bell schedules",
+        "class": "Class routine",
+        "teacher": "Teacher's week",
+        "workload": "Workload",
+        "substitutes": "Substitutes",
+        "special": "Special hours"
+      },
+      "bell": {
+        "description": "The periods of a school day. Each section uses one bell schedule per year (set in Sections > Settings); special days can switch to another, like a shorter Ramadan day.",
+        "add": "Add bell schedule",
+        "loadFailed": "Couldn't load the bell schedules.",
+        "empty": "No bell schedules yet. Add one, then choose it for each section in Sections > Settings.",
+        "classPeriods": "{count, plural, one {# class period} other {# class periods}}",
+        "usedBy": "{count, plural, =0 {Not used by any section} one {Used by # section} other {Used by # sections}}",
+        "usedByChanges": "{count, plural, one {in # schedule change} other {in # schedule changes}}",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleteInUse": "In use, can't delete",
+        "form": {
+          "addTitle": "Add bell schedule",
+          "editTitle": "Edit bell schedule",
+          "description": "The periods of the day in order. Tick Break for tiffin or prayer: no class can be placed in it.",
+          "nameEn": "Name in English",
+          "nameBn": "Name in Bangla",
+          "periods": "Periods",
+          "start": "Start",
+          "end": "End",
+          "break": "Break",
+          "remove": "Remove period",
+          "addPeriod": "Add period",
+          "addBreak": "Add break",
+          "inUseNote": "Sections use this schedule: times can change freely, but a period that has classes in the routine can't be removed or made a break.",
+          "cancel": "Cancel",
+          "save": "Save",
+          "saving": "Saving…",
+          "added": "{name} added.",
+          "updated": "{name} updated."
+        },
+        "deleteDialog": {
+          "title": "Delete {name}?",
+          "description": "No section or schedule change uses it, so nothing else changes.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "{name} deleted."
+        }
+      },
+      "classRoutine": {
+        "class": "Class",
+        "section": "Section",
+        "sectionName": "Section {name}",
+        "bellSchedule": "Bell schedule: {name} · {year}",
+        "loadFailed": "Couldn't load the routine.",
+        "noClasses": "Add classes first.",
+        "noBellSchedule": "This section has no bell schedule this year. Choose one in Sections > Settings, then come back to fill in the routine.",
+        "openSections": "Open Sections",
+        "period": "Period",
+        "addClass": "Add a class",
+        "noTeacher": "No teacher yet",
+        "optional": "Optional",
+        "withSections": "with {names}",
+        "weeklyOff": "Weekly days off, not shown: {days}."
+      },
+      "entry": {
+        "addTitle": "Add class",
+        "editTitle": "Edit class",
+        "subject": "Subject",
+        "chooseSubject": "Choose a subject",
+        "noSubjects": "This class has no subjects this year. Add them in Class subjects.",
+        "optional": "optional",
+        "teacher": "Teacher",
+        "noTeacher": "Not decided yet",
+        "teacherHint": "★ teaches this subject to this section (Subject teachers). Any teacher can be chosen.",
+        "together": "Taught together with",
+        "togetherHint": "Tick sections that sit in the same class at the same time.",
+        "delete": "Remove",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Routine saved.",
+        "deleted": "Class removed from the routine."
+      },
+      "teacherRoutine": {
+        "teacher": "Teacher",
+        "noTeachers": "No teachers yet.",
+        "perWeek": "{count, plural, one {# period a week} other {# periods a week}}",
+        "periods": "{count, plural, one {# period} other {# periods}}",
+        "loadFailed": "Couldn't load this teacher's week.",
+        "empty": "No classes in the routine for this teacher yet.",
+        "noTime": "Time not set"
+      },
+      "workload": {
+        "description": "Class periods per week in {year}. Click a teacher to see their week.",
+        "loadFailed": "Couldn't load the workload.",
+        "unassigned": "{count, plural, one {# class in the routine has no teacher yet.} other {# classes in the routine have no teacher yet.}}",
+        "teacher": "Teacher",
+        "week": "Week",
+        "empty": "No working teachers."
+      },
+      "substitutes": {
+        "date": "Date",
+        "class": "Class",
+        "section": "Section",
+        "sectionName": "Section {name}",
+        "loadFailed": "Couldn't load that day.",
+        "noSchool": "No classes on this day: {reason}",
+        "noClasses": "No classes in the routine on this day.",
+        "periodN": "Period {n}",
+        "noTeacher": "No teacher",
+        "notHeld": "Not held today",
+        "assign": "Substitute",
+        "change": "Change",
+        "remove": "Remove substitute",
+        "removed": "Substitute removed.",
+        "allOn": "All substitutes on {date}",
+        "noneOn": "No substitutes on this date.",
+        "dialog": {
+          "title": "Choose a substitute",
+          "instead": "instead of {name}",
+          "freeTeachers": "Free teachers",
+          "noneFree": "No teacher is free at that time.",
+          "freeHint": "Working teachers with no class then, and not marked absent or on leave. Least busy first.",
+          "periodsToday": "{count, plural, =0 {no classes today} one {# class today} other {{n} classes today}}",
+          "chooseTeacher": "Choose a teacher",
+          "note": "Note",
+          "notePlaceholder": "e.g. Rahim sir on leave",
+          "cancel": "Cancel",
+          "save": "Save",
+          "saving": "Saving…",
+          "saved": "Substitute saved."
+        }
+      },
+      "special": {
+        "description": "Different hours for some days: Ramadan timing, an exam day, a sports day. A shorter change wins over a longer one on the same day, and a section's own hours over its class's or the whole school's.",
+        "noYears": "Add an academic year first.",
+        "add": "Add special hours",
+        "columns": {
+          "dates": "Dates",
+          "name": "Name",
+          "hours": "Hours"
+        },
+        "loadFailed": "Couldn't load special hours.",
+        "empty": "No special hours in this year.",
+        "wholeSchool": "Whole school",
+        "sectionTarget": "{class} {name}",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete",
+        "form": {
+          "addTitle": "Add special hours",
+          "editTitle": "Edit special hours",
+          "description": "The days these hours are used, and the hours for the whole school, a class or a section.",
+          "name": "Name",
+          "namePlaceholder": "Ramadan timing",
+          "fromDate": "From",
+          "toDate": "To",
+          "academicYear": "Academic year",
+          "datesHint": "For a single day (an exam day), use the same date twice.",
+          "hours": "Hours",
+          "appliesTo": "Applies to",
+          "start": "Start",
+          "end": "End",
+          "bellSchedule": "Bell schedule",
+          "ownBellSchedule": "Each section's own bell schedule",
+          "wholeSchool": "Whole school",
+          "classTarget": "Class {name}",
+          "sectionTarget": "{class} {name}",
+          "addRule": "Add hours for a class or section",
+          "removeRule": "Remove",
+          "rulesHint": "Choose a shorter bell schedule (made in Bell schedules) when the periods themselves are shorter, as in Ramadan.",
+          "cancel": "Cancel",
+          "save": "Save",
+          "saving": "Saving…",
+          "added": "{name} added.",
+          "updated": "{name} updated."
+        },
+        "deleteDialog": {
+          "title": "Delete {name}?",
+          "description": "Those days go back to the usual hours.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "{name} deleted."
+        }
+      }
+    },
+    "sectionPicker": {
+      "class": "Class",
+      "section": "Section",
+      "sectionName": "Section {name}"
+    },
+    "attendance": {
+      "title": "Attendance",
+      "description": "Daily roll calls for students and teachers. A roll call can be changed for 7 days.",
+      "tabs": {
+        "today": "Today",
+        "rollCall": "Roll call",
+        "absent": "Absent",
+        "register": "Monthly register",
+        "teachers": "Teachers"
+      },
+      "statuses": {
+        "PRESENT": "Present",
+        "ABSENT": "Absent",
+        "LATE": "Late",
+        "LEAVE": "On leave"
+      },
+      "short": {
+        "PRESENT": "P",
+        "ABSENT": "A",
+        "LATE": "L",
+        "LEAVE": "Lv"
+      },
+      "rollCall": {
+        "date": "Date",
+        "loadFailed": "Couldn't load the roll call.",
+        "noStudents": "No students in this section on this date.",
+        "dayOff": "No roll call today: {reason}",
+        "future": "A roll call can't be taken for a future date.",
+        "tooOld": "This day is more than 7 days ago. Changing it needs the permission to change past attendance.",
+        "takenAt": "Saved, last at {time}",
+        "hours": "class hours {from} – {to}",
+        "notTaken": "Not taken yet. Everyone starts as present: mark only the others.",
+        "allPresent": "All present",
+        "save": "Save roll call",
+        "saveChanges": "Save changes",
+        "saving": "Saving…",
+        "saved": "{absent, plural, =0 {Roll call saved: everyone present.} one {Roll call saved: # absent.} other {Roll call saved: # absent.}}",
+        "admission": "Adm. {no}",
+        "fromDevice": "from the machine",
+        "note": "Note",
+        "notePlaceholder": "Reason (optional)"
+      },
+      "today": {
+        "date": "Date",
+        "loadFailed": "Couldn't load the day.",
+        "present": "Students present",
+        "presentOf": "{present} of {total} (late included)",
+        "absent": "Absent",
+        "lateLeave": "Late {late} · on leave {leave}",
+        "rollCalls": "Roll calls taken",
+        "pending": "{count, plural, one {# section still to take} other {# sections still to take}}",
+        "allTaken": "Every section is done",
+        "columns": {
+          "section": "Section",
+          "onRoll": "Students",
+          "attendance": "Attendance"
+        },
+        "noStudents": "No students",
+        "notTaken": "Not taken",
+        "take": "Take",
+        "open": "Open",
+        "teachers": "Teachers",
+        "teachersNotTaken": "{count, plural, one {Not taken yet for # teacher.} other {Not taken yet for # teachers.}}"
+      },
+      "absent": {
+        "date": "Date",
+        "class": "Class",
+        "allClasses": "All classes",
+        "count": "{count, plural, =0 {Nobody absent} one {# absent} other {# absent}}",
+        "columns": {
+          "student": "Student",
+          "class": "Class",
+          "family": "Family",
+          "note": "Note"
+        },
+        "loadFailed": "Couldn't load the absent students.",
+        "none": "No absent students on this date (or no roll call taken yet).",
+        "admission": "Adm. {no}",
+        "roll": "Roll {roll}",
+        "noPhone": "No phone number"
+      },
+      "register": {
+        "month": "Month",
+        "daysTaken": "{count, plural, =0 {No roll calls this month} one {# day taken} other {# days taken}}",
+        "loadFailed": "Couldn't load the register.",
+        "empty": "No students in this section this month.",
+        "student": "Student",
+        "legend": "P present · A absent · L late · Lv on leave. Shaded days are days off; a blank day had no roll call."
+      },
+      "teachers": {
+        "date": "Date",
+        "loadFailed": "Couldn't load teacher attendance.",
+        "noTeachers": "No teachers working on this date.",
+        "taken": "Saved for this day.",
+        "saved": "Teacher attendance saved.",
+        "onLeave": "on leave"
+      }
+    },
+    "exams": {
+      "title": "Exams",
+      "description": "Grading, exams, marks and results.",
+      "tabs": {
+        "scales": "Grading scales",
+        "settings": "Result settings",
+        "exams": "Exams",
+        "optional": "Optional subjects",
+        "marks": "Marks",
+        "results": "Results",
+        "card": "Result card",
+        "final": "Final results"
+      },
+      "scales": {
+        "description": "How marks become grades: each subject's marks % gives a grade and point, the average point is the GPA, and the GPA gives the overall grade. A scale used by a published result is locked; copy it to change it.",
+        "add": "Add grading scale",
+        "loadFailed": "Couldn't load the grading scales.",
+        "empty": "No grading scales yet. Add one: it starts as the usual GPA 5 scale.",
+        "locked": "Locked",
+        "maxGpa": "Maximum GPA {gpa}",
+        "usedBy": "{classes, plural, =0 {no classes} one {# class} other {# classes}}, {subjects, plural, =0 {no subjects} one {# subject} other {# subjects}}",
+        "actions": "Actions",
+        "edit": "Edit",
+        "editLocked": "Locked: copy to change",
+        "copy": "Copy",
+        "delete": "Delete",
+        "deleteInUse": "In use, can't delete",
+        "marks": "Marks",
+        "grade": "Grade",
+        "point": "Point",
+        "gpa": "GPA",
+        "fromGpa": "{gpa} and above",
+        "ruleFailAny": "A fail in any compulsory subject makes the whole result {grade}.",
+        "ruleBonus": "The optional subject adds its points above {threshold} to the GPA.",
+        "form": {
+          "addTitle": "Add grading scale",
+          "editTitle": "Edit grading scale",
+          "description": "Filled in with Bangladesh's usual GPA 5 scale: change what your school does differently.",
+          "name": "Name",
+          "maxGpa": "Maximum GPA",
+          "failGrade": "Fail grade",
+          "markBands": "Subject marks → grade and point",
+          "markBandsHint": "Each band runs from its start % up to the next one.",
+          "gpaBands": "GPA → overall grade",
+          "gpaBandsHint": "Each band runs from its start GPA up to the next one.",
+          "fromPercent": "From %",
+          "fromGpa": "From GPA",
+          "grade": "Grade",
+          "point": "Point",
+          "addBand": "Add band",
+          "removeBand": "Remove band",
+          "failIfAnyFails": "Failing any compulsory subject fails the result",
+          "failIfAnyFailsHint": "As in the SSC: the overall grade is the fail grade, whatever the GPA.",
+          "optionalBonus": "The optional (4th) subject can raise the GPA",
+          "optionalBonusHint": "Its points above the threshold are added, but the GPA never goes above the maximum.",
+          "bonusThreshold": "Threshold",
+          "bonusThresholdHint": "Usually 2: a 5 in the optional subject adds 3 points.",
+          "notes": "Notes",
+          "cancel": "Cancel",
+          "save": "Save",
+          "saving": "Saving…",
+          "added": "{name} added.",
+          "updated": "{name} updated."
+        },
+        "copyDialog": {
+          "title": "Copy {name}",
+          "description": "The copy can be edited freely; results already published keep the original.",
+          "name": "Name of the copy",
+          "nameRequired": "Enter a name",
+          "cancel": "Cancel",
+          "confirm": "Copy",
+          "working": "Copying…",
+          "done": "{name} created."
+        },
+        "deleteDialog": {
+          "title": "Delete {name}?",
+          "description": "No class, subject or result uses it.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "{name} deleted."
+        }
+      },
+      "settings": {
+        "description": "How each class's result is worked out this year. Next year starts with a copy of these.",
+        "noScales": "Add a grading scale first: graded results need one.",
+        "loadFailed": "Couldn't load the result settings.",
+        "columns": {
+          "class": "Class",
+          "system": "Result",
+          "scale": "Grading scale",
+          "papers": "1st & 2nd papers",
+          "absent": "Absent in a subject"
+        },
+        "systems": {
+          "GRADED": "Graded (GPA)",
+          "MARKS_ONLY": "Marks only"
+        },
+        "chooseScale": "Choose…",
+        "combined": "Graded together",
+        "separate": "Each on its own",
+        "absentRules": {
+          "FAIL": "Counts as 0 (fail)",
+          "EXCLUDE": "Left out of the result"
+        },
+        "notSet": "Not set yet",
+        "save": "Save",
+        "saved": "{name}'s result settings saved.",
+        "subjectScaleNote": "A subject can use its own grading scale instead of its class's: set it in Class subjects > Marks setup."
+      },
+      "stages": {
+        "ROUTINE": "Routine",
+        "MARKS_ENTRY": "Marks entry",
+        "PUBLISHED": "Published"
+      },
+      "list": {
+        "description": "Each class of an exam goes Routine → Marks entry → Published on its own.",
+        "add": "Add exam",
+        "loadFailed": "Couldn't load the exams.",
+        "empty": "No exams in {year} yet."
+      },
+      "examForm": {
+        "addTitle": "Add exam",
+        "editTitle": "Edit exam",
+        "description": "Name it, choose how its days work, and which classes sit it. Each class's subjects and days are set in its routine.",
+        "editDescription": "Its name and the attendance period on the result sheet.",
+        "nameEn": "Name in English",
+        "nameBn": "Name in Bangla",
+        "type": "Exam days",
+        "types": {
+          "MULTIPLE": "Several days",
+          "SINGLE": "One day"
+        },
+        "typeHints": {
+          "MULTIPLE": "A day per subject: half-yearly, annual.",
+          "SINGLE": "Every subject on the same day: a monthly or class test."
+        },
+        "classes": "Classes",
+        "allClasses": "All classes",
+        "someClasses": "Only some classes",
+        "attendanceFrom": "Attendance from",
+        "attendanceTo": "Attendance to",
+        "attendanceHint": "The attendance shown on the result sheet. Leave both empty for the year's start to the last exam day.",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving…",
+        "added": "{name} added.",
+        "updated": "{name} updated."
+      },
+      "detail": {
+        "back": "All exams",
+        "attendancePeriod": "attendance counted {range}",
+        "attendanceDefault": "attendance counted from the year's start to the last exam day",
+        "addClasses": "Add classes",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete exam",
+        "deleteLocked": "Can't delete: marks entry started",
+        "columns": {
+          "class": "Class",
+          "stage": "Stage",
+          "subjects": "Subjects",
+          "days": "Exam days"
+        },
+        "noRoutine": "No routine yet",
+        "routine": "Routine",
+        "openMarks": "Open marks entry",
+        "toRoutine": "Back to routine",
+        "removeClass": "Remove from the exam",
+        "marksOpened": "Marks entry is open for {class}.",
+        "backToRoutine": "{class} is back at the routine stage.",
+        "classRemoved": "{class} removed from the exam.",
+        "stagesHint": "Routine: set the subjects, days and marks. Marks entry: teachers enter marks (the routine can still be edited). Published: the result is out and marks are locked.",
+        "addDialog": {
+          "title": "Add classes",
+          "description": "They start at the routine stage.",
+          "none": "Every class is already in this exam.",
+          "cancel": "Cancel",
+          "confirm": "Add",
+          "done": "{count, plural, one {# class added.} other {# classes added.}}"
+        },
+        "deleteDialog": {
+          "title": "Delete {name}?",
+          "description": "Its classes and their routines go too. Nothing has been marked yet.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "{name} deleted."
+        },
+        "enterMarks": "Enter marks"
+      },
+      "routine": {
+        "title": "Exam routine: {class}",
+        "description": "Tick the subjects in this exam, with their day and time. Marks come from each subject's Marks setup unless you change them for this exam.",
+        "optional": "optional",
+        "publishedNote": "The result is published, so the routine can't change.",
+        "marksEntryNote": "Marks entry is open. Subjects that already have marks keep their marks and stay in the routine.",
+        "examDate": "Exam date",
+        "subject": "Subject",
+        "date": "Date",
+        "time": "Time",
+        "start": "Start",
+        "end": "End",
+        "marksHead": "Marks",
+        "marks": "{full} (pass {pass})",
+        "noMarks": "No marks setup",
+        "withParts": "with parts",
+        "change": "Change",
+        "useSetup": "Use setup",
+        "full": "Full",
+        "pass": "Pass",
+        "hint": "Changing a subject's marks here sets them for this exam only, without parts, e.g. a monthly test out of 25.",
+        "errors": {
+          "none": "Tick at least one subject.",
+          "examDate": "Choose the exam date.",
+          "date": "Choose the date for {subject}.",
+          "times": "{subject}: give both times, with the end after the start.",
+          "marks": "{subject}: full and pass marks must be above 0, pass not above full."
+        },
+        "cancel": "Cancel",
+        "close": "Close",
+        "save": "Save routine",
+        "saving": "Saving…",
+        "saved": "Routine saved."
+      },
+      "optional": {
+        "class": "Class",
+        "description": "Each student's optional (4th) subject, from the optional subjects open to their group.",
+        "loadFailed": "Couldn't load the optional subjects.",
+        "noOptional": "This class has no optional subjects this year. Mark a subject as optional in Class subjects.",
+        "missing": "{count, plural, one {# student hasn't chosen yet.} other {# students haven't chosen yet.}}",
+        "allChosen": "Everyone has chosen.",
+        "save": "Save",
+        "saveCount": "{count, plural, one {Save # change} other {Save # changes}}",
+        "saved": "{count, plural, one {# choice saved.} other {# choices saved.}}",
+        "columns": {
+          "roll": "Roll",
+          "student": "Student",
+          "group": "Group",
+          "subject": "Optional subject"
+        },
+        "noStudents": "No students in this class.",
+        "noneOpen": "None open to this group",
+        "notChosen": "Not chosen"
+      },
+      "marks": {
+        "mySheets": "Your subjects",
+        "open": "Open",
+        "opensOn": "opens {date}",
+        "noneOpen": "No class has marks entry open yet. Open it from the exam's page.",
+        "exam": "Exam",
+        "class": "Class",
+        "section": "Section",
+        "sectionName": "Section {name}",
+        "subject": "Subject",
+        "modes": {
+          "subject": "By subject",
+          "grid": "Whole section",
+          "progress": "Progress"
+        },
+        "noSubjects": "This class's exam routine has no subjects.",
+        "fullPass": "out of {full}, pass {pass}",
+        "part": "{name} {full} (pass {pass})",
+        "progress": "{done} of {total} filled in",
+        "gridProgress": "{entered} of {total} marks entered",
+        "fixRed": "{count, plural, one {Fix # red box} other {Fix # red boxes}}",
+        "save": "Save",
+        "saveCount": "{count, plural, one {Save # mark} other {Save # marks}}",
+        "saving": "Saving…",
+        "saved": "{count, plural, one {# mark saved.} other {# marks saved.}}",
+        "noStudents": "No students sit this.",
+        "marks": "Marks",
+        "absentShort": "Ab",
+        "absentLetter": "A",
+        "student": "Student",
+        "outOf": "out of {full}",
+        "doesNotSit": "Doesn't sit this subject",
+        "hint": "Type A in a marks box (or tick Ab) for an absent student. Leave a box empty to fill it in later.",
+        "gridHint": "Type A for absent. A dash means the student doesn't sit that subject (another group, religion or optional subject).",
+        "errors": {
+          "number": "A number, at most 2 decimals",
+          "tooHigh": "More than {max}",
+          "partMissing": "Enter {part} too"
+        },
+        "allIn": "Every mark is in: the result can be worked out.",
+        "missing": "{count, plural, one {# mark still missing.} other {# marks still missing.}}",
+        "entered": "Entered",
+        "absentCount": "{count} absent",
+        "wholeClass": "Whole class"
+      },
+      "results": {
+        "exam": "Exam",
+        "description": "Publish each class's result once its marks are in. Unlock it to correct marks.",
+        "noExams": "No exams yet.",
+        "columns": {
+          "class": "Class",
+          "stage": "Stage",
+          "result": "Result"
+        },
+        "passed": "{passed} of {appeared} passed ({rate})",
+        "tabulation": "Result sheet",
+        "publish": "Publish",
+        "unlock": "Unlock",
+        "publishDialog": {
+          "title": "Publish {class}'s result?",
+          "description": "Results are worked out with the class's result settings: grades, GPA, positions and attendance. Marks are then locked until the result is unlocked.",
+          "allIn": "Every mark is in.",
+          "missing": "{count, plural, one {# mark is still missing: enter it first.} other {# marks are still missing: enter them first.}}",
+          "confirm": "Publish",
+          "working": "Publishing…",
+          "done": "{class}: result published, {passed} of {total} passed."
+        },
+        "unlockDialog": {
+          "title": "Unlock {class}'s result?",
+          "description": "The result is taken back and marks can be changed again. Publish again when done. Class teachers' remarks are kept.",
+          "confirm": "Unlock",
+          "working": "Unlocking…",
+          "done": "{class}'s result unlocked: marks can be changed."
+        },
+        "sheet": {
+          "section": "Section",
+          "allSections": "All sections",
+          "sectionName": "Section {name}",
+          "order": "Order",
+          "byRoll": "By roll",
+          "byMerit": "By merit",
+          "print": "Print",
+          "title": "{exam} · {class} · Result sheet",
+          "summary": "{appeared} appeared, {passed} passed ({rate})",
+          "roll": "Roll",
+          "student": "Student",
+          "optional": "optional",
+          "total": "Total",
+          "gpa": "GPA",
+          "grade": "Grade",
+          "result": "Result",
+          "position": "Position",
+          "absent": "Ab",
+          "pass": "Pass",
+          "fail": "Fail ({count})"
+        },
+        "cards": {
+          "section": "Section",
+          "sectionName": "Section {name}",
+          "student": "Student",
+          "allStudents": "All students ({count})",
+          "print": "{count, plural, one {Print # card} other {Print # cards}}",
+          "printHint": "In the print window choose A4, and Save as PDF to keep a copy.",
+          "none": "No result cards in this section."
+        },
+        "remarks": {
+          "section": "Section",
+          "sectionName": "Section {name}",
+          "description": "The class teacher's remark for each student, shown on the result card when the card design includes remarks.",
+          "readOnly": "Only this section's class teacher (or someone allowed to enter any marks) can write these remarks.",
+          "save": "Save",
+          "saveCount": "{count, plural, one {Save # remark} other {Save # remarks}}",
+          "saved": "{count, plural, one {# remark saved.} other {# remarks saved.}}",
+          "noStudents": "No students sit this exam in this section.",
+          "gpa": "GPA",
+          "pass": "Pass",
+          "fail": "Fail",
+          "position": "position {n}",
+          "placeholder": "e.g. Hard-working and attentive. Needs more practice in maths.",
+          "remark": "Remark"
+        },
+        "cardsButton": "Result cards",
+        "remarksButton": "Remarks"
+      },
+      "card": {
+        "defaultTitle": "Progress Report",
+        "name": "Name",
+        "class": "Class",
+        "section": "Section",
+        "roll": "Roll",
+        "admissionNo": "Admission no.",
+        "group": "Group",
+        "father": "Father",
+        "mother": "Mother",
+        "optional": "optional",
+        "absent": "Absent",
+        "inSection": "in section",
+        "inClass": "in class",
+        "columns": {
+          "code": "Code",
+          "subject": "Subject",
+          "full": "Full marks",
+          "pass": "Pass marks",
+          "marks": "Marks",
+          "highest": "Highest",
+          "grade": "Grade",
+          "point": "Point"
+        },
+        "total": "Total marks",
+        "percentage": "Percentage",
+        "gpa": "GPA",
+        "grade": "Grade",
+        "result": "Result",
+        "passed": "Passed",
+        "failed": "Failed ({count})",
+        "sectionPosition": "Position in section",
+        "classPosition": "Position in class",
+        "positionOf": "{n} of {of}",
+        "attendance": "Attendance",
+        "remarks": "Class teacher's remarks",
+        "marksRange": "Marks %",
+        "published": "Published {date}"
+      },
+      "cardSettings": {
+        "description": "How this school's result cards look. Changes show in the preview at once; save to use them on every card.",
+        "save": "Save design",
+        "saving": "Saving…",
+        "saved": "Result card design saved.",
+        "undo": "Undo changes",
+        "groups": {
+          "look": "Look",
+          "header": "Header and student",
+          "columns": "Subject table",
+          "summary": "Below the table",
+          "footer": "Signatures and footer"
+        },
+        "layouts": {
+          "CLASSIC": "Classic",
+          "MODERN": "Modern",
+          "COMPACT": "Compact"
+        },
+        "colour": "Colour",
+        "customColour": "Choose a colour",
+        "title": "Card title",
+        "titlePlaceholder": "Progress Report",
+        "showLogo": "School logo",
+        "showAddress": "School address",
+        "showPhoto": "Student photo",
+        "showParents": "Father's and mother's names",
+        "showAdmissionNo": "Admission number",
+        "showCode": "Subject code",
+        "showFullMarks": "Full marks",
+        "showPassMarks": "Pass marks",
+        "showParts": "Parts (CQ, MCQ…)",
+        "showGrade": "Grade",
+        "showPoint": "Grade point",
+        "highestMarks": "Highest marks",
+        "highest": {
+          "NONE": "Don't show",
+          "SECTION": "In the section",
+          "CLASS": "In the class"
+        },
+        "position": "Merit position",
+        "positions": {
+          "NONE": "Don't show",
+          "SECTION": "In the section",
+          "CLASS": "In the class",
+          "BOTH": "Both"
+        },
+        "showAttendance": "Attendance",
+        "showRemarks": "Class teacher's remarks",
+        "showGradingTable": "Grading table",
+        "signatures": "Signature lines",
+        "signature": "Signature {n}",
+        "removeSignature": "Remove",
+        "addSignature": "Add signature",
+        "footerNote": "Footer note",
+        "footerPlaceholder": "e.g. This is a computer-generated result.",
+        "preview": "Preview",
+        "previewNote": "A made-up student, with your school's name and logo. Real cards are printed from Results.",
+        "showComponents": "Each exam's share (final results)",
+        "previewExam": "Exam result",
+        "previewFinal": "Final result"
+      },
+      "final": {
+        "description": "A final result weighs a class's exams together, e.g. Half-yearly 40% + Annual 60%. Publish each exam's result first, then publish the final result. Year {year}.",
+        "add": "Add final result",
+        "empty": "No final results yet. Add one for a class to say which exams count and how much.",
+        "columns": {
+          "class": "Class",
+          "name": "Final result",
+          "status": "Status"
+        },
+        "status": {
+          "DRAFT": "Not published",
+          "PUBLISHED": "Published"
+        },
+        "examsReady": "{ready} of {total} exam results published",
+        "tabulation": "Result sheet",
+        "cards": "Result cards",
+        "unlock": "Unlock",
+        "edit": "Edit",
+        "delete": "Delete",
+        "publish": "Publish",
+        "percentage": "%",
+        "sheetHint": "Point at a mark to see each exam's share.",
+        "form": {
+          "addTitle": "Add final result",
+          "editTitle": "Edit final result",
+          "description": "Choose the exams that count towards the class's final result and how much each one weighs.",
+          "class": "Class",
+          "chooseClass": "Choose a class",
+          "nameEn": "Name (English)",
+          "nameBn": "Name (Bangla)",
+          "components": "Components",
+          "componentsHint": "Each component is one exam, or several combined (e.g. the class tests). Their weights add up to 100%.",
+          "total": "Total {total}%",
+          "classFirst": "Choose the class first.",
+          "noExams": "This class has no exams this year. Add exams first.",
+          "addComponent": "Add component",
+          "removeComponent": "Remove component",
+          "componentNameEn": "Component name (English)",
+          "componentNameBn": "Component name (Bangla)",
+          "weight": "Weight",
+          "exams": "Exams",
+          "methods": {
+            "AVERAGE": "Average of the exams",
+            "BEST": "Only the best"
+          },
+          "bestCount": "Best of {count}:",
+          "attendanceFrom": "Attendance from",
+          "attendanceTo": "Attendance to",
+          "attendanceHint": "Left empty: from the start of the year to the last exam day.",
+          "cancel": "Cancel",
+          "save": "Save",
+          "saving": "Saving…",
+          "added": "{name} added.",
+          "updated": "{name} saved."
+        },
+        "publishDialog": {
+          "title": "Publish {name} for class {class}?",
+          "description": "Works out every student's final result from the published exam results, using the class's current result settings. Students and guardians can then see it.",
+          "notReady": "Publish these exam results for the class first: {exams}",
+          "confirm": "Publish",
+          "working": "Publishing…",
+          "done": "Final result of class {class} published: {passed} of {total} passed."
+        },
+        "unlockDialog": {
+          "title": "Unlock {name} for class {class}?",
+          "description": "The final result is taken back so the formula can be changed. Publishing again works it out afresh.",
+          "confirm": "Unlock",
+          "working": "Unlocking…",
+          "done": "{name} of class {class} unlocked."
+        },
+        "deleteDialog": {
+          "title": "Delete {name} of class {class}?",
+          "description": "The formula is deleted. The exams and their results stay as they are.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "{name} deleted."
+        }
+      }
+    },
+    "finance": {
+      "title": "Finance",
+      "description": "Collect fees, see payments, and set what each class pays and where the money goes.",
+      "tabs": {
+        "structures": "Class fees",
+        "feeTypes": "Fee types",
+        "funds": "Funds",
+        "settings": "Settings",
+        "collect": "Collect",
+        "payments": "Payments",
+        "expenses": "Expenses",
+        "ledger": "Ledger",
+        "reports": "Reports"
+      },
+      "funds": {
+        "description": "Funds hold the school's money, such as a general fund and a development fund. Each fee type pays into one fund; balances come from every payment, expense and transfer.",
+        "add": "Add fund",
+        "empty": "No funds yet. Add one first: every fee type needs a fund.",
+        "columns": {
+          "name": "Fund",
+          "balance": "Balance",
+          "status": "Status"
+        },
+        "active": "Active",
+        "inactive": "Inactive",
+        "actions": "Actions",
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "activated": "{name} is active again.",
+        "deactivated": "{name} deactivated.",
+        "form": {
+          "addTitle": "Add fund",
+          "editTitle": "Edit fund",
+          "description": "A fund is where money is kept and counted, for example General Fund or Development Fund.",
+          "nameEn": "Name (English)",
+          "nameBn": "Name (Bangla)",
+          "note": "Note",
+          "save": "Save",
+          "saving": "Saving…",
+          "created": "{name} added.",
+          "updated": "{name} saved."
+        },
+        "transfer": "Transfer between funds",
+        "deposit": "Add money"
+      },
+      "feeTypes": {
+        "description": "The kinds of fees the school charges, such as tuition, admission and exam fees. Monthly fees are charged every month; one-time fees once a year.",
+        "add": "Add fee type",
+        "fundFirst": "Add a fund first: every fee type pays into a fund.",
+        "empty": "No fee types yet.",
+        "columns": {
+          "name": "Fee type",
+          "frequency": "Charged",
+          "fund": "Fund",
+          "status": "Status"
+        },
+        "frequencies": {
+          "MONTHLY": "Monthly",
+          "ONE_TIME": "One-time"
+        },
+        "active": "Active",
+        "inactive": "Inactive",
+        "actions": "Actions",
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "activated": "{name} is active again.",
+        "deactivated": "{name} deactivated. It is no longer given to new students.",
+        "form": {
+          "addTitle": "Add fee type",
+          "editTitle": "Edit fee type",
+          "description": "How much each class pays is set in Class fees.",
+          "nameEn": "Name (English)",
+          "nameBn": "Name (Bangla)",
+          "frequency": "Charged",
+          "frequencyHints": {
+            "MONTHLY": "Every month of the year, e.g. tuition fee",
+            "ONE_TIME": "Once in the year, e.g. admission or session fee"
+          },
+          "frequencyFixed": "This can't be changed after the fee type is created.",
+          "fund": "Fund",
+          "chooseFund": "Choose a fund",
+          "fundHint": "Payments of this fee go into this fund.",
+          "fundChangeHint": "Unpaid fees move to the new fund; fees already paid stay in the old one.",
+          "note": "Note",
+          "save": "Save",
+          "saving": "Saving…",
+          "created": "{name} added.",
+          "updated": "{name} saved.",
+          "feesMoved": "{count, plural, one {# unpaid fee moved to the new fund.} other {# unpaid fees moved to the new fund.}}",
+          "appliesTo": "Who pays",
+          "appliesToHint": "e.g. the admission fee: new students only; the re-admission fee: old students only. New or old is set on each student's admission.",
+          "appliesToChangeHint": "A change applies the class fees again: unpaid fees of students it no longer applies to are removed, and the others get it.",
+          "appliesToRemoved": "{count, plural, one {# unpaid fee removed from students it no longer applies to.} other {# unpaid fees removed from students it no longer applies to.}}",
+          "appliesToBlocked": "{count, plural, one {# fee already has a payment, so it was kept.} other {# fees already have payments, so they were kept.}}"
+        },
+        "appliesTo": {
+          "ALL": "Every student",
+          "NEW_STUDENTS": "New students only",
+          "OLD_STUDENTS": "Old students only"
+        }
+      },
+      "structures": {
+        "year": "Year",
+        "class": "Class",
+        "add": "Set a fee",
+        "description": "Every student of the class gets these fees for the year: new students when admitted, current ones when you save.",
+        "setupFirst": "Add an academic year and a class first.",
+        "empty": "No fees are set for class {class} in {year} yet.",
+        "columns": {
+          "feeType": "Fee",
+          "frequency": "Charged",
+          "amount": "Amount",
+          "yearTotal": "In the year"
+        },
+        "intoFund": "Into {fund}",
+        "perMonth": "{amount} a month",
+        "actions": "Actions",
+        "edit": "Change amount",
+        "sync": "Give to students who don't have it",
+        "synced": "{name} checked for every student of the class.",
+        "syncDone": "{updated, plural, =0 {} one {# unpaid fee changed to the new amount. } other {# unpaid fees changed to the new amount. }}{removed, plural, =0 {} one {# unpaid fee removed.} other {# unpaid fees removed.}}",
+        "syncBlocked": "{count, plural, one {# fee already has a payment, so it kept its old amount.} other {# fees already have payments, so they kept their old amounts.}} Change those with a discount if needed.",
+        "perStudent": "A student pays in the year (before discounts)",
+        "form": {
+          "addTitle": "Set a fee for class {class}, {year}",
+          "editTitle": "Change the fee for class {class}, {year}",
+          "description": "The amount every student of the class pays.",
+          "feeType": "Fee type",
+          "chooseFeeType": "Choose a fee type",
+          "noFeeTypes": "Every active fee type is already set for this class. Add fee types in Fee types.",
+          "byMonth": "Different amounts in parts of the year",
+          "byMonthHint": "e.g. ৳700 from January to April, then ৳800 from May",
+          "amount": "Amount",
+          "monthlyAmount": "Amount a month",
+          "from": "From",
+          "to": "To",
+          "removePeriod": "Remove",
+          "addPeriod": "Add a part of the year",
+          "periodsHint": "Months in no part of the year are not charged.",
+          "applyNote": "Saving gives the fee to every student of the class. Unpaid fees change to the new amount; fees that already have payments keep theirs.",
+          "save": "Save",
+          "saving": "Saving…",
+          "saved": "{name} saved."
+        },
+        "copyFrom": "Copy from {year}",
+        "copyTitle": "Copy class fees from {from} to {to}?",
+        "copyDescription": "Every class's fees of {from} that {to} doesn't have yet are copied, with the same amounts and monthly schedules. Fees already set for {to} stay as they are. Students already in {to} (for example after promotion) get the copied fees.",
+        "copy": "Copy fees",
+        "copying": "Copying…",
+        "cancel": "Cancel",
+        "copied": "{count, plural, one {# class fee} other {# class fees}} copied from {from} to {to}. {students, plural, =0 {} one {# student has fees in {to}.} other {# students have fees in {to}.}}",
+        "nothingToCopy": "Nothing new to copy: {from}'s class fees are already set here.",
+        "copySkipped": "{count, plural, one {# fee was already set and left as it is.} other {# fees were already set and left as they are.}}"
+      },
+      "settings": {
+        "midYear": "Students admitted during the year",
+        "midYearDescription": "A student who joins after the year has started: which months of the monthly fees do they pay?",
+        "rules": {
+          "FROM_ADMISSION": "From the admission month",
+          "WHOLE_YEAR": "The whole year"
+        },
+        "ruleHints": {
+          "FROM_ADMISSION": "Admitted on 15 May: monthly fees from May. One-time fees are charged as usual.",
+          "WHOLE_YEAR": "Every month of the year, even the months before admission."
+        },
+        "appliesFromNow": "A change applies to students admitted from now on; fees already given stay as they are.",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Finance settings saved."
+      },
+      "feeStatus": {
+        "PAID": "Paid",
+        "PARTIAL": "Part paid",
+        "UNPAID": "Unpaid",
+        "WAIVED": "Waived"
+      },
+      "collect": {
+        "pickTitle": "Find the student",
+        "change": "Change student",
+        "profile": "Profile",
+        "admissionNo": "Admission no. {no}",
+        "roll": "Roll {roll}",
+        "status": {
+          "ACTIVE": "Active",
+          "INACTIVE": "Left",
+          "GRADUATED": "Graduated",
+          "SUSPENDED": "Suspended"
+        },
+        "tabs": {
+          "pay": "Take payment",
+          "fees": "Fees and discounts",
+          "history": "Payments"
+        },
+        "picker": {
+          "search": "Name or admission number",
+          "class": "Class",
+          "allClasses": "All classes",
+          "hint": "Type a name or admission number, or choose a class.",
+          "none": "No student found.",
+          "roll": "Roll {roll}"
+        },
+        "pay": {
+          "nothingDue": "Nothing left to pay. Every fee is paid.",
+          "dueNow": "Due now",
+          "allRemaining": "All unpaid, with coming months",
+          "selectDue": "Select everything due",
+          "columns": {
+            "fee": "Fee",
+            "payable": "Payable",
+            "paid": "Paid",
+            "remaining": "Remaining",
+            "paying": "Paying now"
+          },
+          "advance": "not due yet",
+          "discounted": "{amount} discount",
+          "total": "{count, plural, =0 {Nothing selected} one {# fee} other {# fees}}",
+          "badAmount": "An amount is more than what is left, or not a valid amount.",
+          "method": "Paid by",
+          "methods": {
+            "CASH": "Cash",
+            "MOBILE_BANKING": "Mobile banking"
+          },
+          "transactionRef": "Transaction ID",
+          "refPlaceholder": "e.g. bKash TrxID",
+          "date": "Date",
+          "submit": "Take {amount}",
+          "working": "Saving…",
+          "done": "{amount} received. Receipt {no}."
+        },
+        "fees": {
+          "year": "Year",
+          "bulkDiscount": "Discount on a fee type",
+          "addFee": "Add a fee",
+          "empty": "No fees for this student in this year. Set the class fees in Class fees.",
+          "columns": {
+            "fee": "Fee",
+            "amount": "Amount",
+            "discount": "Discount",
+            "paid": "Paid",
+            "remaining": "Remaining",
+            "status": "Status"
+          },
+          "customFee": "This student only",
+          "actions": "Actions",
+          "discount": "Discount",
+          "remove": "Remove",
+          "total": "Total",
+          "removeTitle": "Remove {fee}?",
+          "removeDescription": "It was added for this student only and nothing has been paid on it.",
+          "cancel": "Cancel",
+          "removed": "Fee removed."
+        },
+        "discount": {
+          "title": "Discount",
+          "feeIs": "The fee is {amount}; {paid} is paid.",
+          "amount": "Discount",
+          "zeroRemoves": "0 removes the discount.",
+          "reason": "Reason",
+          "reasonPlaceholder": "e.g. Sibling discount, Poor fund",
+          "tooMuch": "The discount can be at most {max} (the fee less what is already paid).",
+          "save": "Save",
+          "saving": "Saving…",
+          "saved": "Discount of {amount} saved.",
+          "removed": "Discount removed."
+        },
+        "bulkDiscount": {
+          "title": "Discount on a fee type",
+          "description": "The same discount on each month of a fee (or some of the months), e.g. a half-free studentship.",
+          "feeType": "Fee",
+          "from": "From",
+          "to": "To",
+          "amountPerMonth": "Discount each month",
+          "amount": "Discount",
+          "zeroRemoves": "0 removes the discount.",
+          "reason": "Reason",
+          "reasonPlaceholder": "e.g. Half-free studentship",
+          "badAmount": "Enter a valid amount.",
+          "save": "Save",
+          "saving": "Saving…",
+          "saved": "{count, plural, one {Discount of {amount} on # fee.} other {Discount of {amount} on # fees.}}"
+        },
+        "customFee": {
+          "title": "Add a fee",
+          "description": "A fee for this student only, such as a fine or a lost ID card.",
+          "feeType": "Fee type",
+          "chooseFeeType": "Choose a fee type",
+          "month": "Month",
+          "amount": "Amount",
+          "note": "Note",
+          "noteHint": "Shown on the receipt.",
+          "notePlaceholder": "e.g. Late fine",
+          "badAmount": "Enter an amount above 0.",
+          "save": "Add",
+          "saving": "Adding…",
+          "added": "Fee added."
+        }
+      },
+      "payments": {
+        "from": "From",
+        "to": "To",
+        "method": "Method",
+        "allMethods": "All methods",
+        "methods": {
+          "CASH": "Cash",
+          "MOBILE_BANKING": "Mobile banking"
+        },
+        "status": "Status",
+        "allStatuses": "All payments",
+        "statuses": {
+          "SUCCESS": "Received",
+          "CANCELLED": "Cancelled"
+        },
+        "collected": "Collected",
+        "page": "Page {page} of {total}",
+        "previous": "Previous",
+        "next": "Next",
+        "empty": "No payments in these days.",
+        "columns": {
+          "receipt": "Receipt",
+          "date": "Date",
+          "student": "Student",
+          "method": "Method",
+          "amount": "Amount"
+        },
+        "actions": "Actions",
+        "receipt": "Receipt",
+        "cancel": "Cancel payment",
+        "cancelDialog": {
+          "title": "Cancel payment {no}?",
+          "description": "{amount} goes back: the fees become unpaid again and the money leaves the fund. The payment stays in the records, marked cancelled.",
+          "reason": "Reason",
+          "reasonPlaceholder": "e.g. Taken twice by mistake",
+          "reasonRequired": "Write why it is cancelled.",
+          "confirm": "Cancel payment",
+          "working": "Cancelling…",
+          "done": "Payment {no} cancelled."
+        }
+      },
+      "receipt": {
+        "title": "Money receipt",
+        "dialogTitle": "Receipt {no}",
+        "studentCopy": "Student copy",
+        "officeCopy": "Office copy",
+        "phone": "Phone: {phone}",
+        "receiptNo": "Receipt no.",
+        "date": "Date",
+        "student": "Student",
+        "admissionNo": "Admission no.",
+        "class": "Class",
+        "roll": "Roll",
+        "particulars": "Particulars",
+        "amount": "Amount",
+        "total": "Total",
+        "paidBy": "Paid by",
+        "methods": {
+          "CASH": "Cash",
+          "MOBILE_BANKING": "Mobile banking"
+        },
+        "ref": "Trx ID {ref}",
+        "cancelReason": "Cancelled: {reason}",
+        "receivedBy": "Received by",
+        "cancelledStamp": "CANCELLED",
+        "print": "Print",
+        "printHint": "Prints a student copy and an office copy on one A4 page."
+      },
+      "range": {
+        "from": "From",
+        "to": "To",
+        "presets": {
+          "today": "Today",
+          "thisMonth": "This month",
+          "lastMonth": "Last month",
+          "thisYear": "This year"
+        }
+      },
+      "money": {
+        "deposit": {
+          "title": "Add money to {fund}",
+          "description": "Money put into the fund by hand, such as a donation, a grant or the balance carried from before.",
+          "balance": "Balance now: {balance}",
+          "amount": "Amount",
+          "date": "Date",
+          "note": "Note",
+          "notePlaceholder": "e.g. Donation from the managing committee",
+          "badAmount": "Enter an amount above 0.",
+          "save": "Add money",
+          "saving": "Saving…",
+          "done": "{amount} added. Balance {balance}."
+        },
+        "transfer": {
+          "title": "Transfer between funds",
+          "description": "Moves money from one fund to another. Both funds' ledgers show it.",
+          "from": "From fund",
+          "to": "To fund",
+          "chooseFund": "Choose a fund",
+          "amount": "Amount",
+          "date": "Date",
+          "note": "Note",
+          "chooseBoth": "Choose both funds.",
+          "sameFund": "Choose two different funds.",
+          "badAmount": "Enter an amount above 0.",
+          "tooMuch": "The fund holds only {balance}.",
+          "save": "Transfer",
+          "saving": "Transferring…",
+          "done": "{amount} transferred."
+        }
+      },
+      "ledger": {
+        "fund": "Fund",
+        "allFunds": "All funds",
+        "kind": "Kind",
+        "allKinds": "Everything",
+        "sources": {
+          "PAYMENT": "Fee payment",
+          "PAYMENT_REVERSAL": "Payment cancelled",
+          "MANUAL_DEPOSIT": "Money added",
+          "EXPENSE": "Expense",
+          "ADJUSTMENT": "Expense voided",
+          "TRANSFER": "Transfer"
+        },
+        "transferIn": "Transfer in",
+        "transferOut": "Transfer out",
+        "totalIn": "Money in",
+        "totalOut": "Money out",
+        "net": "Net",
+        "empty": "No money moved in these days.",
+        "columns": {
+          "date": "Date",
+          "fund": "Fund",
+          "what": "What",
+          "in": "In",
+          "out": "Out"
+        }
+      },
+      "expenses": {
+        "fund": "Fund",
+        "allFunds": "All funds",
+        "category": "Category",
+        "allCategories": "All categories",
+        "showVoided": "Show voided",
+        "add": "Add expense",
+        "total": "Spent",
+        "noCategory": "No category",
+        "empty": "No expenses in these days.",
+        "columns": {
+          "date": "Date",
+          "category": "Category",
+          "fund": "Fund",
+          "amount": "Amount"
+        },
+        "voided": "Voided",
+        "actions": "Actions",
+        "void": "Void",
+        "form": {
+          "title": "Add expense",
+          "description": "Money spent from a fund. A fund can't spend more than it holds.",
+          "fund": "Paid from",
+          "chooseFund": "Choose a fund",
+          "balance": "Balance: {balance}",
+          "amount": "Amount",
+          "category": "Category",
+          "categoryHint": "Pick a category used before, or type a new one.",
+          "categoryPlaceholder": "e.g. Electricity, Stationery, Salary",
+          "date": "Date",
+          "note": "Note",
+          "notePlaceholder": "e.g. September bill",
+          "badAmount": "Enter an amount above 0.",
+          "categoryRequired": "Write a category.",
+          "tooMuch": "The fund holds only {balance}.",
+          "save": "Add expense",
+          "saving": "Saving…",
+          "done": "{amount} spent. Balance {balance}."
+        },
+        "voidDialog": {
+          "title": "Void {category}, {amount}?",
+          "description": "For an expense entered by mistake: the money returns to its fund. The expense stays in the records, marked voided.",
+          "reason": "Reason",
+          "reasonPlaceholder": "e.g. Entered twice",
+          "reasonRequired": "Write why it is voided.",
+          "confirm": "Void expense",
+          "working": "Voiding…",
+          "done": "Expense voided."
+        }
+      },
+      "reports": {
+        "tabs": {
+          "collection": "Collection",
+          "dues": "Dues"
+        },
+        "print": "Print",
+        "nothing": "Nothing in these days.",
+        "total": "Total",
+        "collection": {
+          "title": "Collection report",
+          "range": "{from} to {to}",
+          "collected": "Fees collected",
+          "payments": "{count, plural, one {# payment} other {# payments}}",
+          "spent": "Expenses",
+          "net": "Collected less spent",
+          "netHint": "Fees collected minus expenses",
+          "cancelled": "Cancelled payments",
+          "byMethod": "By payment method",
+          "byFeeType": "By fee",
+          "byFund": "By fund",
+          "byDay": "By day",
+          "expensesByCategory": "Expenses by category"
+        },
+        "dues": {
+          "description": "Unpaid fees whose month has started, and unpaid one-time fees.",
+          "title": "Dues, {year}",
+          "totalDue": "Total due",
+          "studentsWithDues": "Students who owe",
+          "columns": {
+            "class": "Class",
+            "students": "Students",
+            "withDues": "Owe",
+            "due": "Due",
+            "roll": "Roll",
+            "student": "Student",
+            "phone": "Phone",
+            "since": "Unpaid since",
+            "fees": "Fees",
+            "previous": "Earlier years",
+            "total": "Total"
+          },
+          "view": "Students",
+          "allClasses": "All classes",
+          "noDues": "No student of this class owes anything.",
+          "classTitle": "Dues of class {class}, {year}",
+          "classSummary": "{count, plural, one {# student owes} other {# students owe}} {amount} in all.",
+          "collect": "Take payment",
+          "thisYearOnly": "{year} only",
+          "previousDue": "From earlier years",
+          "previousHint": "Still unpaid from before, by the students of this year",
+          "classPrevious": "Of this, {amount} is from earlier years."
+        }
+      }
+    },
+    "promotion": {
+      "title": "Promotion",
+      "description": "At the end of the year, move each class's students up to the next class, or set who repeats, graduates or leaves.",
+      "class": "Class",
+      "noNextYear": "Make the next academic year first: students move into the year after {year}.",
+      "goToYears": "Academic years",
+      "graduation": "Graduation",
+      "newYearNote": "Next year they are old students (re-admission fee) with no roll number yet.",
+      "result": "Final result",
+      "noResult": "No final result is published for this class, so everyone is set to move up.",
+      "failedGo": "Students who failed",
+      "failedRepeat": "Repeat the class",
+      "failedMoveUp": "Move up anyway",
+      "failedGraduate": "Graduate anyway",
+      "sectionFor": "Section in {class}",
+      "chooseSection": "Choose a section",
+      "sectionName": "Section {name}",
+      "columns": {
+        "roll": "Roll",
+        "student": "Student",
+        "result": "Result",
+        "action": "Next year",
+        "section": "Section",
+        "outcome": "Done",
+        "nextYear": "Now in"
+      },
+      "passed": "Passed",
+      "failed": "Failed",
+      "gpa": "GPA",
+      "position": "position {n}",
+      "noResultFor": "no result",
+      "actions": {
+        "PROMOTE": "Move up to {class}",
+        "REPEAT": "Repeat the class",
+        "GRADUATE": "Graduate",
+        "LEAVE": "Leaves the school"
+      },
+      "needSection": "Choose the section for students moving up.",
+      "submit": "{count, plural, =0 {Choose students} one {Move # student} other {Move # students}}",
+      "empty": "No students in this class this year.",
+      "allDone": "Every student of this class has been moved to {year}.",
+      "confirmTitle": "Move {count, plural, one {# student} other {# students}} to {year}?",
+      "summary": {
+        "PROMOTE": "{count, plural, one {# moves} other {# move}} up to {class}.",
+        "REPEAT": "{count, plural, one {# repeats} other {# repeat}} {class}.",
+        "GRADUATE": "{count, plural, one {# graduates} other {# graduate}}.",
+        "LEAVE": "{count, plural, one {# leaves} other {# leave}} the school."
+      },
+      "confirmNote": "This year's records stay as they are. Next year's fees are given from that year's class fees. A move can be undone until next year has payments or records.",
+      "cancel": "Cancel",
+      "working": "Moving…",
+      "confirm": "Move students",
+      "done": "Done for {year}: {promoted} moved up, {repeated} repeat, {graduated} graduated, {left} left.",
+      "doneTitle": "Already moved",
+      "undo": "Undo",
+      "undone": "{name}'s move undone."
+    },
+    "roles": {
+      "title": "Roles and staff",
+      "description": "Who works at the school and what each of them can do.",
+      "superAdminOnly": "Only the school super admin can manage roles and staff.",
+      "tabs": {
+        "staff": "Staff",
+        "roles": "Roles"
+      },
+      "kinds": {
+        "SUPER_ADMIN": "Super admin",
+        "TEACHER": "Teacher",
+        "GUARDIAN": "Guardian"
+      },
+      "kindHints": {
+        "SUPER_ADMIN": "The school's own account: can do everything. Can't be changed.",
+        "TEACHER": "Every teacher. Choose what teachers can do; a class teacher and subject teachers also get their own sections.",
+        "GUARDIAN": "The family login of students. Can't be changed."
+      },
+      "rolesDescription": "Make roles such as Accountant or Office staff, choose what each can do, then give them to staff in Staff.",
+      "addRole": "Add role",
+      "customRole": "A role made by the school",
+      "actions": "Actions",
+      "edit": "Edit",
+      "editPermissions": "Choose what teachers can do",
+      "delete": "Delete",
+      "everything": "Everything",
+      "familyOnly": "The family's own pages",
+      "permissionCount": "{count} of {total} permissions",
+      "memberCount": "{count, plural, =0 {Nobody} one {# person} other {{n} people}}",
+      "deleteTitle": "Delete the role {name}?",
+      "deleteDescription": "Only a role nobody has can be deleted.",
+      "cancel": "Cancel",
+      "deleted": "{name} deleted.",
+      "editor": {
+        "addTitle": "Add role",
+        "editTitle": "Edit {name}",
+        "teacherTitle": "What teachers can do",
+        "description": "A name, and what people with this role may do.",
+        "teacherDescription": "This applies to every teacher of the school.",
+        "name": "Role name",
+        "namePlaceholder": "e.g. Accountant",
+        "note": "Note",
+        "permissions": "{count, plural, =0 {Nothing chosen} one {# permission} other {# permissions}}",
+        "viewHint": "Choosing anything in a group also gives seeing it.",
+        "nameRequired": "Write the role's name.",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "{name} saved."
+      },
+      "staff": {
+        "description": "The super admin, teachers and other staff. Give office staff a role made in Roles; teachers are added in Teachers.",
+        "add": "Add staff member",
+        "roleFirst": "Make a role first (in Roles), then add staff with it.",
+        "empty": "Nobody yet.",
+        "columns": {
+          "name": "Name",
+          "login": "Login",
+          "roles": "Roles"
+        },
+        "status": {
+          "ACTIVE": "Active",
+          "INACTIVE": "No longer works here",
+          "SUSPENDED": "Suspended"
+        },
+        "actions": "Actions",
+        "changeRoles": "Change roles",
+        "changePassword": "Change password",
+        "addDialog": {
+          "title": "Add staff member",
+          "description": "Someone who isn't a teacher, such as an accountant. They log in with their mobile number.",
+          "name": "Name",
+          "phone": "Mobile number",
+          "phoneHint": "If this number already has an account (a teacher, a guardian), it is given these roles and keeps its password.",
+          "roles": "Roles",
+          "nameRequired": "Write the name.",
+          "roleRequired": "Choose at least one role.",
+          "save": "Add",
+          "saving": "Adding…",
+          "linked": "{name} already had an account: the roles were added to it.",
+          "credentialsTitle": "Login for {name}",
+          "credentialsDescription": "Give these to the staff member. The password is shown only once."
+        },
+        "rolesDialog": {
+          "title": "Roles of {name}",
+          "description": "Teacher and guardian roles stay as they are; only roles made by the school change here.",
+          "noRoleWarning": "With no role, this person can no longer log in to the school.",
+          "save": "Save",
+          "saving": "Saving…",
+          "saved": "Roles of {name} saved.",
+          "removed": "{name} no longer works here."
+        }
+      },
+      "catalog": {
+        "groups": {
+          "student": "Students",
+          "staff": "Staff",
+          "academic_year": "Academic years",
+          "class": "Classes",
+          "section": "Sections",
+          "schedule": "Schedule",
+          "subject": "Subjects",
+          "class_subject": "Class subjects",
+          "group": "Groups",
+          "teacher": "Teachers",
+          "holiday": "Calendar",
+          "routine": "Routine",
+          "attendance": "Student attendance",
+          "teacher_attendance": "Teacher attendance",
+          "exam": "Exams and results",
+          "grading": "Grading",
+          "library": "Library",
+          "transport": "Transport",
+          "fund": "Funds",
+          "fee_type": "Fee types",
+          "fee_structure": "Class fees",
+          "student_fee": "Student fees",
+          "payment": "Payments",
+          "expense": "Expenses",
+          "finance_report": "Finance reports"
+        },
+        "perms": {
+          "student": {
+            "create": "Admit students",
+            "view": "See students",
+            "update": "Edit students (details, section, roll, status)",
+            "delete": "Delete students",
+            "change_admission_date": "Change the admission date",
+            "promote": "Promote students at the end of the year"
+          },
+          "staff": {
+            "create": "Add staff",
+            "view": "See staff"
+          },
+          "academic_year": {
+            "create": "Make academic years",
+            "view": "See academic years",
+            "update": "Change academic years and the current year"
+          },
+          "class": {
+            "create": "Add classes",
+            "view": "See classes",
+            "update": "Edit classes",
+            "delete": "Delete classes"
+          },
+          "section": {
+            "create": "Add sections",
+            "view": "See sections",
+            "update": "Rename sections",
+            "delete": "Delete sections",
+            "configure": "Set class teachers, capacity and class hours"
+          },
+          "schedule": {
+            "view": "See class hours and schedule changes",
+            "manage": "Change the schedule (Ramadan, exam days…)"
+          },
+          "subject": {
+            "view": "See subjects",
+            "create": "Add school subjects",
+            "update": "Edit school subjects",
+            "delete": "Delete school subjects"
+          },
+          "class_subject": {
+            "view": "See class subjects",
+            "manage": "Set each class's subjects"
+          },
+          "group": {
+            "view": "See groups",
+            "create": "Add groups",
+            "update": "Edit groups",
+            "delete": "Delete groups"
+          },
+          "teacher": {
+            "create": "Add teachers",
+            "view": "See teachers",
+            "update": "Edit teachers",
+            "deactivate": "Mark teachers as left or on leave",
+            "assign": "Assign subject teachers"
+          },
+          "holiday": {
+            "view": "See the calendar and holidays",
+            "manage": "Manage holidays and working days"
+          },
+          "routine": {
+            "view": "See class routines",
+            "manage": "Manage routines, period times and substitutes"
+          },
+          "attendance": {
+            "mark": "Take student attendance",
+            "view": "See student attendance",
+            "export": "Export attendance",
+            "edit_past": "Change attendance older than 7 days"
+          },
+          "teacher_attendance": {
+            "mark": "Take teacher attendance",
+            "view": "See teacher attendance"
+          },
+          "exam": {
+            "create": "Make and manage exams, exam routines and optional subjects",
+            "view": "See exams and exam routines",
+            "enter_marks": "Enter marks for any section",
+            "unlock": "Unlock a published result",
+            "publish_result": "Publish results",
+            "view_result": "See results"
+          },
+          "grading": {
+            "view": "See grading scales and result settings",
+            "manage": "Manage grading, marks setup, result settings and card design"
+          },
+          "library": {
+            "manage_books": "Manage books",
+            "issue": "Issue books"
+          },
+          "transport": {
+            "manage_routes": "Manage routes",
+            "view": "See transport"
+          },
+          "fund": {
+            "create": "Add funds",
+            "view": "See funds and balances",
+            "update": "Edit funds",
+            "deposit": "Add money to a fund",
+            "transfer": "Transfer between funds",
+            "ledger": "See the ledger"
+          },
+          "fee_type": {
+            "create": "Add fee types",
+            "view": "See fee types",
+            "update": "Edit fee types"
+          },
+          "fee_structure": {
+            "create": "Set class fees",
+            "view": "See class fees and finance settings",
+            "update": "Re-apply class fees and change finance settings"
+          },
+          "student_fee": {
+            "view": "See students' fees",
+            "create_custom": "Add a fee for one student (fines…)",
+            "discount": "Give discounts"
+          },
+          "payment": {
+            "create": "Take payments",
+            "view": "See payments and receipts",
+            "cancel": "Cancel payments"
+          },
+          "expense": {
+            "create": "Record expenses",
+            "view": "See expenses",
+            "void": "Void expenses"
+          },
+          "finance_report": {
+            "view": "See finance reports"
+          }
+        }
       }
     }
   },

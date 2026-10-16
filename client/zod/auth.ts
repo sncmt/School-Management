@@ -38,7 +38,25 @@ export const changePasswordSchema = z
     message: "validation.newPasswordSameAsCurrent",
   });
 
+// the school super admin setting a password, with the 6-digit code emailed to them
+export const setUserPasswordSchema = z
+  .object({
+    newPassword: z.string().min(8, "validation.newPasswordMin").max(72, "validation.newPasswordMax"),
+    confirmPassword: z.string().min(1, "validation.confirmPasswordRequired"),
+    code: z
+      .string()
+      .trim()
+      .transform(toAsciiDigits)
+      .pipe(z.string().min(1, "validation.codeRequired").regex(/^\d{6}$/, "validation.codeFormat")),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "validation.passwordsDontMatch",
+  });
+
 export type PlatformLoginInput = z.input<typeof platformLoginSchema>;
 export type SchoolLoginInput = z.input<typeof schoolLoginSchema>;
 export type SchoolLoginValues = z.output<typeof schoolLoginSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type SetUserPasswordInput = z.input<typeof setUserPasswordSchema>;
+export type SetUserPasswordValues = z.output<typeof setUserPasswordSchema>;

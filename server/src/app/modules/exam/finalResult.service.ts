@@ -2,13 +2,16 @@ import httpStatus from "http-status";
 import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { fileUrl } from "../../shared/storage";
 import { assertSchoolLanguageNames, displayName, type Names } from "../../shared/names";
 import { dayKey } from "../../shared/scheduleSchemas";
 import { rankResults, type ResultRules, round2, type ScaleRules } from "./examResult.calc";
 import { attendanceOver, attendancePercent, scaleInclude, summarize, toScaleRules } from "./examResult.service";
 import { computeFinalResult, type ExamLine, type FinalComponent, type FinalSubjectInput } from "./finalResult.calc";
+import { ResultCardService } from "./resultCard.service";
 import type {
   CreateFormulaPayload,
+  FinalCardsQuery,
   FinalListQuery,
   FinalMarksheetQuery,
   FinalTabulationQuery,
@@ -562,7 +565,132 @@ const getMarksheet = async (schoolId: string, formulaId: string, query: FinalMar
   };
 };
 
+/*
+ * Final result cards, in the school's card design (the same cards as an exam's): one student,
+ * one section or the whole class. Each subject also carries its component percentages. The
+ * class teacher's remark is the one written for the formula's last exam (usually the annual).
+ */
+const getCards = async (schoolId: string, formulaId: string, query: FinalCardsQuery) => {
+  const formula = await findFormula(schoolId, formulaId);
+  assertPublished(formula);
+
+  const examIds = formula.components.flatMap((c) => c.exams.map((e) => e.exam.id));
+  const [all, school, settings, examClasses] = await Promise.all([
+    prisma.finalResult.findMany({ where: { formulaId }, include: resultInclude }),
+    prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { nameEn: true, nameBn: true, logo: true, address: true, phone: true, email: true, website: true, language: true },
+    }),
+    ResultCardService.getSettings(schoolId),
+    prisma.examClass.findMany({
+      where: { examId: { in: examIds }, classId: formula.classId },
+      select: { id: true, date: true, subjects: { select: { date: true } } },
+    }),
+  ]);
+
+  // the exam that finished last: its remarks go on the final card
+  const lastDay = (ec: (typeof examClasses)[number]) =>
+    Math.max(ec.date?.getTime() ?? 0, ...ec.subjects.map((s) => s.date.getTime()));
+  const lastExam = examClasses.reduce<(typeof examClasses)[number] | null>((a, ec) => (!a || lastDay(ec) > lastDay(a) ? ec : a), null);
+  const remarks = lastExam
+    ? await prisma.examRemark.findMany({ where: { examClassId: lastExam.id }, select: { enrollmentId: true, remark: true } })
+    : [];
+  const remarkOf = new Map(remarks.map((r) => [r.enrollmentId, r.remark]));
+
+  // the top final marks of each subject, in the class and in each section
+  const classTop = new Map<string, number>();
+  const sectionTop = new Map<string, number>();
+  for (const r of all) {
+    for (const s of r.subjects) {
+      if (s.marks === null) continue;
+      const m = Number(s.marks);
+      classTop.set(s.subjectId, Math.max(classTop.get(s.subjectId) ?? 0, m));
+      const k = `${r.sectionId}:${s.subjectId}`;
+      sectionTop.set(k, Math.max(sectionTop.get(k) ?? 0, m));
+    }
+  }
+  const sectionCount = new Map<string, number>();
+  for (const r of all) sectionCount.set(r.sectionId, (sectionCount.get(r.sectionId) ?? 0) + 1);
+
+  const shown = all
+    .filter((r) => (!query.sectionId || r.sectionId === query.sectionId) && (!query.enrollmentId || r.enrollmentId === query.enrollmentId))
+    .sort(
+      (a, b) =>
+        a.enrollment.section.name.localeCompare(b.enrollment.section.name) ||
+        (a.enrollment.rollNumber ?? "").localeCompare(b.enrollment.rollNumber ?? "", undefined, { numeric: true }),
+    );
+  if (query.enrollmentId && shown.length === 0) throw new AppError("No final result for this student", httpStatus.NOT_FOUND);
+
+  const rules = formula.resultRules as { attendancePeriod?: { from: string; to: string } } | null;
+
+  return {
+    settings,
+    school: school && { ...school, logo: await fileUrl(school.logo) },
+    exam: { id: formula.id, nameEn: formula.nameEn, nameBn: formula.nameBn },
+    academicYear: formula.academicYear,
+    class: { id: formula.class.id, name: formula.class.name },
+    publishedAt: formula.publishedAt,
+    attendancePeriod: rules?.attendancePeriod ?? null,
+    gradingReference: formula.resultRules,
+    // the columns of a final card: each component with its weight
+    components: formula.components.map((c) => ({ id: c.id, nameEn: c.nameEn, nameBn: c.nameBn, weight: c.weight })),
+    cards: await Promise.all(
+      shown.map(async ({ subjects, student, enrollment, ...r }) => ({
+        enrollmentId: r.enrollmentId,
+        student: { ...student, photo: await fileUrl(student.photo) },
+        rollNumber: enrollment.rollNumber,
+        section: enrollment.section,
+        group: enrollment.group,
+        totalMarks: r.totalMarks,
+        fullMarks: r.fullMarks,
+        percentage: r.percentage,
+        gpa: r.gpa,
+        grade: r.grade,
+        passed: r.passed,
+        failedSubjects: r.failedSubjects,
+        position: {
+          section: r.sectionPosition,
+          sectionOutOf: sectionCount.get(r.sectionId) ?? 0,
+          class: r.classPosition,
+          classOutOf: all.length,
+        },
+        attendance: {
+          workingDays: r.attendanceDays,
+          present: r.attendancePresent,
+          absent: r.attendanceAbsent,
+          leave: r.attendanceLeave,
+          percentage: attendancePercent(r),
+        },
+        remark: remarkOf.get(r.enrollmentId) ?? null,
+        subjects: subjects.map((s) => ({
+          subjectId: s.subjectId,
+          nameEn: s.nameEn,
+          nameBn: s.nameBn,
+          code: s.code,
+          isOptional: s.isOptional,
+          isAbsent: false,
+          excluded: s.excluded,
+          fullMarks: s.fullMarks,
+          passMarks: String(round2((Number(s.fullMarks) * Number(s.passPercentage)) / 100)),
+          marks: s.marks,
+          percentage: s.percentage,
+          passed: s.passed,
+          grade: s.grade,
+          point: s.point,
+          parts: null,
+          papers: null,
+          sortOrder: s.sortOrder,
+          components: s.components,
+          highestInSection: sectionTop.get(`${r.sectionId}:${s.subjectId}`) ?? null,
+          highestInClass: classTop.get(s.subjectId) ?? null,
+        })),
+      })),
+    ),
+  };
+};
+
 export const FinalResultService = {
+  getCards,
   createFormula,
   getFormulas,
   getFormulaById,

@@ -68,17 +68,6 @@ const deactivateTeacher = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const resetPassword = catchAsync(async (req: Request, res: Response) => {
-  const result = await TeacherService.resetPassword(req.auth!.schoolId!, req.params.teacherId as string);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Password reset successfully!",
-    data: result,
-  });
-});
-
 const setPhoto = catchAsync(async (req: Request, res: Response) => {
   const result = await TeacherService.setPhoto(req.auth!.schoolId!, req.params.teacherId as string, req.file!.buffer);
 
@@ -132,7 +121,6 @@ export const TeacherController = {
   getTeacherById,
   updateTeacher,
   deactivateTeacher,
-  resetPassword,
   getMyProfile,
   getMyAssignments,
   getMySchedule,

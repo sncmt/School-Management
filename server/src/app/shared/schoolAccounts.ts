@@ -38,34 +38,36 @@ const DEFAULT_PERMISSIONS: Record<string, string[]> = {
   ],
 };
 
-export type AccountResult = { userId: string; created: boolean; temporaryPassword: string | null };
+export type AccountResult = { userId: string; created: boolean; password: string | null };
+
+/** "+8801712345678" -> "01712345678": the number as people type it. */
+export const localPhone = (phone: string) => (phone.startsWith("+88") ? phone.slice(3) : phone);
 
 /*
- * The account for this phone, or a new one with a generated password. Teachers and
- * guardians aren't made to change it at first login (for now; their password handling
- * will be reworked).
+ * The account for this phone, or a new one. A new guardian account's password is the
+ * phone number itself ("01712345678"); a new teacher account gets a generated one. The
+ * password is returned only for a new account, to show once.
  */
 export const findOrCreateAccount = async (
   tx: Db,
-  input: { phone: string; fullname: string },
+  input: { phone: string; fullname: string; password: "PHONE" | "GENERATED" },
 ): Promise<AccountResult> => {
   const existing = await tx.user.findUnique({ where: { phone: input.phone }, select: { id: true } });
   // an existing account keeps its name and password: they belong to the person
-  if (existing) return { userId: existing.id, created: false, temporaryPassword: null };
+  if (existing) return { userId: existing.id, created: false, password: null };
 
-  const temporaryPassword = PasswordUtils.generateTemporaryPassword();
+  const password = input.password === "PHONE" ? localPhone(input.phone) : PasswordUtils.generateTemporaryPassword();
   const user = await tx.user.create({
     data: {
       fullname: input.fullname,
       phone: input.phone,
-      password: await PasswordUtils.hashPassword(temporaryPassword),
-      mustChangePassword: false,
+      password: await PasswordUtils.hashPassword(password),
     },
   });
-  return { userId: user.id, created: true, temporaryPassword };
+  return { userId: user.id, created: true, password };
 };
 
-const ensureRole = async (tx: Db, schoolId: string, role: SystemRole) => {
+export const ensureRole = async (tx: Db, schoolId: string, role: SystemRole) => {
   // ON CONFLICT DO NOTHING: safe when two requests create the role at the same moment,
   // and count tells us whether this call is the one that created it
   const { count } = await tx.role.createMany({
@@ -94,7 +96,20 @@ const ensureRole = async (tx: Db, schoolId: string, role: SystemRole) => {
  */
 export const grantSchoolRole = async (tx: Db, schoolId: string, userId: string, role: SystemRole) => {
   const schoolRole = await ensureRole(tx, schoolId, role);
+  const membershipId = await ensureMembership(tx, schoolId, userId);
 
+  await tx.userRole.upsert({
+    where: {
+      userId_roleId_membershipId: { userId, roleId: schoolRole.id, membershipId },
+    },
+    update: {},
+    create: { userId, roleId: schoolRole.id, membershipId },
+  });
+  return membershipId;
+};
+
+/* The account's membership in this school, made or reopened (if it went inactive). Returns its id. */
+export const ensureMembership = async (tx: Db, schoolId: string, userId: string) => {
   let membership = await tx.schoolMembership.findUnique({
     where: { userId_schoolId: { userId, schoolId } },
   });
@@ -107,14 +122,6 @@ export const grantSchoolRole = async (tx: Db, schoolId: string, userId: string, 
       data: { status: "ACTIVE", leftAt: null },
     });
   }
-
-  await tx.userRole.upsert({
-    where: {
-      userId_roleId_membershipId: { userId, roleId: schoolRole.id, membershipId: membership.id },
-    },
-    update: {},
-    create: { userId, roleId: schoolRole.id, membershipId: membership.id },
-  });
   return membership.id;
 };
 

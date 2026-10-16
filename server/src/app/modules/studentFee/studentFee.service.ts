@@ -2,6 +2,8 @@ import httpStatus from "http-status";
 import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { todayInBangladesh } from "../../shared/scheduleSchemas";
+import type { AdmissionType, FeeAppliesTo } from "../../../../generated/prisma/enums";
 import type {
   ApplyDiscountPayload,
   BulkDiscountPayload,
@@ -38,15 +40,66 @@ export function expandMonthRange(fromMonth: number, toMonth: number): number[] {
   return months;
 }
 
+/* The calendar months from one date to another. Dates are calendar days (midnight UTC). */
 export function getMonthsInRange(startDate: Date, endDate: Date) {
   const months: { month: number; year: number }[] = [];
-  const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-  const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-  while (cursor <= end) {
-    months.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear() });
-    cursor.setMonth(cursor.getMonth() + 1);
+  let year = startDate.getUTCFullYear();
+  let month = startDate.getUTCMonth() + 1;
+  const endKey = endDate.getUTCFullYear() * 12 + endDate.getUTCMonth() + 1;
+  while (year * 12 + month <= endKey) {
+    months.push({ month, year });
+    if (month === 12) {
+      month = 1;
+      year++;
+    } else month++;
   }
   return months;
+}
+
+type YearMonth = { year: number; month: number };
+const monthKey = (m: YearMonth) => m.year * 12 + m.month;
+/* The month of a calendar day (midnight UTC, as @db.Date and todayInBangladesh give). */
+const monthOf = (day: Date): YearMonth => ({ year: day.getUTCFullYear(), month: day.getUTCMonth() + 1 });
+/* This month in Bangladesh. */
+export const currentMonth = () => monthOf(todayInBangladesh());
+
+/* Whether a fee type is charged to a student of this admission type (new or old this year). */
+export const feeAppliesTo = (appliesTo: FeeAppliesTo, admissionType: AdmissionType) =>
+  appliesTo === "ALL" || (appliesTo === "NEW_STUDENTS") === (admissionType === "NEW");
+
+/* The school's rule for students admitted mid-year (the default when it set none). */
+export const getMidYearRule = async (db: TxClient, schoolId: string) =>
+  (await db.financeSetting.findUnique({ where: { schoolId }, select: { midYearMonthlyFees: true } }))
+    ?.midYearMonthlyFees ?? "FROM_ADMISSION";
+
+/*
+ * Removes a student's monthly class fees that were never paid (nothing paid, no payment
+ * history) after a month and/or before a month: the months after they left, or before a
+ * (moved) admission month. Custom fees, one-time fees and fees with history stay.
+ */
+export async function removeUntouchedMonthlyFees(
+  tx: TxClient,
+  input: { schoolId: string; studentId: string; academicYearId?: string; after?: YearMonth; before?: YearMonth },
+) {
+  const { after, before } = input;
+  const range: Prisma.StudentFeeWhereInput[] = [];
+  if (after) range.push({ OR: [{ year: { gt: after.year } }, { year: after.year, month: { gt: after.month } }] });
+  if (before) range.push({ OR: [{ year: { lt: before.year } }, { year: before.year, month: { lt: before.month } }] });
+  if (range.length === 0) return 0;
+
+  const { count } = await tx.studentFee.deleteMany({
+    where: {
+      schoolId: input.schoolId,
+      studentId: input.studentId,
+      ...(input.academicYearId ? { academicYearId: input.academicYearId } : {}),
+      feeStructureId: { not: null },
+      month: { not: null },
+      paidAmount: 0,
+      allocations: { none: {} },
+      AND: range,
+    },
+  });
+  return count;
 }
 
 /*
@@ -65,25 +118,49 @@ export async function lockStudentFees(tx: TxClient, ids: string[]) {
 
 /*
  * Assigns every configured fee for (academicYear, class) to the given students
- * as UNPAID. Used by createFeeStructure (all enrolled students), and later by
- * createStudent and promotion. Nothing configured means nothing happens.
+ * as UNPAID. Used by createFeeStructure (all enrolled students), createStudent,
+ * a student coming back, and later promotion. Nothing configured means nothing happens.
  * Safe to re-run: existing rows are skipped. Inactive fee types are skipped.
+ *
+ * Monthly fees start, for each student, at the latest of: the year's first month, the
+ * admission month (when the school charges from admission) and `fromMonth` (a student
+ * coming back pays from that month). One-time fees are always assigned.
  */
 export async function generateStudentFees(
   tx: TxClient,
-  input: { schoolId: string; studentIds: string[]; academicYearId: string; classId: string },
+  input: { schoolId: string; studentIds: string[]; academicYearId: string; classId: string; fromMonth?: YearMonth },
 ) {
   const { schoolId, studentIds, academicYearId, classId } = input;
   if (studentIds.length === 0) return;
 
-  const [academicYear, feeStructures] = await Promise.all([
-    tx.academicYear.findFirst({ where: { id: academicYearId, schoolId } }),
-    tx.feeStructure.findMany({
-      where: { schoolId, academicYearId, classId, isActive: true, feeType: { isActive: true } },
-      include: { feeType: true, monthlyAmounts: true },
-    }),
-  ]);
+  // one query at a time: a transaction runs on one connection
+  const academicYear = await tx.academicYear.findFirst({ where: { id: academicYearId, schoolId } });
+  const feeStructures = await tx.feeStructure.findMany({
+    where: { schoolId, academicYearId, classId, isActive: true, feeType: { isActive: true } },
+    include: { feeType: true, monthlyAmounts: true },
+  });
   if (!academicYear || feeStructures.length === 0) return;
+  const rule = await getMidYearRule(tx, schoolId);
+  const students = await tx.student.findMany({
+    where: { id: { in: studentIds }, schoolId },
+    select: { id: true, admissionDate: true },
+  });
+  // new or old this year: admission fees go to new students, re-admission fees to old ones
+  const enrollments = await tx.enrollment.findMany({
+    where: { studentId: { in: studentIds }, academicYearId },
+    select: { studentId: true, admissionType: true },
+  });
+  const admissionTypeOf = new Map(enrollments.map((e) => [e.studentId, e.admissionType]));
+
+  // the first month each student pays monthly fees for
+  const startKey = new Map(
+    students.map((s) => {
+      const keys = [monthKey(monthOf(academicYear.startDate))];
+      if (rule === "FROM_ADMISSION") keys.push(monthKey(monthOf(s.admissionDate)));
+      if (input.fromMonth) keys.push(monthKey(input.fromMonth));
+      return [s.id, Math.max(...keys)];
+    }),
+  );
 
   // Postgres treats NULLs as distinct in unique indexes, so ONE_TIME rows are also
   // checked here. The partial unique index is the final guard against races.
@@ -120,7 +197,11 @@ export async function generateStudentFees(
     }
 
     for (const studentId of studentIds) {
+      const start = startKey.get(studentId);
+      if (start === undefined) continue; // not a student of this school
+      if (!feeAppliesTo(structure.feeType.appliesTo, admissionTypeOf.get(studentId) ?? "NEW")) continue;
       for (const p of periods) {
+        if (p.month !== null && p.year !== null && monthKey({ year: p.year, month: p.month }) < start) continue;
         if (existingKeys.has(`${studentId}:${structure.id}:${p.month ?? ""}:${p.year ?? ""}`)) continue;
 
         rows.push({
@@ -145,11 +226,41 @@ export async function generateStudentFees(
   }
 }
 
+/*
+ * After a student's admission type for a year changed (new <-> old): class fees that no
+ * longer apply go when nothing was ever paid on them, and the ones that now apply are
+ * assigned. A fee with payments stays and is counted in `kept`, for a person to decide.
+ */
+export async function realignAdmissionFees(
+  tx: TxClient,
+  input: { schoolId: string; studentId: string; academicYearId: string; classId: string; admissionType: AdmissionType },
+) {
+  const other: FeeAppliesTo = input.admissionType === "NEW" ? "OLD_STUDENTS" : "NEW_STUDENTS";
+  const where: Prisma.StudentFeeWhereInput = {
+    schoolId: input.schoolId,
+    studentId: input.studentId,
+    academicYearId: input.academicYearId,
+    feeStructureId: { not: null },
+    feeType: { appliesTo: other },
+  };
+  const { count: removed } = await tx.studentFee.deleteMany({
+    where: { ...where, paidAmount: 0, allocations: { none: {} } },
+  });
+  const kept = await tx.studentFee.count({ where });
+  await generateStudentFees(tx, {
+    schoolId: input.schoolId,
+    studentIds: [input.studentId],
+    academicYearId: input.academicYearId,
+    classId: input.classId,
+  });
+  return { removed, kept };
+}
+
 // ---------------------------------------------------------------- listing
 
-const dueFilter = (now = new Date()): Prisma.StudentFeeWhereInput => {
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+/* Unpaid fees whose month has started (in Bangladesh), and every unpaid one-time fee. */
+const dueFilter = (): Prisma.StudentFeeWhereInput => {
+  const { year, month } = currentMonth();
   return {
     status: { in: ["UNPAID", "PARTIAL"] },
     OR: [{ month: null }, { year: { lt: year } }, { year, month: { lte: month } }],
@@ -180,8 +291,8 @@ const listFees = async (schoolId: string, query: ListFeesQuery) => {
       take: limit,
       include: {
         student: { select: { id: true, nameEn: true, nameBn: true, admissionNo: true } },
-        feeType: { select: { id: true, name: true, frequency: true } },
-        fund: { select: { id: true, name: true } },
+        feeType: { select: { id: true, nameEn: true, nameBn: true, frequency: true } },
+        fund: { select: { id: true, nameEn: true, nameBn: true } },
       },
     }),
     prisma.studentFee.count({ where }),

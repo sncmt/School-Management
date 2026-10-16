@@ -12,7 +12,9 @@ export type StudentStatus = (typeof STUDENT_STATUSES)[number];
 export const RELIGIONS = ["ISLAM", "HINDUISM", "CHRISTIANITY", "BUDDHISM", "OTHER"] as const;
 export type Religion = (typeof RELIGIONS)[number];
 
-export type EnrollmentStatus = "ACTIVE" | "PROMOTED" | "TRANSFERRED" | "WITHDRAWN" | "GRADUATED";
+export type EnrollmentStatus = "ACTIVE" | "PROMOTED" | "REPEATED" | "TRANSFERRED" | "WITHDRAWN" | "GRADUATED";
+// new to the school that year (admission fee) or an old student (re-admission fee)
+export type AdmissionType = "NEW" | "OLD";
 
 export type Enrollment = {
   id: string;
@@ -24,11 +26,14 @@ export type Enrollment = {
   class: { id: string; name: string };
   section: { id: string; name: string; isDefault: boolean };
   group: { id: string; nameEn: string | null; nameBn: string | null } | null;
+  admissionType: AdmissionType;
 };
 
 export type Student = {
   id: string;
   admissionNo: string;
+  // the day the student joined the school (midnight UTC of that date)
+  admissionDate: string;
   nameEn: string;
   nameBn: string;
   dob: string | null;
@@ -60,9 +65,10 @@ export type StudentDetail = Student & {
   enrollments: Enrollment[]; // newest year first
   account: {
     hasAccount: boolean;
+    // the login account, for the super admin to change its password
+    userId: string | null;
     loginPhone: string | null;
     isActive: boolean | null;
-    mustChangePassword: boolean | null;
     // other students of this school on the same login
     siblingsInSchool: number;
   };
@@ -76,6 +82,7 @@ export type StudentListQuery = {
   classId?: string;
   sectionId?: string;
   groupId?: string;
+  admissionType?: AdmissionType;
   sortBy?: "admissionNo" | "nameEn" | "createdAt";
   sortOrder?: "asc" | "desc";
 };
@@ -87,6 +94,8 @@ export type StudentList = {
 
 /** The profile fields; "" means "not given" when admitting and "clear it" when editing. */
 export type StudentProfileBody = {
+  // YYYY-MM-DD; when editing, sent only by those allowed to change it
+  admissionDate?: string;
   nameEn: string;
   nameBn: string;
   gender: Gender;
@@ -105,14 +114,16 @@ export type StudentProfileBody = {
 };
 
 export type AdmitStudentBody = StudentProfileBody & {
-  enrollment: { classId: string; sectionId: string; groupId: string; rollNumber: string };
+  // academicYearId left out = the current year
+  enrollment: { academicYearId?: string; classId: string; sectionId: string; groupId: string; rollNumber: string; admissionType: AdmissionType };
 };
 
 export type FamilyAccount = {
-  // CREATED: a new login with a temporary password; LINKED: a sibling's or other existing login
+  // CREATED: a new login whose password is the phone number; LINKED: a sibling's or other existing login
   status: "CREATED" | "LINKED" | "NONE";
   loginPhone: string | null;
-  temporaryPassword: string | null;
+  // a new login's password (its phone number), shown once
+  password: string | null;
   siblingsInSchool: number;
 };
 
@@ -129,7 +140,10 @@ export type UpdateStudentResult = {
   account: FamilyAccount | null;
 };
 
-export type PlacementBody = { sectionId?: string; groupId?: string | null; rollNumber?: string | null };
+export type PlacementBody = { sectionId?: string; groupId?: string | null; rollNumber?: string | null; admissionType?: AdmissionType };
+
+/* After a placement change: only when the admission type changed, the fees that swapped. */
+export type PlacementResult = StudentDetail & { admissionFees: { removed: number; kept: number } | null };
 
 export const studentsApi = {
   list: async (query: StudentListQuery) =>
@@ -145,14 +159,9 @@ export const studentsApi = {
     (await httpClient.patch<ApiResponse<UpdateStudentResult>>(`/student/${studentId}`, body)).data.data,
 
   changePlacement: async ({ studentId, body }: { studentId: string; body: PlacementBody }) =>
-    (await httpClient.patch<ApiResponse<StudentDetail>>(`/student/${studentId}/enrollment`, body)).data.data,
+    (await httpClient.patch<ApiResponse<PlacementResult>>(`/student/${studentId}/enrollment`, body)).data.data,
 
-  resetPassword: async (studentId: string) =>
-    (
-      await httpClient.post<ApiResponse<{ loginPhone: string; temporaryPassword: string }>>(
-        `/student/${studentId}/reset-password`,
-      )
-    ).data.data,
+
 
   // the server crops it to a 400 px square
   setPhoto: ({ studentId, file, onProgress }: { studentId: string; file: File; onProgress?: (percent: number) => void }) =>
@@ -191,7 +200,6 @@ const useStudentMutation = <TArgs, TResult>(mutationFn: (args: TArgs) => Promise
 export const useAdmitStudent = () => useStudentMutation(studentsApi.admit);
 export const useUpdateStudent = () => useStudentMutation(studentsApi.update);
 export const useChangePlacement = () => useStudentMutation(studentsApi.changePlacement);
-export const useResetFamilyPassword = () => useStudentMutation(studentsApi.resetPassword);
 export const useSetStudentPhoto = () => useStudentMutation(studentsApi.setPhoto);
 export const useRemoveStudentPhoto = () => useStudentMutation(studentsApi.removePhoto);
 

@@ -13,7 +13,7 @@ type Props = {
   password: string;
 };
 
-/** Where to log in, with what, and the temporary password: each with a copy button. */
+/** Where to log in, with what, and the password: each with a copy button. */
 export function LoginCredentials({ loginUrl, idLabel, id, password }: Props) {
   const t = useTranslations("common");
 
@@ -21,7 +21,7 @@ export function LoginCredentials({ loginUrl, idLabel, id, password }: Props) {
     <dl className="space-y-3 text-sm">
       <CopyRow label={t("loginPage")} value={loginUrl} />
       <CopyRow label={idLabel} value={id} />
-      <CopyRow label={t("temporaryPassword")} value={password} mono />
+      <CopyRow label={t("password")} value={password} mono />
     </dl>
   );
 }

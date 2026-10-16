@@ -2,8 +2,10 @@ import httpStatus from "http-status";
 import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { displayName, type Names } from "../../shared/names";
+import { fileUrl } from "../../shared/storage";
 import { getFundBalance, lockFund } from "../fund/fund.ledger";
-import { computeFeeStatus, lockStudentFees, round2 } from "../studentFee/studentFee.service";
+import { computeFeeStatus, currentMonth, lockStudentFees, round2 } from "../studentFee/studentFee.service";
 import type {
   CancelPaymentPayload,
   ListPaymentsQuery,
@@ -20,12 +22,12 @@ const feeLabel = (fee: {
   month: number | null;
   year: number | null;
   description?: string | null;
-  feeType: { name: string };
+  feeType: Names;
 }) => {
   const base =
     fee.month && fee.year
-      ? `${fee.feeType.name} (${MONTHS[fee.month - 1]} ${fee.year})`
-      : fee.feeType.name;
+      ? `${displayName(fee.feeType)} (${MONTHS[fee.month - 1]} ${fee.year})`
+      : displayName(fee.feeType);
   return fee.description ? `${base} - ${fee.description}` : base;
 };
 
@@ -48,8 +50,12 @@ const paymentInclude = {
           id: true,
           month: true,
           year: true,
-          feeType: { select: { id: true, name: true } },
-          fund: { select: { id: true, name: true } },
+          // a custom fee's note ("Late fine"), shown on the receipt
+          description: true,
+          // a one-time fee from another year shows its year
+          academicYear: { select: { id: true, name: true } },
+          feeType: { select: { id: true, nameEn: true, nameBn: true } },
+          fund: { select: { id: true, nameEn: true, nameBn: true } },
         },
       },
     },
@@ -96,12 +102,14 @@ const getPayableFees = async (
       { id: "asc" },
     ],
     include: {
-      feeType: { select: { id: true, name: true, frequency: true } },
-      fund: { select: { id: true, name: true } },
+      feeType: { select: { id: true, nameEn: true, nameBn: true, frequency: true } },
+      academicYear: { select: { id: true, name: true } },
+      fund: { select: { id: true, nameEn: true, nameBn: true } },
     },
   });
 
-  const now = new Date();
+  // due = the fee's month has started in Bangladesh
+  const now = currentMonth();
   let totalRemaining = ZERO;
   let totalDue = ZERO;
 
@@ -110,8 +118,8 @@ const getPayableFees = async (
     const isDue =
       fee.month === null ||
       fee.year === null ||
-      fee.year < now.getFullYear() ||
-      (fee.year === now.getFullYear() && fee.month <= now.getMonth() + 1);
+      fee.year < now.year ||
+      (fee.year === now.year && fee.month <= now.month);
 
     totalRemaining = totalRemaining.plus(remaining);
     if (isDue) totalDue = totalDue.plus(remaining);
@@ -137,6 +145,21 @@ const getPayableFees = async (
 
 // ------------------------------------------------------------ record payment
 
+/*
+ * The next money receipt number of the school for the payment's year (in Bangladesh):
+ * "2026-000123". The counter row is locked by the update, so two cashiers at the same
+ * moment get different numbers; a cancelled payment keeps its number.
+ */
+const nextReceiptNo = async (tx: Db, schoolId: string, paidAt: Date) => {
+  const year = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka", year: "numeric" }).format(paidAt);
+  const seq = await tx.schoolSequence.upsert({
+    where: { schoolId_key: { schoolId, key: `receipt:${year}` } },
+    update: { value: { increment: 1 } },
+    create: { schoolId, key: `receipt:${year}`, value: 1 },
+  });
+  return `${year}-${String(seq.value).padStart(6, "0")}`;
+};
+
 const recordPayment = async (schoolId: string, userId: string, data: RecordPaymentPayload) => {
   const { studentId, method, allocations } = data;
   const transactionRef = method === "MOBILE_BANKING" ? data.transactionRef : undefined;
@@ -159,8 +182,8 @@ const recordPayment = async (schoolId: string, userId: string, data: RecordPayme
       const fees = await tx.studentFee.findMany({
         where: { id: { in: feeIds }, schoolId, studentId },
         include: {
-          feeType: { select: { name: true } },
-          fund: { select: { name: true, isActive: true } },
+          feeType: { select: { nameEn: true, nameBn: true } },
+          fund: { select: { nameEn: true, nameBn: true, isActive: true } },
         },
       });
       if (fees.length !== feeIds.length) {
@@ -175,7 +198,7 @@ const recordPayment = async (schoolId: string, userId: string, data: RecordPayme
 
         if (!fee.fund.isActive) {
           throw new AppError(
-            `${label}: fund "${fee.fund.name}" is inactive. Reactivate it before taking this payment`,
+            `${label}: fund "${displayName(fee.fund)}" is inactive. Reactivate it before taking this payment`,
             httpStatus.BAD_REQUEST,
           );
         }
@@ -198,6 +221,7 @@ const recordPayment = async (schoolId: string, userId: string, data: RecordPayme
       const payment = await tx.payment.create({
         data: {
           schoolId,
+          receiptNo: await nextReceiptNo(tx, schoolId, paidAt),
           studentId,
           amount: total,
           method,
@@ -315,9 +339,9 @@ const cancelPayment = async (
 
     const funds = await tx.fund.findMany({
       where: { id: { in: fundIds } },
-      select: { id: true, name: true },
+      select: { id: true, nameEn: true, nameBn: true },
     });
-    const fundName = new Map(funds.map((f) => [f.id, f.name]));
+    const fundName = new Map(funds.map((f) => [f.id, displayName(f)]));
 
     for (const fundId of fundIds) {
       const balance = await getFundBalance(tx, schoolId, fundId);
@@ -377,6 +401,48 @@ const cancelPayment = async (
 const getPaymentById = async (schoolId: string, paymentId: string) =>
   getPaymentDetail(prisma, schoolId, paymentId);
 
+/*
+ * Everything a printed money receipt shows: the school's header, the student with their
+ * class and roll in the year of the fees, each fee line, who received the money, and
+ * whether the payment was cancelled.
+ */
+const getReceipt = async (schoolId: string, paymentId: string) => {
+  const payment = await getPaymentDetail(prisma, schoolId, paymentId);
+
+  const feeYearIds = await prisma.studentFee.findMany({
+    where: { id: { in: payment.allocations.map((a) => a.studentFee.id) } },
+    select: { academicYearId: true },
+    distinct: ["academicYearId"],
+  });
+  const [school, enrollment, receivedBy, student] = await Promise.all([
+    prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { nameEn: true, nameBn: true, logo: true, address: true, phone: true, email: true, language: true },
+    }),
+    // the class the fees belong to (the latest year when they span years)
+    prisma.enrollment.findFirst({
+      where: { studentId: payment.studentId, academicYearId: { in: feeYearIds.map((y) => y.academicYearId) } },
+      orderBy: { academicYear: { startDate: "desc" } },
+      select: {
+        rollNumber: true,
+        academicYear: { select: { id: true, name: true } },
+        class: { select: { name: true } },
+        section: { select: { name: true, isDefault: true } },
+      },
+    }),
+    payment.receivedBy ? prisma.user.findUnique({ where: { id: payment.receivedBy }, select: { fullname: true } }) : null,
+    prisma.student.findUnique({ where: { id: payment.studentId }, select: { fatherName: true, guardianName: true } }),
+  ]);
+
+  return {
+    ...payment,
+    school: school && { ...school, logo: await fileUrl(school.logo) },
+    student: { ...payment.student, fatherName: student?.fatherName ?? null, guardianName: student?.guardianName ?? null },
+    enrollment,
+    receivedByName: receivedBy?.fullname ?? null,
+  };
+};
+
 const listPayments = async (schoolId: string, query: ListPaymentsQuery) => {
   const { studentId, status, method, from, to, page, limit } = query;
 
@@ -426,5 +492,6 @@ export const PaymentService = {
   recordPayment,
   cancelPayment,
   getPaymentById,
+  getReceipt,
   listPayments,
 };

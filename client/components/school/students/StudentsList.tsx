@@ -26,6 +26,7 @@ import {
   STUDENT_STATUSES,
   useStudents,
   type StudentListItem,
+  type AdmissionType,
   type StudentStatus,
 } from "@/lib/school/students";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export function StudentsList() {
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
   const can = useCan();
+  const tType = useTranslations("school.students.admissionType");
   const classes = useClasses();
 
   const [searchInput, setSearchInput] = useState("");
@@ -50,6 +52,8 @@ export function StudentsList() {
   const [classId, setClassId] = useState<string | undefined>();
   const [sectionId, setSectionId] = useState<string | undefined>();
   const [status, setStatus] = useState<StudentStatus | undefined>("ACTIVE");
+  // new or old students this year (who pays the admission or the re-admission fee)
+  const [admissionType, setAdmissionType] = useState<AdmissionType | undefined>();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(PAGE_SIZES[0]);
 
@@ -60,11 +64,12 @@ export function StudentsList() {
     status,
     classId,
     sectionId,
+    admissionType,
   });
 
   const sections = classes.data?.items.find((c) => c.id === classId)?.sections.filter((s) => !s.isDefault) ?? [];
   const students = data?.items ?? [];
-  const filtering = !!search || !!status || !!classId;
+  const filtering = !!search || !!status || !!classId || !!admissionType;
 
   // every filter change starts again from page 1
   const filter = <T,>(set: (value: T) => void) => (value: T) => {
@@ -149,6 +154,16 @@ export function StudentsList() {
                 {tStatus(s)}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select value={admissionType ?? ALL} onValueChange={(v) => filter(setAdmissionType)(v === ALL ? undefined : (v as AdmissionType))}>
+          <SelectTrigger className="w-40" aria-label={tType("label")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{tType("allTypes")}</SelectItem>
+            <SelectItem value="NEW">{tType("types.NEW")}</SelectItem>
+            <SelectItem value="OLD">{tType("types.OLD")}</SelectItem>
           </SelectContent>
         </Select>
       </div>

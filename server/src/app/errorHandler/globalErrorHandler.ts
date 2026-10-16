@@ -142,7 +142,6 @@ export const globalErrorHandler = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction,
 ) => {
-  console.log('error: ', err);
   let normalizedError: AppError;
 
   if (err instanceof AppError) {

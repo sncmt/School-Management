@@ -2,14 +2,12 @@ import type { PrismaClient } from "../../generated/prisma/client";
 import { PasswordUtils } from "../../src/app/utils/password";
 
 export async function seedPlatformAdmin(prisma: PrismaClient) {
-  console.log("Seeding platform admin...");
 
   const email = process.env.PLATFORM_ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.PLATFORM_ADMIN_PASSWORD;
   const fullname = process.env.PLATFORM_ADMIN_NAME?.trim() || "Platform Admin";
 
   if (!email || !password) {
-    console.log("  - skipped (set PLATFORM_ADMIN_EMAIL and PLATFORM_ADMIN_PASSWORD)");
     return;
   }
   if (password.length < 6) throw new Error("PLATFORM_ADMIN_PASSWORD must be at least 8 characters");
@@ -47,5 +45,4 @@ export async function seedPlatformAdmin(prisma: PrismaClient) {
     });
   }
 
-  console.log(`  ✓ ${email} is APP_ADMIN`);
 }

@@ -42,7 +42,7 @@ const createExpense = async (schoolId: string, userId: string, data: CreateExpen
         transactionDate: data.transactionDate ?? new Date(),
         createdBy: userId,
       },
-      include: { fund: { select: { id: true, name: true } } },
+      include: { fund: { select: { id: true, nameEn: true, nameBn: true } } },
     });
 
     return { transaction, balance: balance.minus(amount).toFixed(2) };
@@ -74,7 +74,7 @@ const listExpenses = async (schoolId: string, query: ListExpensesQuery) => {
       skip: (page - 1) * limit,
       take: limit,
       include: {
-        fund: { select: { id: true, name: true } },
+        fund: { select: { id: true, nameEn: true, nameBn: true } },
         reversedBy: { select: { id: true, description: true, createdAt: true, createdBy: true } },
       },
     }),

@@ -6,6 +6,7 @@ import { AppError } from "../../errorHandler/AppError";
 import { JwtUtils } from "../../utils/jwt";
 import { PasswordUtils } from "../../utils/password";
 import type { ChangePasswordPayload, PlatformLoginPayload, SchoolLoginPayload } from "./auth.type";
+import { GUARDIAN_ROLE } from "../../shared/schoolAccounts";
 import { withFileUrls } from "../../shared/storage";
 import { RefreshTokenService, type ClientMeta } from "./refreshToken.service";
 
@@ -30,13 +31,11 @@ const publicUser = (user: {
   fullname: string;
   email: string | null;
   phone: string | null;
-  mustChangePassword: boolean;
 }) => ({
   id: user.id,
   fullname: user.fullname,
   email: user.email,
   phone: user.phone,
-  mustChangePassword: user.mustChangePassword,
 });
 
 /*
@@ -249,7 +248,7 @@ const logoutAllSessions = async (userId: string) => {
 const getMe = async (auth: AuthContext) => {
   const user = await prisma.user.findUnique({
     where: { id: auth.userId },
-    select: { id: true, fullname: true, email: true, phone: true, mustChangePassword: true },
+    select: { id: true, fullname: true, email: true, phone: true },
   });
   if (!user) throw new AppError("User not found!", httpStatus.UNAUTHORIZED);
 
@@ -331,15 +330,33 @@ const getMe = async (auth: AuthContext) => {
 };
 
 /*
+ * In a school only a guardian (the family login) changes their own password; everyone
+ * else asks the school super admin, who changes it with a code sent to their email.
+ */
+const assertMayChangeOwnPassword = async (auth: AuthContext) => {
+  if (auth.sessionType === "PLATFORM") return;
+  const guardian = await prisma.userRole.findFirst({
+    where: { userId: auth.userId, membershipId: auth.membershipId, role: { name: GUARDIAN_ROLE.name, scope: "SCHOOL" } },
+    select: { id: true },
+  });
+  if (!guardian) {
+    throw new AppError("Ask your school's super admin to change your password", httpStatus.FORBIDDEN);
+  }
+};
+
+/*
  * Changes the password, ends every other session (and every access token issued
  * so far), and starts a fresh session for this device so the user stays logged in.
- * Also clears the "must change password" flag set on generated passwords.
  */
 const changePassword = async (
   auth: AuthContext,
   payload: ChangePasswordPayload,
   meta: ClientMeta,
 ) => {
+  // a platform admin working inside a school has no school password to change here
+  if (auth.isPlatformAdmin) throw new AppError("Log in to the platform to change your password", httpStatus.FORBIDDEN);
+  await assertMayChangeOwnPassword(auth);
+
   const user = await prisma.user.findUnique({ where: { id: auth.userId } });
   if (!user) throw new AppError("User not found!", httpStatus.UNAUTHORIZED);
 
@@ -351,28 +368,37 @@ const changePassword = async (
     throw new AppError("New password must be different from the current one", httpStatus.BAD_REQUEST);
   }
 
-  const passwordHash = await PasswordUtils.hashPassword(payload.newPassword);
+  return (await setPassword(user.id, payload.newPassword, { auth, meta }))!;
+};
+
+/*
+ * Sets a new password and ends every session of the account (and every access token issued
+ * so far). With `thisDevice` (the account's own session) a fresh session starts for the
+ * device asking, so its owner stays logged in; its tokens are returned for the cookies.
+ */
+const setPassword = async (userId: string, newPassword: string, thisDevice?: { auth: AuthContext; meta: ClientMeta }) => {
+  const passwordHash = await PasswordUtils.hashPassword(newPassword);
 
   const session = await prisma.$transaction(async (tx) => {
     await tx.user.update({
-      where: { id: user.id },
-      data: { password: passwordHash, mustChangePassword: false, tokensValidAfter: new Date() },
+      where: { id: userId },
+      data: { password: passwordHash, tokensValidAfter: new Date() },
     });
-    await tx.refreshToken.deleteMany({ where: { userId: user.id } });
+    await tx.refreshToken.deleteMany({ where: { userId } });
 
-    return RefreshTokenService.issueSession(tx, {
-      userId: user.id,
-      sessionType: auth.sessionType,
-      schoolId: auth.schoolId,
-      meta,
-    });
+    return thisDevice
+      ? RefreshTokenService.issueSession(tx, {
+          userId,
+          sessionType: thisDevice.auth.sessionType,
+          schoolId: thisDevice.auth.schoolId,
+          meta: thisDevice.meta,
+        })
+      : null;
   });
+  if (!session || !thisDevice) return null;
 
   const accessToken =
-    auth.sessionType === "PLATFORM"
-      ? signPlatformToken(user.id)
-      : signSchoolToken(user.id, auth.schoolId!);
-
+    thisDevice.auth.sessionType === "PLATFORM" ? signPlatformToken(userId) : signSchoolToken(userId, thisDevice.auth.schoolId!);
   return { accessToken, refreshToken: session.refreshToken, refreshExpiresAt: session.expiresAt };
 };
 
@@ -385,4 +411,5 @@ export const AuthService = {
   logoutAllSessions,
   getMe,
   changePassword,
+  setPassword,
 };

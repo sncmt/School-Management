@@ -3,6 +3,8 @@ model Student {
   schoolId         String
   school           School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   admissionNo      String
+  // the day the student joined the school (may be years before the first enrollment here)
+  admissionDate    DateTime  @db.Date
   nameEn           String
   nameBn           String
   dob              DateTime?
@@ -67,10 +69,14 @@ model Enrollment {
   rollNumber String? // roll number within class/section for this year
 
   status     EnrollmentStatus @default(ACTIVE)
+
+  // new to the school this year (pays the admission fee) or an old student (re-admission fee)
+  admissionType AdmissionType @default(NEW)
   attendance StudentAttendance[]
   optionalSubject StudentOptionalSubject?
   examMarks       ExamMark[]
   examResults     ExamResult[]
+  examRemarks     ExamRemark[]
   finalResults    FinalResult[]
   enrolledAt DateTime         @default(now())
   leftAt     DateTime?

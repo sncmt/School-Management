@@ -7,10 +7,14 @@ model FeeType {
   fundId String
   fund Fund @relation(fields: [fundId], references: [id])
 
-  name String
+  // the name in the school's language is required; the other is optional (apps fall back to it)
+  nameEn String?
+  nameBn String?
   description String?
 
   frequency FeeFrequency
+  // who is charged: every student, or only new / only old students of the year (by their enrollment)
+  appliesTo FeeAppliesTo @default(ALL)
   isActive Boolean @default(true)
 
   feeStructures FeeStructure[]
@@ -19,7 +23,8 @@ model FeeType {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([schoolId, name])
+  @@unique([schoolId, nameEn])
+  @@unique([schoolId, nameBn])
   @@index([schoolId])
   @@index([fundId])
 }
@@ -139,6 +144,9 @@ model Payment {
   // Restrict: payment history must survive
   student Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
 
+  // the money receipt's number, per school and year: "2026-000123"
+  receiptNo String
+
   amount Decimal @db.Decimal(10, 2)
   method PaymentMethod @default(CASH)
   status PaymentStatus @default(SUCCESS)
@@ -156,7 +164,7 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
- 
+  @@unique([schoolId, receiptNo])
   @@index([schoolId])
   @@index([studentId])
   @@index([paidAt])
@@ -198,4 +206,19 @@ model SchoolSequence {
 
   @@unique([schoolId, key])
   @@index([schoolId])
+}
+
+/* A school's finance rules. One row per school; missing = the defaults. */
+model FinanceSetting {
+  id String @id @default(cuid())
+
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // a student admitted mid-year: monthly fees from the admission month, or for the whole year
+  midYearMonthlyFees MidYearFeeRule @default(FROM_ADMISSION)
+
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

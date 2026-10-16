@@ -101,6 +101,12 @@ const marksheetQuery = z.object({
   enrollmentId: idSchema("Student enrollment"),
 });
 
+const cardsQuery = z.object({
+  // one section, or one student; neither = the whole class
+  sectionId: z.string().trim().min(1).optional(),
+  enrollmentId: z.string().trim().min(1).optional(),
+});
+
 export const FinalResultValidation = {
   createFormula,
   updateFormula,
@@ -108,6 +114,7 @@ export const FinalResultValidation = {
   listQuery,
   tabulationQuery,
   marksheetQuery,
+  cardsQuery,
 };
 
 export type CreateFormulaPayload = z.infer<typeof createFormula>;
@@ -115,3 +122,4 @@ export type UpdateFormulaPayload = z.infer<typeof updateFormula>;
 export type FinalListQuery = z.infer<typeof listQuery>;
 export type FinalTabulationQuery = z.infer<typeof tabulationQuery>;
 export type FinalMarksheetQuery = z.infer<typeof marksheetQuery>;
+export type FinalCardsQuery = z.infer<typeof cardsQuery>;

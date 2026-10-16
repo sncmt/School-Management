@@ -3,7 +3,7 @@ import httpStatus from "http-status";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { FinalResultService } from "./finalResult.service";
-import type { FinalListQuery, FinalMarksheetQuery, FinalTabulationQuery } from "./finalResult.validation";
+import type { FinalCardsQuery, FinalListQuery, FinalMarksheetQuery, FinalTabulationQuery } from "./finalResult.validation";
 
 const reply = (res: Response, statusCode: number, message: string, data: unknown) =>
   sendResponse(res, { statusCode, success: true, message, data });
@@ -53,7 +53,13 @@ const getMarksheet = catchAsync(async (req: Request, res: Response) => {
   reply(res, httpStatus.OK, "Final mark sheet retrieved successfully!", result);
 });
 
+const getCards = catchAsync(async (req: Request, res: Response) => {
+  const result = await FinalResultService.getCards(schoolOf(req), formulaIdOf(req), req.query as unknown as FinalCardsQuery);
+  reply(res, httpStatus.OK, "Final result cards retrieved successfully!", result);
+});
+
 export const FinalResultController = {
+  getCards,
   createFormula,
   getFormulas,
   getFormulaById,

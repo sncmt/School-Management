@@ -32,12 +32,11 @@ export function PlatformLoginForm() {
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
-    console.log(values);
     setFormError(null);
     setSessionEnded(false);
     try {
-      const { user } = await login.mutateAsync(values);
-      router.replace(afterLoginPath("PLATFORM", user.mustChangePassword, searchParams.get("next")));
+      await login.mutateAsync(values);
+      router.replace(afterLoginPath("PLATFORM", searchParams.get("next")));
     } catch (error) {
       setFormError(applyServerErrors(error, form.setError, ["email", "password"], describeError));
     }

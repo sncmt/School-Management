@@ -191,6 +191,7 @@ model ExamClass {
 
   subjects ExamSubject[]
   results  ExamResult[]
+  remarks  ExamRemark[]
 
   // the rules used when the result was published: result system, papers, absent rule and the
   // grading scales with their bands (the grading reference printed on the result sheet)

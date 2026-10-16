@@ -8,7 +8,6 @@ declare global {
         sessionType: "PLATFORM" | "SCHOOL";
         schoolId?: string;
         membershipId?: string;
-        mustChangePassword?: boolean;
         isPlatformAdmin?: boolean;
       };
       schoolId?: string;

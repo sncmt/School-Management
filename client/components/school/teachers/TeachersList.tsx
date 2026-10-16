@@ -5,7 +5,6 @@ import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 import { TablePagination } from "@/components/data/TablePagination";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -215,11 +214,6 @@ function TeacherRow({ teacher, canUpdate, onEdit }: { teacher: Teacher; canUpdat
       </TableCell>
       <TableCell className="whitespace-nowrap">
         <div>{user.phone?.replace(/^\+?880/, "0")}</div>
-        {working && user.mustChangePassword && (
-          <Badge variant="outline" className="mt-1">
-            {t("firstLogin")}
-          </Badge>
-        )}
       </TableCell>
       <TableCell className="whitespace-nowrap">
         {teacher.joiningDate ? format.dateTime(new Date(teacher.joiningDate), { dateStyle: "medium", timeZone: "UTC" }) : "—"}

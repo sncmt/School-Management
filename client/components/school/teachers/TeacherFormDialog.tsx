@@ -135,8 +135,8 @@ function TeacherForm({
         const result = await create.mutateAsync(values);
         const name = localName(result.teacher);
         await uploadPhoto(result.teacher.id, name);
-        if (result.account.temporaryPassword) {
-          onCredentials({ name, phone: localPhone(result.account.loginPhone), password: result.account.temporaryPassword });
+        if (result.account.password) {
+          onCredentials({ name, phone: localPhone(result.account.loginPhone), password: result.account.password });
         } else {
           toast.success(t(result.rejoined ? "rejoined" : "linked", { name }));
         }

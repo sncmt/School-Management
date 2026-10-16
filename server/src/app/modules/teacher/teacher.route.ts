@@ -69,13 +69,6 @@ router.post(
   TeacherController.deactivateTeacher,
 );
 
-router.post(
-  "/:teacherId/reset-password",
-  authorize("teacher:reset_password"),
-  validateRequest({ params: TeacherValidation.teacherIdParams }),
-  TeacherController.resetPassword,
-);
-
 // the photo: one image in the "file" field (multipart), resized to 400 px
 router.put(
   "/:teacherId/photo",

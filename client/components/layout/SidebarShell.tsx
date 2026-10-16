@@ -22,7 +22,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { useCan } from "@/lib/auth/hooks";
+import { useCan, useSchoolMe } from "@/lib/auth/hooks";
 import type { PermissionCheck } from "@/lib/auth/permissions";
 import type { SessionType } from "@/lib/tenant";
 import type messages from "@/messages/en.json";
@@ -32,8 +32,11 @@ export type MenuItem = {
   // key under "nav" in the messages
   label: keyof (typeof messages)["nav"];
   icon: LucideIcon;
-  // school only: hidden unless the session has it
+  // school only: hidden unless the session has it (with a list: all of them, or any one with anyPermission)
   permission?: PermissionCheck;
+  anyPermission?: boolean;
+  // school only: shown to the school super admin alone (roles and staff)
+  superAdminOnly?: boolean;
 };
 
 /** Active on its own page and the pages under it ("/" only on itself). */
@@ -52,9 +55,12 @@ type Props = {
 export function SidebarShell({ session, brand, menu, children }: Props) {
   const t = useTranslations("nav");
   const can = useCan();
+  const isSuperAdmin = !!useSchoolMe()?.isSuperAdmin;
   // each site is served from its app folder; compare public paths only
   const pathname = usePathname().replace(/^\/(platform|school)(?=\/|$)/, "") || "/";
-  const items = menu.filter((item) => !item.permission || can(item.permission));
+  const items = menu.filter(
+    (item) => (!item.superAdminOnly || isSuperAdmin) && (!item.permission || can(item.permission, { any: item.anyPermission })),
+  );
 
   return (
     <SidebarProvider>

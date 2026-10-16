@@ -42,4 +42,10 @@ const syncFeeStructure = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const FeeStructureController = { createFeeStructure, getFeeStructures, syncFeeStructure };
+const copyFromYear = catchAsync(async (req: Request, res: Response) => {
+  const result = await FeeStructureService.copyFromYear(req.auth!.schoolId!, req.body);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Class fees copied!", data: result });
+});
+
+export const FeeStructureController = {
+  copyFromYear, createFeeStructure, getFeeStructures, syncFeeStructure };

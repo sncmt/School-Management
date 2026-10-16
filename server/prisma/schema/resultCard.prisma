@@ -1,0 +1,42 @@
+// ============================================================ result cards
+
+/*
+ * How a school's result cards look: a ready layout and what to show on it (columns,
+ * merit position, attendance, remarks, signatures...). The school sets it; the JSON is
+ * checked by the API (resultCard.validation.ts). One per school; none = the defaults.
+ */
+model ResultCardSetting {
+  id String @id @default(cuid())
+
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  settings Json
+
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/*
+ * A class teacher's remark on a student's result in one exam. Kept apart from the result
+ * itself, so unlocking and publishing again never loses it.
+ */
+model ExamRemark {
+  id String @id @default(cuid())
+
+  examClassId String
+  examClass   ExamClass @relation(fields: [examClassId], references: [id], onDelete: Cascade)
+
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  remark String
+
+  writtenBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([examClassId, enrollmentId])
+  @@index([enrollmentId])
+}

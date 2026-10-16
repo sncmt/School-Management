@@ -41,7 +41,7 @@ export const toScaleRules = (s: ScaleWithBands): ScaleRules => ({
 
 // ------------------------------------------------------------------- helpers
 
-const findExamClass = async (schoolId: string, examId: string, classId: string) => {
+export const findExamClass = async (schoolId: string, examId: string, classId: string) => {
   const examClass = await prisma.examClass.findFirst({
     where: { examId, classId, exam: { schoolId } },
     include: {

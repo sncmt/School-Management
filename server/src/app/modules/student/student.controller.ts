@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import httpStatus from "http-status";
+import { AppError } from "../../errorHandler/AppError";
+import { checkPermission } from "../../middlewares/authorize";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { StudentService } from "./student.service";
@@ -17,6 +19,10 @@ const createStudent = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateStudent = catchAsync(async (req: Request, res: Response) => {
+  // student:update edits the details; the admission date needs its own permission
+  if (req.body.admissionDate !== undefined && (await checkPermission(req.auth!, "student:change_admission_date")) !== "OK") {
+    throw new AppError("You don't have permission to change the admission date", httpStatus.FORBIDDEN);
+  }
   const result = await StudentService.updateStudent(
     req.auth!.schoolId!,
     req.params.studentId as string,
@@ -59,20 +65,6 @@ const getStudents = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const resetGuardianPassword = catchAsync(async (req: Request, res: Response) => {
-  const result = await StudentService.resetGuardianPassword(
-    req.auth!.schoolId!,
-    req.params.studentId as string,
-  );
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Password reset successfully!",
-    data: result,
-  });
-});
-
 const changePlacement = catchAsync(async (req: Request, res: Response) => {
   const result = await StudentService.changePlacement(req.auth!.schoolId!, req.params.studentId as string, req.body);
 
@@ -99,5 +91,4 @@ export const StudentController = {
   updateStudent,
   getStudentById,
   getStudents,
-  resetGuardianPassword,
 };

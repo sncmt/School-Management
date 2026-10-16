@@ -15,9 +15,9 @@ import { Button } from "@/components/ui/button";
 export type FamilyCredentials = { name: string; phone: string; password: string };
 
 /*
- * The family's login after a student was admitted with a new number, or after a reset.
- * The temporary password exists only in that response, so the dialog closes only from
- * its own button (not Escape or a click outside).
+ * The family's login after a student was admitted with a new number: the password is the
+ * number itself until the family changes it. The dialog closes only from its own button
+ * (not Escape or a click outside), so it is not missed.
  */
 export function FamilyCredentialsDialog({
   credentials,

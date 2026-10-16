@@ -280,7 +280,7 @@ const findSuperAdmin = (schoolId: string) =>
       orderBy: { createdAt: "asc" },
       select: {
         user: {
-          select: { id: true, fullname: true, email: true, phone: true, isActive: true, mustChangePassword: true },
+          select: { id: true, fullname: true, email: true, phone: true, isActive: true },
         },
       },
     })
@@ -407,7 +407,7 @@ const resetSuperAdminPassword = async (schoolId: string) => {
   await prisma.$transaction([
     prisma.user.update({
       where: { id: superAdmin.id },
-      data: { password: passwordHash, mustChangePassword: false, tokensValidAfter: new Date() },
+      data: { password: passwordHash, tokensValidAfter: new Date() },
     }),
     prisma.refreshToken.deleteMany({ where: { userId: superAdmin.id } }),
   ]);

@@ -10,9 +10,8 @@ model User {
 
   isActive Boolean @default(true)
 
-    mustChangePassword Boolean   @default(false)
   // access tokens issued before this moment are rejected (password change, logout-all)
-  tokensValidAfter   DateTime?
+  tokensValidAfter DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -25,6 +24,9 @@ model User {
 
   // Authentication sessions
   refreshTokens RefreshToken[]
+
+  // codes emailed to a school super admin to confirm a password change
+  passwordChangeCodes PasswordChangeCode[]
 
   @@index([email])
   @@index([phone])
@@ -171,4 +173,28 @@ model RefreshToken {
   @@index([expiresAt])
   @@index([familyId])
   @@index([revokedAt])
+}
+/*
+ * A school super admin changes a password only with a code emailed to them.
+ * One code per change: it names the account, lasts 10 minutes and allows 5 tries.
+ */
+model PasswordChangeCode {
+  id String @id @default(cuid())
+
+  // the super admin who asked for the code
+  requestedById String
+  requestedBy   User   @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+
+  schoolId     String
+  // the account whose password the code changes
+  targetUserId String
+
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([requestedById])
+  @@index([expiresAt])
 }

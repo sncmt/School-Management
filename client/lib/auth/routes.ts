@@ -45,12 +45,8 @@ export const safeNextPath = (next: string | null | undefined, type: SessionType)
   return next;
 };
 
-/** Where a successful login goes: the change-password page first when the password is temporary. */
-export const afterLoginPath = (type: SessionType, mustChangePassword: boolean, next: string | null) => {
-  const target = safeNextPath(next, type);
-  if (!mustChangePassword) return target;
-  return `${authRoutes[type].changePassword}?${new URLSearchParams({ next: target })}`;
-};
+/** Where a successful login goes. */
+export const afterLoginPath = (type: SessionType, next: string | null) => safeNextPath(next, type);
 
 export const loginPathWithNext = (type: SessionType, next: string, reason?: "expired") => {
   const params = new URLSearchParams({ next });

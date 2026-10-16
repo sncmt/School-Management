@@ -56,10 +56,18 @@ const profileFields = {
 
 export const studentFormSchema = z.object({
   ...profileFields,
+  // admitting: the year they join ("" = the current year); in December, the next one
+  academicYearId: z.string(),
   classId: z.string(),
   sectionId: z.string(),
   groupId: z.string(),
   rollNumber,
+  admissionType: z.enum(["NEW", "OLD"]),
+  // the day the student joined the school
+  admissionDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "validation.dateRequired")
+    .refine((v) => new Date(v).getTime() <= Date.now(), "validation.admissionFuture"),
 });
 
 /** Admitting: the class and section are required. */
@@ -81,6 +89,7 @@ export const placementSchema = z.object({
   sectionId: z.string().min(1, "validation.sectionRequired"),
   groupId: z.string(),
   rollNumber,
+  admissionType: z.enum(["NEW", "OLD"]),
 });
 
 export type PlacementInput = z.input<typeof placementSchema>;

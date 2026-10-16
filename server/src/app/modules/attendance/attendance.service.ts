@@ -4,6 +4,7 @@ import type { AttendanceStatus } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { displayName } from "../../shared/names";
+import { fileUrl } from "../../shared/storage";
 import { checkPermission } from "../../middlewares/authorize";
 import { dayKey, endOfBangladeshDay, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, eachDay, loadCalendar } from "../calendar/calendar.resolver";
@@ -161,10 +162,11 @@ const getStudentSheet = async (auth: Auth, query: StudentSheetQuery) => {
   const day = dayStatus(calendar, date, { classId: section.classId });
   const saved = new Map((session?.records ?? []).map((r) => [r.studentId, r]));
 
-  const items = roll.map(({ name, ...entry }) => {
+  const items = await Promise.all(roll.map(async ({ name, ...entry }) => {
     const record = saved.get(entry.student.id);
     return {
       ...entry,
+      student: { ...entry.student, photo: await fileUrl(entry.student.photo) },
       status: record?.status ?? ("PRESENT" as const),
       note: record?.note ?? null,
       saved: record !== undefined,
@@ -172,7 +174,7 @@ const getStudentSheet = async (auth: Auth, query: StudentSheetQuery) => {
       checkInAt: record?.checkInAt ?? null,
       checkOutAt: record?.checkOutAt ?? null,
     };
-  });
+  }));
 
   return {
     date: dayKey(date),
@@ -407,7 +409,11 @@ const getAbsentees = async (schoolId: string, query: DayQuery) => {
     },
   });
 
-  const items = records
+  const items = (
+    await Promise.all(
+      records.map(async (r) => ({ ...r, student: { ...r.student, photo: await fileUrl(r.student.photo) } })),
+    )
+  )
     .map((r) => ({
       student: r.student,
       rollNumber: r.enrollment.rollNumber,
@@ -497,7 +503,10 @@ const getSectionRegister = async (schoolId: string, sectionId: string, query: Re
     taken: takenDays.has(dayKey(d)),
   }));
 
-  const students = enrollments
+  const signed = await Promise.all(
+    enrollments.map(async (e) => ({ ...e, student: { ...e.student, photo: await fileUrl(e.student.photo) } })),
+  );
+  const students = signed
     .map((e) => ({ rollNumber: e.rollNumber, student: e.student, name: e.student.nameEn }))
     .sort(byRoll)
     .map(({ name, ...e }) => {
@@ -528,10 +537,10 @@ const getTeacherSheet = async (auth: Auth, query: TeacherSheetQuery) => {
   const day = dayStatus(calendar, date, "TEACHERS");
   const saved = new Map(records.map((r) => [r.teacherId, r]));
 
-  const items = teachers.map((teacher) => {
+  const items = await Promise.all(teachers.map(async (teacher) => {
     const record = saved.get(teacher.id);
     return {
-      teacher,
+      teacher: { ...teacher, photo: await fileUrl(teacher.photo) },
       // a teacher on leave is suggested as LEAVE, everyone else as PRESENT
       status: record?.status ?? (teacher.status === "ON_LEAVE" ? ("LEAVE" as const) : ("PRESENT" as const)),
       note: record?.note ?? null,
@@ -540,7 +549,7 @@ const getTeacherSheet = async (auth: Auth, query: TeacherSheetQuery) => {
       checkInAt: record?.checkInAt ?? null,
       checkOutAt: record?.checkOutAt ?? null,
     };
-  });
+  }));
 
   return {
     date: dayKey(date),

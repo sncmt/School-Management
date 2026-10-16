@@ -26,4 +26,16 @@ export const authApi = {
   changePassword: async (body: { currentPassword: string; newPassword: string }) => {
     await httpClient.post("/auth/change-password", body);
   },
+
+  // the school super admin: a code to their email, then the new password with the code
+  sendPasswordCode: async (userId: string) =>
+    (await httpClient.post<ApiResponse<{ sentTo: string; expiresAt: string }>>("/auth/school/password-code", { userId })).data.data,
+
+  setUserPassword: async ({ userId, ...body }: { userId: string; newPassword: string; code: string }) =>
+    (
+      await httpClient.post<ApiResponse<{ self: boolean; user: { id: string; fullname: string } }>>(
+        `/auth/school/users/${userId}/password`,
+        body,
+      )
+    ).data.data,
 };

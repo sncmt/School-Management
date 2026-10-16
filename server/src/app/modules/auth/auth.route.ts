@@ -32,9 +32,8 @@ router.post(
 router.post("/school/refresh", refreshIpLimit, AuthController.refreshSchoolAccessToken);
 router.post("/school/logout", AuthController.schoolLogout);
 
-// Any logged-in session. These also work while a generated password is still
-// waiting to be changed; every other protected route is blocked until it is.
-const anySession = authenticate(undefined, { allowPasswordChange: true });
+// any logged-in session, platform or school
+const anySession = authenticate();
 
 router.get("/me", anySession, AuthController.getMe);
 router.post(
@@ -44,5 +43,22 @@ router.post(
   AuthController.changePassword,
 );
 router.post("/logout-all", anySession, AuthController.logoutAllSessions);
+
+// The school super admin changes anyone's password in the school (their own too),
+// confirmed with a code emailed to them. Real members only: never a platform admin.
+const schoolMember = authenticate("SCHOOL", { memberOnly: true });
+
+router.post(
+  "/school/password-code",
+  schoolMember,
+  validateRequest({ body: AuthValidation.passwordCodeSchema }),
+  AuthController.sendPasswordCode,
+);
+router.post(
+  "/school/users/:userId/password",
+  schoolMember,
+  validateRequest({ params: AuthValidation.userIdParams, body: AuthValidation.setUserPasswordSchema }),
+  AuthController.setUserPassword,
+);
 
 export const authRoutes = router;

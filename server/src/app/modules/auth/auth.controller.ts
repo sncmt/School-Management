@@ -12,6 +12,7 @@ import {
 } from "../../utils/cookieOptions";
 import { AuthService } from "./auth.service";
 import { RefreshRetryError, type ClientMeta } from "./refreshToken.service";
+import { UserPasswordService } from "./userPassword.service";
 
 type SessionResult = { accessToken: string; refreshToken: string; refreshExpiresAt: Date };
 
@@ -67,7 +68,6 @@ const refreshHandler = <T extends SessionResult>(
 
 // Platform Login
 const platformLogin = catchAsync(async (req: Request, res: Response) => {
-  console.log(req);
   const result = await AuthService.platformLogin(req.body, getClientMeta(req));
   setAuthCookies(res, "PLATFORM", result);
 
@@ -80,8 +80,6 @@ const platformLogin = catchAsync(async (req: Request, res: Response) => {
 });
 
 const schoolLogin = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.body);
-  
   const result = await AuthService.schoolLogin(
     { ...req.body, subdomain: getSchoolSubdomain(req) },
     getClientMeta(req),
@@ -162,7 +160,28 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// ---------------------------------------- the school super admin changing passwords
+
+const sendPasswordCode = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserPasswordService.sendCode(req.auth!, req.body.userId);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Code sent to your email", data: result });
+});
+
+const setUserPassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserPasswordService.changeWithCode(req.auth!, req.params.userId as string, req.body, getClientMeta(req));
+  // their own password: this device stays logged in with fresh cookies
+  if (result.session) setAuthCookies(res, "SCHOOL", result.session);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Password changed successfully!",
+    data: { self: result.self, user: result.user },
+  });
+});
+
 export const AuthController = {
+  sendPasswordCode,
+  setUserPassword,
   platformLogin,
   refreshPlatformAccessToken,
   platformLogout,

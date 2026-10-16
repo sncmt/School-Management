@@ -13,7 +13,6 @@ import {
   revokeSchoolRole,
   TEACHER_ROLE,
 } from "../../shared/schoolAccounts";
-import { PasswordUtils } from "../../utils/password";
 import { isUniqueViolation } from "../../utils/prismaError";
 import { dayStatus, loadCalendar } from "../calendar/calendar.resolver";
 import { resolveSectionHours } from "../schedule/schedule.service";
@@ -38,7 +37,7 @@ const teacherInclude = {
     select: {
       id: true,
       status: true,
-      user: { select: { id: true, fullname: true, phone: true, isActive: true, mustChangePassword: true } },
+      user: { select: { id: true, fullname: true, phone: true, isActive: true } },
     },
   },
 } satisfies Prisma.TeacherProfileInclude;
@@ -143,7 +142,7 @@ const profileData = (data: CreateTeacherPayload) => ({
  */
 const createTeacher = async (schoolId: string, data: CreateTeacherPayload) => {
   const result = await prisma.$transaction(async (tx) => {
-    const account = await findOrCreateAccount(tx, { phone: data.phone, fullname: data.nameEn });
+    const account = await findOrCreateAccount(tx, { phone: data.phone, fullname: data.nameEn, password: "GENERATED" });
     const membershipId = await grantSchoolRole(tx, schoolId, account.userId, TEACHER_ROLE);
 
     const existing = await tx.teacherProfile.findUnique({ where: { membershipId } });
@@ -172,7 +171,7 @@ const createTeacher = async (schoolId: string, data: CreateTeacherPayload) => {
       status: result.account.created ? ("CREATED" as const) : ("LINKED" as const),
       loginPhone: data.phone,
       // shown once, only for a new account
-      temporaryPassword: result.account.temporaryPassword,
+      password: result.account.password,
     },
     rejoined: result.rejoined,
   };
@@ -305,28 +304,6 @@ const deactivateTeacher = async (schoolId: string, teacherId: string, data: Deac
   }, TX_OPTIONS);
 };
 
-// ------------------------------------------------------------ reset password
-
-/* Allowed when the account is used in this school alone; refused if it belongs to another school too. */
-const resetPassword = async (schoolId: string, teacherId: string) => {
-  const teacher = await findTeacher(schoolId, teacherId);
-  const user = teacher.membership.user;
-
-  await assertAccountOnlyInSchool(prisma, schoolId, user.id);
-
-  const temporaryPassword = PasswordUtils.generateTemporaryPassword();
-  const passwordHash = await PasswordUtils.hashPassword(temporaryPassword);
-
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: user.id },
-      data: { password: passwordHash, mustChangePassword: false, tokensValidAfter: new Date() },
-    }),
-    prisma.refreshToken.deleteMany({ where: { userId: user.id } }),
-  ]);
-
-  return { loginPhone: user.phone, temporaryPassword };
-};
 
 // ---------------------------------------------------------- the teacher's own
 
@@ -434,7 +411,6 @@ export const TeacherService = {
   getTeacherById,
   updateTeacher,
   deactivateTeacher,
-  resetPassword,
   getMyProfile,
   getMyAssignments,
   getMySchedule,

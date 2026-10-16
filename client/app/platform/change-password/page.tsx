@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function PlatformChangePasswordPage() {
   return (
-    <AuthGuard session="PLATFORM" allowPasswordChange>
+    <AuthGuard session="PLATFORM">
       <Suspense>
         <ChangePasswordForm session="PLATFORM" />
       </Suspense>

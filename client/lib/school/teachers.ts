@@ -28,7 +28,7 @@ export type Teacher = {
   membership: {
     id: string;
     status: string;
-    user: { id: string; fullname: string; phone: string | null; isActive: boolean; mustChangePassword: boolean };
+    user: { id: string; fullname: string; phone: string | null; isActive: boolean };
   };
 };
 
@@ -71,8 +71,8 @@ export type TeacherBody = {
 
 export type CreateTeacherResult = {
   teacher: Teacher;
-  // CREATED: a new login with a temporary password; LINKED: an existing account, its password unchanged
-  account: { status: "CREATED" | "LINKED"; loginPhone: string; temporaryPassword: string | null };
+  // CREATED: a new login with a generated password (shown once); LINKED: an existing account, its password unchanged
+  account: { status: "CREATED" | "LINKED"; loginPhone: string; password: string | null };
   rejoined: boolean;
 };
 
@@ -96,12 +96,6 @@ export const teachersApi = {
       >(`/teacher/${teacherId}/deactivate`, body)
     ).data.data,
 
-  resetPassword: async (teacherId: string) =>
-    (
-      await httpClient.post<ApiResponse<{ loginPhone: string; temporaryPassword: string }>>(
-        `/teacher/${teacherId}/reset-password`,
-      )
-    ).data.data,
 
   // the server crops it to a 400 px square
   setPhoto: ({ teacherId, file, onProgress }: { teacherId: string; file: File; onProgress?: (percent: number) => void }) =>
@@ -139,6 +133,5 @@ const useTeacherMutation = <TArgs, TResult>(mutationFn: (args: TArgs) => Promise
 export const useCreateTeacher = () => useTeacherMutation(teachersApi.create);
 export const useUpdateTeacher = () => useTeacherMutation(teachersApi.update);
 export const useTeacherLeaves = () => useTeacherMutation(teachersApi.leave);
-export const useResetTeacherPassword = () => useTeacherMutation(teachersApi.resetPassword);
 export const useSetTeacherPhoto = () => useTeacherMutation(teachersApi.setPhoto);
 export const useRemoveTeacherPhoto = () => useTeacherMutation(teachersApi.removePhoto);

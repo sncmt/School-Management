@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { applyServerErrors } from "@/lib/auth/formErrors";
-import { useChangePassword, useLogout, useMe } from "@/lib/auth/hooks";
+import { useChangePassword } from "@/lib/auth/hooks";
 import { safeNextPath } from "@/lib/auth/routes";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import type { SessionType } from "@/lib/tenant";
@@ -37,12 +37,8 @@ export function ChangePasswordForm({ session }: { session: SessionType }) {
   const describeError = useErrorMessage();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: me } = useMe();
   const changePassword = useChangePassword();
-  const logout = useLogout(session);
   const [formError, setFormError] = useState<string | null>(null);
-
-  const isForced = !!me?.user.mustChangePassword;
 
   const form = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
@@ -64,18 +60,12 @@ export function ChangePasswordForm({ session }: { session: SessionType }) {
 
   return (
     <AuthCard
-      title={isForced ? t("titleForced") : t("title")}
-      description={isForced ? t("descriptionForced") : t("description")}
+      title={t("title")}
+      description={t("description")}
       footer={
-        isForced ? (
-          <button className="underline underline-offset-4" onClick={() => logout.mutate({})}>
-            {t("logOutInstead")}
-          </button>
-        ) : (
-          <button className="underline underline-offset-4" onClick={() => router.back()}>
-            {tCommon("cancel")}
-          </button>
-        )
+        <button className="underline underline-offset-4" onClick={() => router.back()}>
+          {tCommon("cancel")}
+        </button>
       }
     >
       <Form {...form}>

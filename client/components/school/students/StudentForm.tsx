@@ -26,9 +26,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { applyServerErrors } from "@/lib/auth/formErrors";
+import { useCan } from "@/lib/auth/hooks";
 import { dayKey } from "@/lib/dates";
+import { todayKey } from "@/lib/school/calendar";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
+import { useAcademicYears } from "@/lib/school/academicYears";
 import { useClasses } from "@/lib/school/classes";
 import { useGroups } from "@/lib/school/groups";
 import {
@@ -50,17 +53,18 @@ import {
   type StudentFormValues,
 } from "@/zod/student";
 import { useSchoolLanguage } from "../NameFields";
+import { AdmissionTypeField } from "./AdmissionTypeField";
 import { FamilyCredentialsDialog, type FamilyCredentials } from "./FamilyCredentialsDialog";
 
 const REQUIRED = new Set<FieldPath<StudentFormInput>>([
-  "nameEn", "nameBn", "gender", "religion", "fatherName", "motherName", "classId", "sectionId",
+  "nameEn", "nameBn", "gender", "religion", "fatherName", "motherName", "classId", "sectionId", "admissionDate",
 ]);
 
 const NO_GROUP = "none"; // Select can't hold an empty value
 
 const FIELDS: FieldPath<StudentFormInput>[] = [
   "nameEn", "nameBn", "gender", "religion", "dob", "fatherName", "motherName", "guardianName", "guardianPhone",
-  "phone", "email", "whatsApp", "presentAddress", "permanentAddress", "admissionNo", "classId", "sectionId",
+  "phone", "email", "whatsApp", "presentAddress", "permanentAddress", "admissionNo", "admissionDate", "classId", "sectionId",
   "groupId", "rollNumber",
 ];
 
@@ -80,10 +84,14 @@ const initialValues = (student?: StudentDetail): StudentFormInput => ({
   presentAddress: student?.presentAddress ?? "",
   permanentAddress: student?.permanentAddress ?? "",
   admissionNo: student?.admissionNo ?? "",
+  academicYearId: "",
   classId: "",
   sectionId: "",
   groupId: "",
   rollNumber: "",
+  // admitting: new to the school; switch to Old when entering students who were already here
+  admissionType: "NEW",
+  admissionDate: student ? dayKey(student.admissionDate) : todayKey(),
 });
 
 /** Admit a student, or edit one (everything but the class placement, which has its own dialog). */
@@ -97,8 +105,14 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
   const localName = useLocalizedName();
   const language = useSchoolLanguage();
   const router = useRouter();
+  const canChangeDate = useCan()("student:change_admission_date");
 
   const classes = useClasses();
+  const years = useAcademicYears();
+  // the years a student can join: the current one and any not ended yet (next year, in December)
+  const today = todayKey();
+  const openYears = (years.data ?? []).filter((y) => dayKey(y.endDate) >= today).sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const currentYear = classes.data?.academicYear ?? years.data?.find((y) => y.isCurrent) ?? null;
   const groups = useGroups();
   const admit = useAdmitStudent();
   const update = useUpdateStudent();
@@ -120,6 +134,8 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
 
   const classId = useWatch({ control: form.control, name: "classId" });
   const chosenClass = classes.data?.items.find((c) => c.id === classId);
+  const yearId = useWatch({ control: form.control, name: "academicYearId" });
+  const chosenYear = openYears.find((y) => y.id === yearId) ?? currentYear;
   // a class without sections has only its automatic one, picked for you
   const realSections = chosenClass?.sections.filter((s) => !s.isDefault) ?? [];
   const noYear = !isEdit && classes.data && !classes.data.academicYear;
@@ -143,9 +159,9 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
 
   // after saving: show a new login's password first, else go straight on
   const finish = (account: FamilyAccount | null, name: string, next: string) => {
-    if (account?.status === "CREATED" && account.temporaryPassword) {
+    if (account?.status === "CREATED" && account.password) {
       setCredentials({
-        value: { name, phone: localPhone(account.loginPhone), password: account.temporaryPassword },
+        value: { name, phone: localPhone(account.loginPhone), password: account.password },
         next,
       });
       return;
@@ -158,12 +174,14 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
-    const { classId, sectionId, groupId, rollNumber, ...rest } = values;
+    const { academicYearId, classId, sectionId, groupId, rollNumber, admissionType, admissionDate, ...rest } = values;
     const profile = { ...rest, gender: rest.gender as Gender, religion: rest.religion as Religion } satisfies StudentProfileBody;
+    // when editing, the admission date goes only when it changed (it needs its own permission)
+    const dateChange = student && admissionDate !== dayKey(student.admissionDate) ? { admissionDate } : {};
 
     try {
       if (student) {
-        const result = await update.mutateAsync({ studentId: student.id, body: profile });
+        const result = await update.mutateAsync({ studentId: student.id, body: { ...profile, ...dateChange } });
         const name = localName(result.student);
         await uploadPhoto(student.id, name);
         toast.success(t("updated", { name }));
@@ -171,7 +189,8 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
       } else {
         const result = await admit.mutateAsync({
           ...profile,
-          enrollment: { classId, sectionId, groupId, rollNumber },
+          admissionDate,
+          enrollment: { ...(academicYearId ? { academicYearId } : {}), classId, sectionId, groupId, rollNumber, admissionType },
         });
         const name = localName(result.student);
         await uploadPhoto(result.student.id, name);
@@ -310,12 +329,28 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
               )}
               {textField("dob", t("dob"), { type: "date", max: new Date().toISOString().slice(0, 10) })}
             </div>
-            {isEdit && textField("admissionNo", t("admissionNo"))}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {isEdit && textField("admissionNo", t("admissionNo"))}
+              {textField(
+                "admissionDate",
+                t("admissionDate"),
+                { type: "date", max: todayKey(), disabled: isEdit && !canChangeDate },
+                isEdit && !canChangeDate ? t("admissionDateLocked") : t("admissionDateHint"),
+              )}
+            </div>
           </Section>
 
           {!isEdit && (
-            <Section title={t("sections.admission", { year: classes.data?.academicYear?.name ?? "" })}>
+            <Section title={t("sections.admission", { year: chosenYear?.name ?? "" })}>
               <div className="grid gap-4 sm:grid-cols-2">
+                {openYears.length > 1 &&
+                  selectField(
+                    "academicYearId",
+                    t("academicYear"),
+                    openYears.map((y) => ({ value: y.id, label: y.isCurrent ? t("currentYearOption", { year: y.name }) : y.name })),
+                    // the current year is sent as "" (the server's default)
+                    { emptyValue: currentYear?.id },
+                  )}
                 {selectField(
                   "classId",
                   t("class"),
@@ -347,6 +382,7 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
                 )}
                 {textField("rollNumber", t("rollNumber"), { inputMode: "numeric" })}
               </div>
+              <AdmissionTypeField control={form.control} name="admissionType" hint={t("admissionTypeHint")} />
               {textField("admissionNo", t("admissionNo"), {}, t("admissionNoHint"))}
             </Section>
           )}

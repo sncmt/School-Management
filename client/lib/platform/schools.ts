@@ -79,7 +79,6 @@ export type SchoolDetail = School & {
     email: string | null;
     phone: string | null;
     isActive: boolean;
-    mustChangePassword: boolean;
   } | null;
   stats: { activeStudents: number; activeTeachers: number };
   modules: { code: string; name: string; type: "FREE" | "PAID" }[];

@@ -16,11 +16,12 @@ export const redis = new Redis(config.redisUrl, {
 
 // a down Redis emits an error on every reconnect attempt; log at most once a minute
 let lastErrorLoggedAt = 0;
+// npm run dev starts Redis and the API together: the first attempts can come before Redis is up
+const quietUntil = Date.now() + 10_000;
 
-redis.on("ready", () => console.log("Redis connected"));
 redis.on("error", (error) => {
   const now = Date.now();
-  if (now - lastErrorLoggedAt < 60_000) return;
+  if (now < quietUntil || now - lastErrorLoggedAt < 60_000) return;
   lastErrorLoggedAt = now;
   console.error(`Redis unavailable (${error.message}). Rate limits fall back to memory.`);
 });

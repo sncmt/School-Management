@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
+  Banknote,
   Ban,
   GraduationCap,
   KeyRound,
@@ -51,7 +52,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useCan } from "@/lib/auth/hooks";
+import { SetPasswordDialog } from "@/components/auth/SetPasswordDialog";
+import { useCan, useSchoolMe } from "@/lib/auth/hooks";
 import { applyServerErrors } from "@/lib/auth/formErrors";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
@@ -61,7 +63,6 @@ import {
   localPhone,
   useChangePlacement,
   useRemoveStudentPhoto,
-  useResetFamilyPassword,
   useSetStudentPhoto,
   useStudent,
   useUpdateStudent,
@@ -70,7 +71,7 @@ import {
   type StudentStatus,
 } from "@/lib/school/students";
 import { placementSchema, type PlacementInput, type PlacementValues } from "@/zod/student";
-import { FamilyCredentialsDialog, type FamilyCredentials } from "./FamilyCredentialsDialog";
+import { AdmissionTypeField } from "./AdmissionTypeField";
 import { StudentStatusBadge } from "./StudentStatusBadge";
 import { usePlacementLabel } from "./placement";
 
@@ -135,6 +136,7 @@ function Detail({ student }: { student: StudentDetail }) {
   const t = useTranslations("school.students.detail");
   const tGender = useTranslations("genders");
   const tReligion = useTranslations("religions");
+  const tType = useTranslations("school.students.admissionType");
   const format = useFormatter();
   const name = useLocalizedName();
   const placement = usePlacementLabel();
@@ -145,8 +147,8 @@ function Detail({ student }: { student: StudentDetail }) {
 
   const [moving, setMoving] = useState(false);
   const [statusTo, setStatusTo] = useState<StudentStatus | null>(null);
-  const [resetting, setResetting] = useState(false);
-  const [credentials, setCredentials] = useState<FamilyCredentials | null>(null);
+  const me = useSchoolMe();
+  const [settingPassword, setSettingPassword] = useState(false);
 
   const studentName = name(student);
   // the other language's name, under the main one
@@ -160,7 +162,8 @@ function Detail({ student }: { student: StudentDetail }) {
   const canUpdate = can("student:update");
   const actions = {
     move: canUpdate && student.status === "ACTIVE" && current?.status === "ACTIVE",
-    reset: can("student:reset_password") && student.account.hasAccount,
+    // only the school super admin changes a family's password
+    reset: !!me?.isSuperAdmin && !!student.account.userId,
     status: canUpdate ? STATUS_ACTIONS.filter((a) => a.from.includes(student.status)) : [],
   };
   const anyMenuAction = actions.move || actions.reset || actions.status.length > 0;
@@ -200,6 +203,13 @@ function Detail({ student }: { student: StudentDetail }) {
         </div>
 
         <div className="flex gap-2">
+          {(can("payment:create") || can("student_fee:view")) && (
+            <Button variant="outline" asChild>
+              <Link href={`/finance?student=${student.id}`}>
+                <Banknote /> {t("actions.fees")}
+              </Link>
+            </Button>
+          )}
           {canUpdate && (
             <Button variant="outline" asChild>
               <Link href={`/students/${student.id}/edit`}>
@@ -221,8 +231,8 @@ function Detail({ student }: { student: StudentDetail }) {
                   </DropdownMenuItem>
                 )}
                 {actions.reset && (
-                  <DropdownMenuItem onSelect={() => setResetting(true)}>
-                    <KeyRound /> {t("actions.resetPassword")}
+                  <DropdownMenuItem onSelect={() => setSettingPassword(true)}>
+                    <KeyRound /> {t("actions.changePassword")}
                   </DropdownMenuItem>
                 )}
                 {actions.status.length > 0 && (actions.move || actions.reset) && <DropdownMenuSeparator />}
@@ -246,7 +256,7 @@ function Detail({ student }: { student: StudentDetail }) {
           <Field label={t("fields.gender")}>{tGender(student.gender)}</Field>
           <Field label={t("fields.religion")}>{student.religion ? tReligion(student.religion) : notSet}</Field>
           <Field label={t("fields.dob")}>{date(student.dob) ?? notSet}</Field>
-          <Field label={t("fields.admitted")}>{date(student.createdAt)}</Field>
+          <Field label={t("fields.admitted")}>{date(student.admissionDate)}</Field>
         </InfoCard>
 
         <InfoCard title={t("sections.family")}>
@@ -265,8 +275,6 @@ function Detail({ student }: { student: StudentDetail }) {
               <Field label={t("fields.loginStatus")}>
                 {!student.account.isActive ? (
                   <Badge variant="outline">{t("loginState.disabled")}</Badge>
-                ) : student.account.mustChangePassword ? (
-                  <Badge variant="secondary">{t("loginState.temporary")}</Badge>
                 ) : (
                   <Badge>{t("loginState.active")}</Badge>
                 )}
@@ -318,7 +326,10 @@ function Detail({ student }: { student: StudentDetail }) {
                 {student.enrollments.map((e) => (
                   <TableRow key={e.id}>
                     <TableCell className="font-medium">{e.academicYear.name}</TableCell>
-                    <TableCell>{placement(e)}</TableCell>
+                    <TableCell>
+                      {placement(e)}
+                      <span className="ml-2 text-xs text-muted-foreground">{tType(`types.${e.admissionType}`)}</span>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={e.status === "ACTIVE" ? "default" : "outline"}>
                         {t(`enrollmentStatuses.${e.status}`)}
@@ -334,18 +345,13 @@ function Detail({ student }: { student: StudentDetail }) {
 
       <PlacementDialog student={student} enrollment={moving ? current : null} onClose={() => setMoving(false)} />
       <StatusDialog student={student} to={statusTo} onClose={() => setStatusTo(null)} />
-      <ResetPasswordDialog
-        student={resetting ? student : null}
-        onClose={() => setResetting(false)}
-        onDone={(result) => {
-          setResetting(false);
-          setCredentials({ name: studentName, phone: localPhone(result.loginPhone), password: result.temporaryPassword });
-        }}
-      />
-      <FamilyCredentialsDialog
-        credentials={credentials}
-        title={t("resetDialog.doneTitle")}
-        onClose={() => setCredentials(null)}
+      <SetPasswordDialog
+        account={
+          settingPassword && student.account.userId && student.account.loginPhone
+            ? { userId: student.account.userId, name: t("familyLogin", { name: studentName }), login: localPhone(student.account.loginPhone) }
+            : null
+        }
+        onClose={() => setSettingPassword(false)}
       />
     </div>
   );
@@ -414,6 +420,7 @@ function PlacementForm({
   const t = useTranslations("school.students.placement");
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
+  const tType = useTranslations("school.students.admissionType");
   const name = useLocalizedName();
   const classes = useClasses();
   const groups = useGroups();
@@ -429,17 +436,28 @@ function PlacementForm({
       sectionId: enrollment.section.id,
       groupId: enrollment.group?.id ?? "",
       rollNumber: enrollment.rollNumber ?? "",
+      admissionType: enrollment.admissionType,
     },
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
     try {
-      await change.mutateAsync({
+      const result = await change.mutateAsync({
         studentId: student.id,
-        body: { sectionId: values.sectionId, groupId: values.groupId || null, rollNumber: values.rollNumber || null },
+        body: {
+          sectionId: values.sectionId,
+          groupId: values.groupId || null,
+          rollNumber: values.rollNumber || null,
+          admissionType: values.admissionType,
+        },
       });
       toast.success(t("saved", { name: name(student) }));
+      // new <-> old: the admission and re-admission fees swapped
+      if (result.admissionFees) {
+        toast.info(t("feesSwapped", { type: tType(`types.${values.admissionType}`) }));
+        if (result.admissionFees.kept > 0) toast.warning(t("feesKept", { count: result.admissionFees.kept }), { duration: 10_000 });
+      }
       onDone();
     } catch (error) {
       setFormError(applyServerErrors(error, form.setError, PLACEMENT_FIELDS, describeError));
@@ -515,6 +533,7 @@ function PlacementForm({
             </FormItem>
           )}
         />
+        <AdmissionTypeField control={form.control} name="admissionType" hint={t("admissionTypeHint")} />
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onDone} disabled={change.isPending}>
             {tCommon("cancel")}
@@ -581,48 +600,6 @@ function StatusDialog({
             </AlertDialogFooter>
           </>
         )}
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
-
-// ----------------------------------------------------------- reset password
-
-function ResetPasswordDialog({
-  student,
-  onClose,
-  onDone,
-}: {
-  student: StudentDetail | null;
-  onClose: () => void;
-  onDone: (result: { loginPhone: string; temporaryPassword: string }) => void;
-}) {
-  const t = useTranslations("school.students.detail.resetDialog");
-  const tCommon = useTranslations("common");
-  const describeError = useErrorMessage();
-  const name = useLocalizedName();
-  const reset = useResetFamilyPassword();
-
-  const confirm = () => {
-    if (!student) return;
-    reset.mutate(student.id, { onSuccess: onDone, onError: (e) => toast.error(describeError(e)) });
-  };
-
-  return (
-    <AlertDialog open={!!student} onOpenChange={(open) => !open && !reset.isPending && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("title", { name: student ? name(student) : "" })}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {t("description", { count: student?.account.siblingsInSchool ?? 0 })}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={reset.isPending}>{tCommon("cancel")}</AlertDialogCancel>
-          <Button variant="destructive" onClick={confirm} disabled={reset.isPending}>
-            {reset.isPending ? t("working") : t("confirm")}
-          </Button>
-        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );

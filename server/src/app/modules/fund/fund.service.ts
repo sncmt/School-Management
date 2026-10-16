@@ -18,18 +18,34 @@ import type {
   UpdateFundPayload,
 } from "./fund.type";
 import { isUniqueViolation } from "../../utils/prismaError";
+import { assertSchoolLanguageName, type Names } from "../../shared/names";
 
+const DUPLICATE_MESSAGE = "A fund with this name already exists";
 
+/* "General Fund" and "general fund" are the same name, in English and in Bangla. */
+const assertNamesFree = async (schoolId: string, names: Names, excludeFundId?: string) => {
+  const fields: Prisma.FundWhereInput[] = [];
+  if (names.nameEn) fields.push({ nameEn: { equals: names.nameEn, mode: "insensitive" } });
+  if (names.nameBn) fields.push({ nameBn: { equals: names.nameBn, mode: "insensitive" } });
+  if (fields.length === 0) return;
+
+  const clash = await prisma.fund.findFirst({
+    where: { schoolId, OR: fields, ...(excludeFundId ? { id: { not: excludeFundId } } : {}) },
+    select: { id: true },
+  });
+  if (clash) throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
+};
 
 const createFund = async (schoolId: string, data: CreateFundPayload) => {
+  await assertSchoolLanguageName(schoolId, data);
+  await assertNamesFree(schoolId, data);
   try {
-    // the unique index on (schoolId, name) decides, so two simultaneous
-    // requests can't both create the same fund
-    return await prisma.fund.create({ data: { schoolId, ...data } });
+    // the unique indexes on the names are the final guard against two requests at once
+    return await prisma.fund.create({
+      data: { schoolId, nameEn: data.nameEn ?? null, nameBn: data.nameBn ?? null, description: data.description },
+    });
   } catch (e) {
-    if (isUniqueViolation(e)) {
-      throw new AppError("A fund with this name already exists", httpStatus.CONFLICT);
-    }
+    if (isUniqueViolation(e)) throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
     throw e;
   }
 };
@@ -38,7 +54,7 @@ const getFunds = async (schoolId: string, opts: { includeInactive?: boolean }) =
   const [funds, groups] = await Promise.all([
     prisma.fund.findMany({
       where: { schoolId, ...(opts.includeInactive ? {} : { isActive: true }) },
-      orderBy: { name: "asc" },
+      orderBy: { createdAt: "asc" },
     }),
     prisma.fundTransaction.groupBy({
       by: ["fundId", "type"],
@@ -72,6 +88,14 @@ const updateFund = async (schoolId: string, fundId: string, data: UpdateFundPayl
   const fund = await prisma.fund.findFirst({ where: { id: fundId, schoolId } });
   if (!fund) throw new AppError("Fund not found", httpStatus.NOT_FOUND);
 
+  if (data.nameEn !== undefined || data.nameBn !== undefined) {
+    await assertSchoolLanguageName(schoolId, {
+      nameEn: data.nameEn !== undefined ? data.nameEn : fund.nameEn,
+      nameBn: data.nameBn !== undefined ? data.nameBn : fund.nameBn,
+    });
+    await assertNamesFree(schoolId, { nameEn: data.nameEn, nameBn: data.nameBn }, fundId);
+  }
+
   if (data.isActive === false && fund.isActive) {
     const activeFeeTypes = await prisma.feeType.count({
       where: { schoolId, fundId, isActive: true },
@@ -96,7 +120,7 @@ const updateFund = async (schoolId: string, fundId: string, data: UpdateFundPayl
     return await prisma.fund.update({ where: { id: fundId }, data });
   } catch (e) {
     if (isUniqueViolation(e)) {
-      throw new AppError("A fund with this name already exists", httpStatus.CONFLICT);
+      throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
     }
     throw e;
   }
@@ -208,7 +232,7 @@ const getLedger = async (schoolId: string, query: LedgerQuery) => {
       orderBy: [{ transactionDate: "desc" }, { createdAt: "desc" }, { id: "desc" }],
       skip: (page - 1) * limit,
       take: limit,
-      include: { fund: { select: { id: true, name: true } } },
+      include: { fund: { select: { id: true, nameEn: true, nameBn: true } } },
     }),
     prisma.fundTransaction.count({ where }),
     prisma.fundTransaction.groupBy({ by: ["type"], where, _sum: { amount: true } }),

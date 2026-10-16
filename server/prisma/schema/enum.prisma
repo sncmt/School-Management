@@ -36,6 +36,8 @@ enum StudentStatus {
 enum EnrollmentStatus {
   ACTIVE
   PROMOTED
+  // stayed in the same class for the next year (held back)
+  REPEATED
   TRANSFERRED
   WITHDRAWN
   GRADUATED
@@ -84,6 +86,22 @@ enum Month {
   OCT
   NOV
   DEC
+}
+
+enum AdmissionType {
+  NEW
+  OLD
+}
+
+enum FeeAppliesTo {
+  ALL
+  NEW_STUDENTS
+  OLD_STUDENTS
+}
+
+enum MidYearFeeRule {
+  FROM_ADMISSION
+  WHOLE_YEAR
 }
 
 enum PaymentMethod {

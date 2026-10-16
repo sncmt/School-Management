@@ -1,9 +1,15 @@
 import httpStatus from "http-status";
 import { Prisma } from "../../../../generated/prisma/client";
+import type { StudentStatus } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
-import { PasswordUtils } from "../../utils/password";
-import { generateStudentFees } from "../studentFee/studentFee.service";
+import {
+  currentMonth,
+  generateStudentFees,
+  getMidYearRule,
+  realignAdmissionFees,
+  removeUntouchedMonthlyFees,
+} from "../studentFee/studentFee.service";
 import type {
   ChangePlacementPayload,
   CreateStudentPayload,
@@ -13,6 +19,7 @@ import type {
 import { isUniqueViolation } from "../../utils/prismaError";
 import { processImage } from "../../shared/imageUpload";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
+import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import {
   type AccountResult,
   findOrCreateAccount,
@@ -39,6 +46,7 @@ const enrollmentSelect = {
   class: { select: { id: true, name: true } },
   section: { select: { id: true, name: true, isDefault: true } },
   group: { select: { id: true, nameEn: true, nameBn: true } },
+  admissionType: true,
 } satisfies Prisma.EnrollmentSelect;
 
 const withEnrollments = {
@@ -55,7 +63,7 @@ const provisionAccount = async (
   tx: Db,
   input: { schoolId: string; phone: string; fullname: string },
 ): Promise<AccountResult> => {
-  const account = await findOrCreateAccount(tx, { phone: input.phone, fullname: input.fullname });
+  const account = await findOrCreateAccount(tx, { phone: input.phone, fullname: input.fullname, password: "PHONE" });
   await grantSchoolRole(tx, input.schoolId, account.userId, GUARDIAN_ROLE);
   return account;
 };
@@ -81,10 +89,11 @@ const accountPayload = (
     ? {
         status: account.created ? ("CREATED" as const) : ("LINKED" as const),
         loginPhone,
-        temporaryPassword: account.temporaryPassword, // shown once, only for a new account
+        // a new account's password is its phone number (shown once); an existing one keeps its own
+        password: account.password,
         siblingsInSchool,
       }
-    : { status: "NONE" as const, loginPhone: null, temporaryPassword: null, siblingsInSchool: 0 };
+    : { status: "NONE" as const, loginPhone: null, password: null, siblingsInSchool: 0 };
 
 // ------------------------------------------------------------------- helpers
 
@@ -100,6 +109,24 @@ const resolveAcademicYear = async (db: Db, schoolId: string, academicYearId?: st
   }
   return year;
 };
+
+/*
+ * An admission date is not in the future, and not after the end of the first academic year
+ * the student is enrolled in here. It may be long before that year (an old student when the
+ * school started using the system).
+ */
+const assertAdmissionDate = (firstYear: { name: string; endDate: Date }, day: Date) => {
+  if (day.getTime() > todayInBangladesh().getTime()) {
+    throw new AppError("The admission date cannot be in the future", httpStatus.BAD_REQUEST);
+  }
+  if (dayKey(day) > dayKey(firstYear.endDate)) {
+    throw new AppError(`The admission date cannot be after ${firstYear.name} ends (${dayKey(firstYear.endDate)})`, httpStatus.BAD_REQUEST);
+  }
+};
+
+/* When the first enrollment starts: the admission day, or the year's first day for an older student. */
+const firstEnrollmentStart = (year: { startDate: Date }, admissionDate: Date) =>
+  admissionDate.getTime() < year.startDate.getTime() ? year.startDate : admissionDate;
 
 const assertPlacement = async (
   db: Db,
@@ -192,6 +219,8 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
     return await prisma.$transaction(async (tx) => {
       const academicYear = await resolveAcademicYear(tx, schoolId, enr.academicYearId);
       await assertPlacement(tx, schoolId, enr);
+      const admissionDate = data.admissionDate ?? todayInBangladesh();
+      if (data.admissionDate) assertAdmissionDate(academicYear, data.admissionDate);
 
       if (enr.rollNumber) {
         const taken = await tx.enrollment.findFirst({
@@ -233,6 +262,7 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
           schoolId,
           admissionNo,
           ...profile,
+          admissionDate,
           phone: phone ?? null,
           userId: account?.userId ?? null,
         },
@@ -246,6 +276,10 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
           sectionId: enr.sectionId,
           groupId: enr.groupId,
           rollNumber: enr.rollNumber,
+          admissionType: enr.admissionType,
+          // admitted today: now; an earlier admission date: that day. Never before the year's first
+          // day (admitted in December for next year: from 1 January)
+          enrolledAt: data.admissionDate ? firstEnrollmentStart(academicYear, data.admissionDate) : firstEnrollmentStart(academicYear, new Date()),
         },
       });
 
@@ -303,13 +337,76 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
 
 // -------------------------------------------------------------------- update
 
+const hasLeft = (status: StudentStatus) => status === "INACTIVE" || status === "GRADUATED";
+
+/*
+ * After an update, the student's fees for the current year:
+ * - left (inactive, graduated): unpaid monthly fees after this month are removed
+ * - came back: monthly fees from this month on are assigned again
+ * - admission date moved (when the school charges monthly fees from admission):
+ *   unpaid months before the new admission month go, missing ones after it come
+ */
+const alignFees = async (
+  tx: Db,
+  schoolId: string,
+  before: { id: string; status: StudentStatus; admissionDate: Date },
+  change: { status?: StudentStatus; admissionDate?: Date },
+) => {
+  const status = change.status ?? before.status;
+  const now = currentMonth();
+
+  if (hasLeft(status) && !hasLeft(before.status)) {
+    // the month they left is still charged, the months after are not
+    await removeUntouchedMonthlyFees(tx, { schoolId, studentId: before.id, after: now });
+    return;
+  }
+
+  const enrollment = await tx.enrollment.findFirst({
+    where: { studentId: before.id, status: "ACTIVE", academicYear: { schoolId, isCurrent: true } },
+    select: { academicYearId: true, classId: true },
+  });
+  if (!enrollment || hasLeft(status)) return;
+  const target = { schoolId, studentIds: [before.id], ...enrollment };
+
+  if (hasLeft(before.status)) {
+    await generateStudentFees(tx, { ...target, fromMonth: now });
+    return;
+  }
+
+  const moved = change.admissionDate && change.admissionDate.getTime() !== before.admissionDate.getTime();
+  if (moved && (await getMidYearRule(tx, schoolId)) === "FROM_ADMISSION") {
+    await removeUntouchedMonthlyFees(tx, {
+      schoolId,
+      studentId: before.id,
+      academicYearId: enrollment.academicYearId,
+      before: { year: change.admissionDate!.getUTCFullYear(), month: change.admissionDate!.getUTCMonth() + 1 },
+    });
+    await generateStudentFees(tx, target);
+  }
+};
+
 const updateStudent = async (schoolId: string, studentId: string, data: UpdateStudentPayload) => {
-  const { phone, ...rest } = data;
+  const { phone, admissionDate, ...rest } = data;
 
   try {
     return await prisma.$transaction(async (tx) => {
       const student = await tx.student.findFirst({ where: { id: studentId, schoolId } });
       if (!student) throw new AppError("Student not found", httpStatus.NOT_FOUND);
+
+      // the first year here starts from the admission date (or that year's first day)
+      if (admissionDate) {
+        const first = await tx.enrollment.findFirst({
+          where: { studentId },
+          orderBy: { academicYear: { startDate: "asc" } },
+          select: { id: true, academicYear: { select: { name: true, startDate: true, endDate: true } } },
+        });
+        if (first) {
+          assertAdmissionDate(first.academicYear, admissionDate);
+          await tx.enrollment.update({ where: { id: first.id }, data: { enrolledAt: firstEnrollmentStart(first.academicYear, admissionDate) } });
+        } else if (admissionDate.getTime() > todayInBangladesh().getTime()) {
+          throw new AppError("The admission date cannot be in the future", httpStatus.BAD_REQUEST);
+        }
+      }
 
       if (
         rest.admissionNo !== undefined ||
@@ -352,6 +449,7 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
         where: { id: studentId },
         data: {
           ...rest,
+          ...(admissionDate ? { admissionDate } : {}),
           ...(phone !== undefined ? { phone } : {}),
           ...(newUserId !== undefined ? { userId: newUserId } : {}),
         },
@@ -361,6 +459,9 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
       if (student.userId && newUserId !== undefined && newUserId !== student.userId) {
         await deprovisionIfOrphaned(tx, schoolId, student.userId);
       }
+
+      // the fees follow the student: leaving, coming back, a moved admission date
+      await alignFees(tx, schoolId, student, { status: rest.status, admissionDate });
 
       const saved = await tx.student.findUniqueOrThrow({
         where: { id: studentId },
@@ -392,7 +493,7 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
  * year, inside the same class. Changing class is a promotion, done elsewhere.
  */
 const changePlacement = async (schoolId: string, studentId: string, data: ChangePlacementPayload) => {
-  await prisma.$transaction(async (tx) => {
+  const admissionFees = await prisma.$transaction(async (tx) => {
     const year = await resolveAcademicYear(tx, schoolId);
     const enrollment = await tx.enrollment.findFirst({
       where: { studentId, academicYearId: year.id, student: { schoolId } },
@@ -416,10 +517,22 @@ const changePlacement = async (schoolId: string, studentId: string, data: Change
       }
     }
 
-    await tx.enrollment.update({ where: { id: enrollment.id }, data: { sectionId, groupId, rollNumber } });
+    const admissionType = data.admissionType ?? enrollment.admissionType;
+    await tx.enrollment.update({ where: { id: enrollment.id }, data: { sectionId, groupId, rollNumber, admissionType } });
+
+    // new <-> old: the admission fee and the re-admission fee swap (unpaid ones only)
+    if (admissionType === enrollment.admissionType) return null;
+    return realignAdmissionFees(tx, {
+      schoolId,
+      studentId,
+      academicYearId: year.id,
+      classId: enrollment.classId,
+      admissionType,
+    });
   }, TX_OPTIONS);
 
-  return getStudentById(schoolId, studentId);
+  // only when the admission type changed: fees removed, and fees kept because they have payments
+  return { ...(await getStudentById(schoolId, studentId)), admissionFees };
 };
 
 // ------------------------------------------------------------------- reading
@@ -429,7 +542,7 @@ const getStudentById = async (schoolId: string, studentId: string) => {
     where: { id: studentId, schoolId },
     include: {
       ...withEnrollments,
-      user: { select: { phone: true, isActive: true, mustChangePassword: true } },
+      user: { select: { id: true, phone: true, isActive: true } },
     },
   });
   if (!student) throw new AppError("Student not found", httpStatus.NOT_FOUND);
@@ -445,24 +558,23 @@ const getStudentById = async (schoolId: string, studentId: string) => {
     ...(await withFileUrls(rest, ["photo"])),
     account: {
       hasAccount: user !== null,
+      userId: user?.id ?? null,
       loginPhone: user?.phone ?? null,
       isActive: user?.isActive ?? null,
-      // true until the family has logged in and chosen their own password
-      mustChangePassword: user?.mustChangePassword ?? null,
       siblingsInSchool,
     },
   };
 };
 
 const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
-  const { search, status, religion, academicYearId, classId, sectionId, groupId, hasAccount, sortBy, sortOrder, page, limit } =
+  const { search, status, religion, academicYearId, classId, sectionId, groupId, admissionType, hasAccount, sortBy, sortOrder, page, limit } =
     query;
 
   const yearId =
     academicYearId ??
     (await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } }))?.id;
 
-  const placementFilter = Boolean(classId || sectionId || groupId);
+  const placementFilter = Boolean(classId || sectionId || groupId || admissionType);
   if (placementFilter && !yearId) {
     throw new AppError(
       "No current academic year is set. Choose an academic year to filter by class, section or group",
@@ -495,6 +607,7 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
               ...(classId ? { classId } : {}),
               ...(sectionId ? { sectionId } : {}),
               ...(groupId ? { groupId } : {}),
+              ...(admissionType ? { admissionType } : {}),
             },
           },
         }
@@ -529,59 +642,6 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
   );
 
   return { items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
-};
-
-// ------------------------------------------------------------ reset password
-
-/*
- * Gives the family a new generated password. Refused when the account is also used
- * for anything else (a teacher role, another school, the platform): a school admin
- * must not be able to set the password of somebody else's login.
- */
-const resetGuardianPassword = async (schoolId: string, studentId: string) => {
-  const student = await prisma.student.findFirst({
-    where: { id: studentId, schoolId },
-    select: { userId: true },
-  });
-  if (!student) throw new AppError("Student not found", httpStatus.NOT_FOUND);
-  if (!student.userId) {
-    throw new AppError("This student has no login account. Add a phone number first", httpStatus.BAD_REQUEST);
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: student.userId },
-    select: {
-      id: true,
-      phone: true,
-      memberships: { select: { schoolId: true } },
-      userRoles: { select: { membershipId: true, role: { select: { name: true } } } },
-    },
-  });
-  if (!user) throw new AppError("Account not found", httpStatus.NOT_FOUND);
-
-  const usedElsewhere = user.memberships.some((m) => m.schoolId !== schoolId);
-  const hasOtherRoles = user.userRoles.some(
-    (ur) => ur.membershipId === null || ur.role.name !== GUARDIAN_ROLE.name,
-  );
-  if (usedElsewhere || hasOtherRoles) {
-    throw new AppError(
-      "This account is also used for another role or school, so only its owner can change the password",
-      httpStatus.FORBIDDEN,
-    );
-  }
-
-  const temporaryPassword = PasswordUtils.generateTemporaryPassword();
-  const passwordHash = await PasswordUtils.hashPassword(temporaryPassword);
-
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: user.id },
-      data: { password: passwordHash, mustChangePassword: false, tokensValidAfter: new Date() },
-    }),
-    prisma.refreshToken.deleteMany({ where: { userId: user.id } }),
-  ]);
-
-  return { loginPhone: user.phone, temporaryPassword };
 };
 
 // ------------------------------------------------------------------- photo
@@ -619,5 +679,4 @@ export const StudentService = {
   updateStudent,
   getStudentById,
   getStudents,
-  resetGuardianPassword,
 };

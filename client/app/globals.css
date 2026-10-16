@@ -140,3 +140,48 @@
     cursor: pointer;
   }
 }
+
+/*
+ * Printing (result cards, tabulation sheets): only what is inside .print-area prints.
+ * .print-page starts a new sheet; .print-landscape asks for landscape pages.
+ */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+  .print-page {
+    break-after: page;
+  }
+  .print-page:last-child {
+    break-after: auto;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* wide sheets (tabulation) print sideways */
+  @page landscape {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+  .print-landscape {
+    page: landscape;
+  }
+  /* keep backgrounds and colours (headers, grade cells) as on screen */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

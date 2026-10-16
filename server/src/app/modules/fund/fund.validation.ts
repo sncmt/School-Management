@@ -3,6 +3,7 @@ import {
   FundTransactionSource,
   FundTransactionType,
 } from "../../../../generated/prisma/enums";
+import { schoolLanguageNames } from "../../shared/names";
 
 const amount = z
   .number({ error: "Amount is required!" })
@@ -20,14 +21,15 @@ const transactionDate = z.coerce
 
 const description = z.string().trim().max(500).optional();
 
+// the name in the school's language is required (the service checks it); the other is optional
 const createFund = z.object({
-  name: z.string({ error: "Fund name is required!" }).trim().min(2).max(100),
+  ...schoolLanguageNames(100),
   description,
 });
 
 const updateFund = z
   .object({
-    name: z.string().trim().min(2).max(100).optional(),
+    ...schoolLanguageNames(100),
     description: z.string().trim().max(500).nullable().optional(),
     isActive: z.boolean().optional(),
   })

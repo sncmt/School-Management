@@ -28,9 +28,14 @@ export default {
     refresh_expire: process.env.JWT_REFRESH_EXPIRE_IN as StringValue,
   },
   reset_pass_link: process.env.RESET_PASS_LINK,
-  emailSender: {
-    email: process.env.EMAIL,
-    app_pass: process.env.APP_PASS,
+  // outgoing email (SMTP), e.g. Gmail: smtp.gmail.com, port 465, the address and an app password
+  mail: {
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 465),
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+    // the sender shown to the reader; defaults to SMTP_USER
+    from: process.env.MAIL_FROM || process.env.SMTP_USER,
   },
   cloudinary: {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

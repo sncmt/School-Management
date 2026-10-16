@@ -9,6 +9,14 @@ const router = express.Router();
 
 router.use(authenticate("SCHOOL"));
 
+// a new year's class fees from the year before
+router.post(
+  "/copy",
+  authorize("fee_structure:create"),
+  validateRequest({ body: FeeStructureValidation.copyFeeStructures }),
+  FeeStructureController.copyFromYear,
+);
+
 router.post(
   "/",
   authorize("fee_structure:create"),

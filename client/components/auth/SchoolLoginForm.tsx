@@ -41,12 +41,11 @@ export function SchoolLoginForm() {
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
-    console.log(values);
     setFormError(null);
     setSessionEnded(false);
     try {
-      const { user } = await login.mutateAsync(values);
-      router.replace(afterLoginPath("SCHOOL", user.mustChangePassword, searchParams.get("next")));
+      await login.mutateAsync(values);
+      router.replace(afterLoginPath("SCHOOL", searchParams.get("next")));
     } catch (error) {
       setFormError(applyServerErrors(error, form.setError, ["identifier", "password"], describeError));
     }

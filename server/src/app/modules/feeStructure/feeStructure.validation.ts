@@ -34,7 +34,16 @@ const listFeeStructuresQuery = z.object({
   classId: z.string().trim().min(1).optional(),
 });
 
+// a new year's class fees from an earlier year (the one just before when left out)
+const copyFeeStructures = z.object({
+  toAcademicYearId: idSchema("Academic year"),
+  fromAcademicYearId: z.string().trim().min(1).optional(),
+});
+
+export type CopyFeeStructuresPayload = z.infer<typeof copyFeeStructures>;
+
 export const FeeStructureValidation = {
+  copyFeeStructures,
   createFeeStructure,
   feeStructureIdParams,
   listFeeStructuresQuery,

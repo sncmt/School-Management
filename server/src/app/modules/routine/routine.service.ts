@@ -119,6 +119,7 @@ const entryView = (e: Entry, time: { startTime: string; endTime: string } | null
   startTime: time?.startTime ?? null,
   endTime: time?.endTime ?? null,
   class: e.class,
+  classSubjectId: e.classSubjectId,
   sections: e.sections.map((s) => s.section),
   combined: e.sections.length > 1,
   subject: e.classSubject.subject,

@@ -60,4 +60,11 @@ router.get(
   FinalResultController.getMarksheet,
 );
 
+router.get(
+  "/:formulaId/cards",
+  authorize("exam:view_result"),
+  validateRequest({ params, query: FinalResultValidation.cardsQuery }),
+  FinalResultController.getCards,
+);
+
 export const finalResultRoutes = router;

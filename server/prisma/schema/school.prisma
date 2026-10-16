@@ -27,6 +27,8 @@ model School {
   subjects          Subject[]
   classSubjects ClassSubject[]
   teacherProfiles   TeacherProfile[]
+  resultCardSetting ResultCardSetting?
+  financeSetting    FinanceSetting?
   subjectTeachers   SubjectTeacher[]
   weeklyHolidayRules        WeeklyHolidayRule[]
   attendanceSessions        AttendanceSession[]

@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useLogout, useMe } from "@/lib/auth/hooks";
+import { useLogout, useMe, useOwnPasswordMode } from "@/lib/auth/hooks";
 import { authRoutes } from "@/lib/auth/routes";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import type { SessionType } from "@/lib/tenant";
@@ -23,6 +23,8 @@ export function UserMenu({ session }: { session: SessionType }) {
   const describeError = useErrorMessage();
   const { data: me } = useMe();
   const logout = useLogout(session);
+  // school staff other than the super admin ask the super admin for a new password
+  const passwordMode = useOwnPasswordMode();
 
   if (!me) return null;
 
@@ -43,11 +45,13 @@ export function UserMenu({ session }: { session: SessionType }) {
           <div className="truncate text-xs text-muted-foreground">{me.user.email ?? me.user.phone}</div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href={authRoutes[session].changePassword}>
-            <KeyRound /> {t("changePassword")}
-          </Link>
-        </DropdownMenuItem>
+        {passwordMode && (
+          <DropdownMenuItem asChild>
+            <Link href={authRoutes[session].changePassword}>
+              <KeyRound /> {t("changePassword")}
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onSelect={() => signOut(true)} disabled={logout.isPending}>
           <MonitorX /> {t("logOutEverywhere")}
         </DropdownMenuItem>

@@ -35,6 +35,10 @@ export const optionalName = (max = 100) =>
 /** nameEn + nameBn for a record a school creates. */
 export const schoolLanguageNames = (max = 100) => ({ nameEn: optionalName(max), nameBn: optionalName(max) });
 
+/** A record's name in the given language, falling back to the other one. */
+export const nameIn = (language: "EN" | "BN", record: Names) =>
+  (language === "BN" ? record.nameBn || record.nameEn : record.nameEn || record.nameBn) || "";
+
 /** A record's name for messages and sorting: English if it has one, else Bangla. */
 export const displayName = (record: Names) => record.nameEn || record.nameBn || "";
 

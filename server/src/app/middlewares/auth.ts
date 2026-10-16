@@ -10,8 +10,6 @@ import { JwtUtils } from "../utils/jwt";
 type AuthSession = "PLATFORM" | "SCHOOL";
 
 type AuthenticateOptions = {
-  // routes that must work while a generated password is still waiting to be changed
-  allowPasswordChange?: boolean;
   // SCHOOL routes only: true = real school members only, never a platform admin
   // working inside a school through the X-School-Id header
   memberOnly?: boolean;
@@ -22,12 +20,12 @@ const SCHOOL_ID_HEADER = "x-school-id";
 const loadUser = (id: string) =>
   prisma.user.findUnique({
     where: { id },
-    select: { id: true, isActive: true, mustChangePassword: true, tokensValidAfter: true },
+    select: { id: true, isActive: true, tokensValidAfter: true },
   });
 
 type LoadedUser = Awaited<ReturnType<typeof loadUser>>;
 
-const assertUsable = (user: LoadedUser, tokenIssuedAt: number, options: AuthenticateOptions) => {
+const assertUsable = (user: LoadedUser, tokenIssuedAt: number) => {
   if (!user) throw new AppError("User not found!", httpStatus.UNAUTHORIZED);
   if (!user.isActive) throw new AppError("Your account is inactive!", httpStatus.FORBIDDEN);
 
@@ -35,15 +33,11 @@ const assertUsable = (user: LoadedUser, tokenIssuedAt: number, options: Authenti
   if (user.tokensValidAfter && tokenIssuedAt < Math.floor(user.tokensValidAfter.getTime() / 1000)) {
     throw new AppError("Your session has been revoked!", httpStatus.UNAUTHORIZED);
   }
-
-  if (user.mustChangePassword && !options.allowPasswordChange) {
-    throw new AppError("You must change your password before continuing!", httpStatus.FORBIDDEN);
-  }
   return user;
 };
 
 /* Verifies a platform access token and that the user is still an APP_ADMIN. */
-const verifyPlatformAdmin = async (token: string, options: AuthenticateOptions) => {
+const verifyPlatformAdmin = async (token: string) => {
   const decoded = JwtUtils.verifyToken(token, authConfig.accessSecret);
   if (decoded.sessionType !== "PLATFORM") {
     throw new AppError("Invalid session!", httpStatus.UNAUTHORIZED);
@@ -61,7 +55,7 @@ const verifyPlatformAdmin = async (token: string, options: AuthenticateOptions) 
     }),
   ]);
 
-  const user = assertUsable(rawUser, decoded.iat, options);
+  const user = assertUsable(rawUser, decoded.iat);
   if (!adminRole) {
     throw new AppError("You are not authorized as a platform administrator!", httpStatus.FORBIDDEN);
   }
@@ -88,23 +82,15 @@ const authenticate = (sessionType?: AuthSession, options: AuthenticateOptions = 
       } else {
         mode = platformToken ? "PLATFORM" : schoolToken ? "SCHOOL" : undefined;
       }
-        console.log({
-  sessionType,
-  hasSchoolToken: !!schoolToken,
-  hasPlatformToken: !!platformToken,
-  headerSchoolId,
-  mode,
-});
       if (!mode) throw new AppError("Authentication required!", httpStatus.UNAUTHORIZED);
 
       // ---------------------------------------------------------- platform
       if (mode === "PLATFORM") {
-        const user = await verifyPlatformAdmin(platformToken!, options);
+        const user = await verifyPlatformAdmin(platformToken!);
 
         req.auth = {
           userId: user.id,
           sessionType: "PLATFORM",
-          mustChangePassword: user.mustChangePassword,
         };
         return next();
       }
@@ -116,7 +102,7 @@ const authenticate = (sessionType?: AuthSession, options: AuthenticateOptions = 
         }
 
         const [user, school] = await Promise.all([
-          verifyPlatformAdmin(platformToken!, options),
+          verifyPlatformAdmin(platformToken!),
           // any status: admins set a school up while it is still PENDING
           prisma.school.findUnique({ where: { id: headerSchoolId! }, select: { id: true } }),
         ]);
@@ -127,7 +113,6 @@ const authenticate = (sessionType?: AuthSession, options: AuthenticateOptions = 
           sessionType: "SCHOOL",
           schoolId: school.id,
           isPlatformAdmin: true,
-          mustChangePassword: user.mustChangePassword,
         };
         return next();
       }
@@ -150,7 +135,7 @@ const authenticate = (sessionType?: AuthSession, options: AuthenticateOptions = 
         }),
       ]);
 
-      const user = assertUsable(rawUser, decoded.iat, options);
+      const user = assertUsable(rawUser, decoded.iat);
 
       if (!school) throw new AppError("School not found!", httpStatus.NOT_FOUND);
       if (school.status !== "ACTIVE") {
@@ -168,7 +153,6 @@ const authenticate = (sessionType?: AuthSession, options: AuthenticateOptions = 
         sessionType: "SCHOOL",
         schoolId: school.id,
         membershipId: membership.id,
-        mustChangePassword: user.mustChangePassword,
       };
       return next();
     } catch (error) {

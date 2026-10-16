@@ -3,7 +3,6 @@ import type { PrismaClient } from '../../generated/prisma/client';
 import { modulesData } from './data/modules.data';
 
 export async function seedModules(prisma: PrismaClient) {
-  console.log('Seeding modules...');
 
   const results = [];
   for (const m of modulesData) {
@@ -24,7 +23,6 @@ export async function seedModules(prisma: PrismaClient) {
       },
     });
     results.push(module);
-    console.log(`  ✓ ${module.code} (${module.type})`);
   }
 
   return results; // array of Module records, used by next steps

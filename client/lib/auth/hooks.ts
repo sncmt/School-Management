@@ -57,9 +57,33 @@ export const useChangePassword = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: authApi.changePassword,
-    // clears mustChangePassword; the server has already issued fresh cookies
+    // the server has already issued fresh cookies
     onSuccess: () => queryClient.invalidateQueries({ queryKey: meQueryKey }),
   });
+};
+
+export const useSendPasswordCode = () => useMutation({ mutationFn: authApi.sendPasswordCode });
+
+export const useSetUserPassword = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.setUserPassword,
+    // their own password: the server has issued fresh cookies for this device
+    onSuccess: (result) => result.self && queryClient.invalidateQueries({ queryKey: meQueryKey }),
+  });
+};
+
+/**
+ * How this user changes their own password: with the current one (platform admins and,
+ * in a school, guardians), with a code emailed to them (the school super admin), or not
+ * at all (everyone else asks the super admin).
+ */
+export const useOwnPasswordMode = (): "CURRENT" | "EMAIL_CODE" | null => {
+  const { data: me } = useMe();
+  if (!me) return null;
+  if (me.sessionType === "PLATFORM") return "CURRENT";
+  if (me.isSuperAdmin) return "EMAIL_CODE";
+  return me.roles.some((r) => r.name === "GUARDIAN") ? "CURRENT" : null;
 };
 
 /**

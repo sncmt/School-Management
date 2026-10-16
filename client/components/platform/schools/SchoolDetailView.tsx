@@ -166,8 +166,6 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
               <Field label={t("fields.account")}>
                 {!school.superAdmin.isActive ? (
                   <Badge variant="destructive">{t("superAdminState.disabled")}</Badge>
-                ) : school.superAdmin.mustChangePassword ? (
-                  <Badge variant="secondary">{t("superAdminState.temporaryPassword")}</Badge>
                 ) : (
                   <Badge>{t("superAdminState.active")}</Badge>
                 )}

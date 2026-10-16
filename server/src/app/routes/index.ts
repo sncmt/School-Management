@@ -19,6 +19,15 @@ import { examMarksRoutes } from '../modules/exam/examMarks.route';
 import { examResultRoutes } from '../modules/exam/examResult.route';
 import { finalResultRoutes } from '../modules/exam/finalResult.route';
 import { routineRoutes } from '../modules/routine/routine.route';
+import { roleRoutes } from '../modules/role/role.route';
+import { promotionRoutes } from '../modules/promotion/promotion.route';
+import { financeRoutes } from '../modules/finance/finance.route';
+import { fundRoutes } from '../modules/fund/fund.route';
+import { feeTypeRoutes } from '../modules/feeType/feeType.route';
+import { feeStructureRoutes } from '../modules/feeStructure/feeStructure.route';
+import { studentFeeRoutes } from '../modules/studentFee/studentFee.route';
+import { paymentRoutes } from '../modules/payment/payment.route';
+import { expenseRoutes } from '../modules/expense/expense.route';
 
 
 const router = express.Router();
@@ -121,6 +130,49 @@ const moduleRoutes = [
         // class routine: period templates, weekly routine, substitutes
         path: '/routine',
         route: routineRoutes
+    },
+    {
+        // the school's roles and staff (super admin only)
+        path: '/role',
+        route: roleRoutes
+    },
+    {
+        // end of year: students move up a class, repeat, graduate or leave
+        path: '/promotion',
+        route: promotionRoutes
+    },
+    {
+        // the school's finance rules
+        path: '/finance',
+        route: financeRoutes
+    },
+    {
+        // funds: balances, deposits, transfers, the ledger
+        path: '/fund',
+        route: fundRoutes
+    },
+    {
+        path: '/fee-type',
+        route: feeTypeRoutes
+    },
+    {
+        // what each class pays in a year
+        path: '/fee-structure',
+        route: feeStructureRoutes
+    },
+    {
+        // each student's fees, custom fees and discounts
+        path: '/student-fee',
+        route: studentFeeRoutes
+    },
+    {
+        // fee collection, receipts, cancelling
+        path: '/payment',
+        route: paymentRoutes
+    },
+    {
+        path: '/expense',
+        route: expenseRoutes
     }
 ];
 

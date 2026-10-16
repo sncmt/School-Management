@@ -41,13 +41,6 @@ router.patch(
   StudentController.updateStudent,
 );
 
-router.post(
-  "/:studentId/reset-password",
-  authorize("student:reset_password"),
-  validateRequest({ params: StudentValidation.studentIdParams }),
-  StudentController.resetGuardianPassword,
-);
-
 // section, group or roll in the current year (same class)
 router.patch(
   "/:studentId/enrollment",

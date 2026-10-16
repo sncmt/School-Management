@@ -3,7 +3,6 @@ import type { PrismaClient } from '../../generated/prisma/client';
 import { permissionsData } from './data/permissions.data';
 
 export async function seedPermissions(prisma: PrismaClient) {
-  console.log('Seeding permissions...');
 
   // build a lookup so we don't hit the DB in a loop for every permission
   const modules = await prisma.module.findMany({ select: { id: true, code: true } });
@@ -31,6 +30,5 @@ export async function seedPermissions(prisma: PrismaClient) {
         moduleId,
       },
     });
-    console.log(`  ✓ ${permission.code}`);
   }
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { Gender, Religion, StudentStatus } from "../../../../generated/prisma/enums";
+import { AdmissionType, Gender, Religion, StudentStatus } from "../../../../generated/prisma/enums";
 import { idSchema } from "../../shared/financeSchemas";
+import { dateOnlySchema } from "../../shared/scheduleSchemas";
 import { bdPhoneSchema, emailSchema } from "../../utils/identity";
 
 // forms send "" for blank fields: treat that as "not provided" (or null on update)
@@ -29,11 +30,16 @@ const enrollmentInput = z.object({
   sectionId: idSchema("Section"),
   groupId: opt(z.string().trim().min(1)),
   rollNumber: opt(rollNumber),
+  // new to the school this year (admission fee) or an old student (re-admission fee)
+  admissionType: z.enum(AdmissionType).default("NEW"),
 });
 
 const createStudent = z.object({
   // leave out to have one generated, e.g. 20270001
   admissionNo: opt(admissionNo),
+  // the day the student joined the school; left out = today. Students who were at the
+  // school before it used this system get their real date (it may be years back).
+  admissionDate: opt(dateOnlySchema),
   nameEn: name("English name"),
   nameBn: name("Bangla name"),
   gender: z.enum(Gender, { error: "Gender is required!" }),
@@ -58,6 +64,8 @@ const createStudent = z.object({
 const updateStudent = z
   .strictObject({
     admissionNo: admissionNo.optional(),
+    // needs student:change_admission_date (checked in the controller)
+    admissionDate: dateOnlySchema.optional(),
     nameEn: name("English name").optional(),
     nameBn: name("Bangla name").optional(),
     gender: z.enum(Gender).optional(),
@@ -83,6 +91,8 @@ const changePlacement = z
     sectionId: idSchema("Section").optional(),
     groupId: clearable(z.string().trim().min(1)),
     rollNumber: clearable(rollNumber),
+    // new or old this year; a change swaps the admission / re-admission fee
+    admissionType: z.enum(AdmissionType).optional(),
   })
   .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" });
 
@@ -97,6 +107,8 @@ const listStudentsQuery = z.object({
   classId: z.string().trim().min(1).optional(),
   sectionId: z.string().trim().min(1).optional(),
   groupId: z.string().trim().min(1).optional(),
+  // new or old in that year
+  admissionType: z.enum(AdmissionType).optional(),
   hasAccount: z.enum(["true", "false"]).optional(),
   sortBy: z.enum(["admissionNo", "nameEn", "createdAt"]).default("admissionNo"),
   sortOrder: z.enum(["asc", "desc"]).default("asc"),

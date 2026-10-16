@@ -2,7 +2,6 @@ import type { PrismaClient } from "../../generated/prisma/client";
 
 
 export async function backfillFreeModules(prisma: PrismaClient) {
-  console.log('Backfilling FREE modules to active schools...');
 
   const freeModules = await prisma.module.findMany({
     where: { type: 'FREE', isActive: true },
@@ -31,5 +30,4 @@ export async function backfillFreeModules(prisma: PrismaClient) {
     skipDuplicates: true, // won't touch schools that already have the module
   });
 
-  console.log(`  ✓ Ensured ${freeModules.length} free module(s) across ${activeSchools.length} active school(s) (${result.count} new rows created)`);
 }

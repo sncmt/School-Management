@@ -9,7 +9,6 @@ export type AuthUser = {
   fullname: string;
   email: string | null;
   phone: string | null;
-  mustChangePassword: boolean;
 };
 
 export type SchoolSummary = {

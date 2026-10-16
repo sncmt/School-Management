@@ -29,12 +29,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCan } from "@/lib/auth/hooks";
+import { SetPasswordDialog } from "@/components/auth/SetPasswordDialog";
+import { useCan, useSchoolMe } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import {
   useRemoveTeacherPhoto,
-  useResetTeacherPassword,
   useSetTeacherPhoto,
   useTeacher,
   useTeacherLeaves,
@@ -101,10 +101,9 @@ function Detail({ teacher }: { teacher: TeacherDetail }) {
 
   const [editing, setEditing] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [resetting, setResetting] = useState(false);
+  const me = useSchoolMe();
+  const [settingPassword, setSettingPassword] = useState(false);
   const [credentials, setCredentials] = useState<TeacherCredentials | null>(null);
-  const [fromReset, setFromReset] = useState(false);
-  const tReset = useTranslations("school.teachers.resetDialog");
 
   const user = teacher.membership.user;
   const teacherName = name(teacher);
@@ -129,7 +128,8 @@ function Detail({ teacher }: { teacher: TeacherDetail }) {
   const actions = {
     edit: can("teacher:update") && working,
     toggleLeave: can("teacher:update") && working,
-    reset: can("teacher:reset_password") && working,
+    // only the school super admin changes a teacher's password
+    reset: !!me?.isSuperAdmin && working,
     leave: can("teacher:deactivate") && working,
     photo: can("teacher:update") && working,
   };
@@ -173,8 +173,8 @@ function Detail({ teacher }: { teacher: TeacherDetail }) {
                   </DropdownMenuItem>
                 )}
                 {actions.reset && (
-                  <DropdownMenuItem onSelect={() => setResetting(true)}>
-                    <KeyRound /> {t("actions.resetPassword")}
+                  <DropdownMenuItem onSelect={() => setSettingPassword(true)}>
+                    <KeyRound /> {t("actions.changePassword")}
                   </DropdownMenuItem>
                 )}
                 {actions.leave && (
@@ -206,8 +206,6 @@ function Detail({ teacher }: { teacher: TeacherDetail }) {
           <Field label={t("loginStatus")}>
             {!working || !user.isActive ? (
               <Badge variant="outline">{t("loginState.disabled")}</Badge>
-            ) : user.mustChangePassword ? (
-              <Badge variant="secondary">{t("loginState.temporary")}</Badge>
             ) : (
               <Badge>{t("loginState.active")}</Badge>
             )}
@@ -271,23 +269,11 @@ function Detail({ teacher }: { teacher: TeacherDetail }) {
 
       <TeacherFormDialog open={editing} teacher={teacher} onClose={() => setEditing(false)} onCredentials={setCredentials} />
       <LeaveDialog teacher={leaving ? teacher : null} onClose={() => setLeaving(false)} />
-      <ResetPasswordDialog
-        teacher={resetting ? teacher : null}
-        onClose={() => setResetting(false)}
-        onDone={(password) => {
-          setResetting(false);
-          setFromReset(true);
-          setCredentials({ name: teacherName, phone: localPhone(user.phone), password });
-        }}
+      <SetPasswordDialog
+        account={settingPassword ? { userId: user.id, name: teacherName, login: localPhone(user.phone) } : null}
+        onClose={() => setSettingPassword(false)}
       />
-      <TeacherCredentialsDialog
-        credentials={credentials}
-        title={fromReset ? tReset("doneTitle") : undefined}
-        onClose={() => {
-          setCredentials(null);
-          setFromReset(false);
-        }}
-      />
+      <TeacherCredentialsDialog credentials={credentials} onClose={() => setCredentials(null)} />
     </div>
   );
 }
@@ -371,47 +357,6 @@ function LeaveDialog({ teacher, onClose }: { teacher: TeacherDetail | null; onCl
           <AlertDialogCancel disabled={leave.isPending}>{tCommon("cancel")}</AlertDialogCancel>
           <Button variant="destructive" onClick={confirm} disabled={leave.isPending}>
             {leave.isPending ? t("working") : t("confirm")}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
-
-function ResetPasswordDialog({
-  teacher,
-  onClose,
-  onDone,
-}: {
-  teacher: TeacherDetail | null;
-  onClose: () => void;
-  onDone: (password: string) => void;
-}) {
-  const t = useTranslations("school.teachers.resetDialog");
-  const tCommon = useTranslations("common");
-  const name = useLocalizedName();
-  const describeError = useErrorMessage();
-  const reset = useResetTeacherPassword();
-
-  const confirm = () => {
-    if (!teacher) return;
-    reset.mutate(teacher.id, {
-      onSuccess: (result) => onDone(result.temporaryPassword),
-      onError: (e) => toast.error(describeError(e)),
-    });
-  };
-
-  return (
-    <AlertDialog open={!!teacher} onOpenChange={(open) => !open && !reset.isPending && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("title", { name: teacher ? name(teacher) : "" })}</AlertDialogTitle>
-          <AlertDialogDescription>{t("description")}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={reset.isPending}>{tCommon("cancel")}</AlertDialogCancel>
-          <Button variant="destructive" onClick={confirm} disabled={reset.isPending}>
-            {reset.isPending ? t("working") : t("confirm")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

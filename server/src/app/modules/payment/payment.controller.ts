@@ -49,6 +49,11 @@ const cancelPayment = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getReceipt = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.getReceipt(req.auth!.schoolId!, req.params.paymentId as string);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Receipt retrieved successfully!", data: result });
+});
+
 const getPaymentById = catchAsync(async (req: Request, res: Response) => {
   const result = await PaymentService.getPaymentById(
     req.auth!.schoolId!,
@@ -96,6 +101,7 @@ export const PaymentController = {
   recordPayment,
   cancelPayment,
   getPaymentById,
+  getReceipt,
   listPayments,
   listStudentPayments,
 };

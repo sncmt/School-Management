@@ -44,6 +44,14 @@ router.get(
   PaymentController.listStudentPayments,
 );
 
+// what a printed money receipt shows
+router.get(
+  "/:paymentId/receipt",
+  authorize("payment:view"),
+  validateRequest({ params: PaymentValidation.paymentIdParams }),
+  PaymentController.getReceipt,
+);
+
 router.get(
   "/:paymentId",
   authorize("payment:view"),
