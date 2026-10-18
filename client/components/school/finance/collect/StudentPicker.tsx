@@ -8,20 +8,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { toAsciiDigits } from "@/lib/i18n/digits";
 import { useLocalizedName } from "@/lib/i18n/names";
+import { useAcademicYears } from "@/lib/school/academicYears";
 import { useClasses } from "@/lib/school/classes";
 import { useStudents } from "@/lib/school/students";
 import { cn } from "@/lib/utils";
 
 const ALL = "all";
 
-/** Find a student by name or admission number, optionally within a class. */
+/*
+ * Find a student by name or admission number, or by class and section in a year. The year
+ * starts at the current one; a name search alone looks at every year (so students who
+ * left can still pay old dues) unless another year is chosen.
+ */
 export function StudentPicker({ onPick }: { onPick: (studentId: string) => void }) {
   const t = useTranslations("school.finance.collect.picker");
   const name = useLocalizedName();
   const classes = useClasses();
+  const years = useAcademicYears();
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const [classId, setClassId] = useState<string>(ALL);
+  const [sectionId, setSectionId] = useState<string>(ALL);
+  const [chosenYear, setChosenYear] = useState<string | undefined>();
+
+  const yearList = years.data ?? [];
+  const currentYearId = yearList.find((y) => y.isCurrent)?.id;
+  const yearId = chosenYear ?? currentYearId;
+  // a class without sections of its own has one hidden section: nothing to choose
+  const sections = classes.data?.items.find((c) => c.id === classId)?.sections.filter((s) => !s.isDefault) ?? [];
 
   // wait for a pause in typing before searching
   useEffect(() => {
@@ -29,12 +43,17 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
     return () => clearTimeout(timer);
   }, [text]);
 
-  const active = search.length > 0 || classId !== ALL;
+  const byPlace = classId !== ALL;
+  const otherYear = !!yearId && yearId !== currentYearId;
+  const active = search.length > 0 || byPlace || otherYear;
   const students = useStudents({
     page: 1,
     limit: 12,
     ...(search ? { search } : {}),
-    ...(classId !== ALL ? { classId } : {}),
+    ...(byPlace ? { classId } : {}),
+    ...(byPlace && sectionId !== ALL ? { sectionId } : {}),
+    // the year narrows a class search, or any search once a year other than the current one is chosen
+    ...(yearId && (byPlace || otherYear) ? { academicYearId: yearId } : {}),
     sortBy: "admissionNo",
     sortOrder: "asc",
   });
@@ -46,7 +65,28 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("search")} className="pl-9" autoFocus />
         </div>
-        <Select value={classId} onValueChange={setClassId}>
+        {yearList.length > 1 && (
+          <Select value={yearId} onValueChange={setChosenYear}>
+            <SelectTrigger className="w-36" aria-label={t("year")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {yearList.map((y) => (
+                <SelectItem key={y.id} value={y.id}>
+                  {y.isCurrent ? t("currentYear", { name: y.name }) : y.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <Select
+          value={classId}
+          onValueChange={(v) => {
+            setClassId(v);
+            // the old section belongs to another class
+            setSectionId(ALL);
+          }}
+        >
           <SelectTrigger className="w-40" aria-label={t("class")}>
             <SelectValue />
           </SelectTrigger>
@@ -59,6 +99,21 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
             ))}
           </SelectContent>
         </Select>
+        {sections.length > 0 && (
+          <Select value={sectionId} onValueChange={setSectionId}>
+            <SelectTrigger className="w-36" aria-label={t("section")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{t("allSections")}</SelectItem>
+              {sections.map((sec) => (
+                <SelectItem key={sec.id} value={sec.id}>
+                  {sec.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {!active ? (

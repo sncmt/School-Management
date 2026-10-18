@@ -1,6 +1,5 @@
-import { Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { SchoolLoader } from "@/components/layout/SchoolLoader";
 
 type Props = {
   loading?: boolean;
@@ -11,12 +10,10 @@ type Props = {
 
 /** Centered loader or message, used while a session loads or when it can't. */
 export function FullPageState({ loading, title, message, actions }: Props) {
-  const t = useTranslations("common");
-
   return (
-    <div className="flex min-h-screen flex-1 items-center justify-center p-6">
+    <div className="flex min-h-screen flex-1 items-center justify-center bg-canvas p-6">
       {loading ? (
-        <Loader2 className="size-6 animate-spin text-muted-foreground" aria-label={t("loading")} />
+        <SchoolLoader />
       ) : (
         <div className="max-w-sm space-y-3 text-center">
           {title && <h1 className="text-lg font-semibold">{title}</h1>}

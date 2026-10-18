@@ -36,6 +36,7 @@ model Student {
   examResults ExamResult[]
   finalResults FinalResult[]
   payments    Payment[]
+  homeworkChecks HomeworkCheck[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -78,6 +79,7 @@ model Enrollment {
   examResults     ExamResult[]
   examRemarks     ExamRemark[]
   finalResults    FinalResult[]
+  homeworkChecks  HomeworkCheck[]
   enrolledAt DateTime         @default(now())
   leftAt     DateTime?
 

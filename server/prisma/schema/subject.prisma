@@ -87,6 +87,7 @@ model ClassSubject {
   teachers SubjectTeacher[]
   examSubjects    ExamSubject[]
   optionalChoices StudentOptionalSubject[]
+  homework        Homework[]
   routineEntries  RoutineEntry[]
 
   createdAt DateTime @default(now())

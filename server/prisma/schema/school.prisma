@@ -29,6 +29,8 @@ model School {
   teacherProfiles   TeacherProfile[]
   resultCardSetting ResultCardSetting?
   financeSetting    FinanceSetting?
+  notices           Notice[]
+  homework          Homework[]
   subjectTeachers   SubjectTeacher[]
   weeklyHolidayRules        WeeklyHolidayRule[]
   attendanceSessions        AttendanceSession[]
@@ -143,6 +145,7 @@ model AcademicYear {
   enrollments        Enrollment[]
   feeStructures      FeeStructure[]
   studentFees        StudentFee[]
+  homework           Homework[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -170,6 +173,8 @@ model SchoolClass {
   finalFormulas        FinalResultFormula[]
   routineEntries       RoutineEntry[]
   feeStructures         FeeStructure[]
+  noticeTargets         NoticeTarget[]
+  homework              Homework[]
   studentFees           StudentFee[]
 
   createdAt DateTime @default(now())
@@ -200,6 +205,8 @@ model Section {
   subjectTeachers       SubjectTeacher[]
   routineEntries        RoutineEntrySection[]
   attendanceSessions    AttendanceSession[]
+  noticeTargets         NoticeTarget[]
+  homeworkSections      HomeworkSection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

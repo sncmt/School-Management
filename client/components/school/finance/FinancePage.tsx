@@ -52,7 +52,7 @@ export function FinancePage() {
       </div>
 
       <Tabs value={tab ?? tabs[0]} onValueChange={setTab}>
-        <TabsList className="no-print h-auto max-w-full flex-wrap justify-start">
+        <TabsList className="no-print">
           {tabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {t(`tabs.${name}` as "tabs.funds")}

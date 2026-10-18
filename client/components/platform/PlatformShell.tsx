@@ -9,10 +9,11 @@ import { platformMenu } from "./navigation";
 /** Platform admin layout: module sidebar on the left, page on the right. */
 export function PlatformShell({ children }: { children: ReactNode }) {
   const t = useTranslations("nav");
+  const tShell = useTranslations("shell");
   return (
     <SidebarShell
       session="PLATFORM"
-      brand={{ icon: <ShieldCheck className="size-4" />, title: t("platformAdmin"), home: "/" }}
+      brand={{ icon: <ShieldCheck className="size-5" />, title: t("platformAdmin"), subtitle: tShell("platformSubtitle"), home: "/" }}
       menu={platformMenu}
     >
       {children}

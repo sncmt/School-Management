@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { authRoutes, sessionFlagCookie, siteAppFolder } from "@/lib/auth/routes";
+import { authRoutes, publicSchoolRoutes, sessionFlagCookie, siteAppFolder } from "@/lib/auth/routes";
 import { getSiteFromHost, type SessionType } from "@/lib/tenant";
 
 /*
@@ -32,6 +32,9 @@ const redirect = (req: NextRequest, path: string) => {
   return NextResponse.redirect(new URL(path, `${req.nextUrl.protocol}//${host}`));
 };
 
+// pages of a school's site anyone may open, logged in or not
+const PUBLIC_SCHOOL_PATHS = [publicSchoolRoutes.noticeBoard];
+
 /** A logged-in site (admin or school): login is public, everything else needs a session. */
 const appSite = (req: NextRequest, type: SessionType) => {
   const { pathname, search } = req.nextUrl;
@@ -40,7 +43,9 @@ const appSite = (req: NextRequest, type: SessionType) => {
 
   if (isAppFolderPath(pathname)) return notFound(req);
 
-  if (pathname === login) {
+  if (type === "SCHOOL" && PUBLIC_SCHOOL_PATHS.some((path) => isUnder(pathname, path))) {
+    // no session check
+  } else if (pathname === login) {
     if (hasSession) return redirect(req, home);
   } else if (!hasSession) {
     return redirect(req, `${login}?${new URLSearchParams({ next: pathname + search })}`);

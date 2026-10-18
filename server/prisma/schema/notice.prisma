@@ -1,0 +1,111 @@
+enum NoticeCategory {
+  GENERAL
+  EXAM
+  HOLIDAY
+  FEES
+  EVENT
+  URGENT
+}
+
+// who reads it in the app; isPublic puts it on the school's public notice page as well
+enum NoticeAudience {
+  EVERYONE
+  STAFF // teachers and staff
+  FAMILIES // students and guardians (all of them, or the classes / sections in targets)
+}
+
+enum NoticeStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/*
+ * A school notice. It is on the board once PUBLISHED and its publishAt has come (null =
+ * straight away), until its expiresAt (null = it stays); after that it is in the archive.
+ */
+model Notice {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  title String
+  // plain text with a few marks: blank lines between paragraphs, **bold**, "- " list items
+  body  String
+
+  category NoticeCategory @default(GENERAL)
+  audience NoticeAudience @default(EVERYONE)
+  // FAMILIES only: these classes / sections; none = every family
+  targets  NoticeTarget[]
+  // also on the public notice page (no login)
+  isPublic Boolean        @default(false)
+
+  status    NoticeStatus @default(DRAFT)
+  publishAt DateTime?
+  expiresAt DateTime?
+  pinned    Boolean      @default(false)
+
+  attachments NoticeAttachment[]
+  reads       NoticeRead[]
+
+  createdBy   String?
+  publishedBy String?
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, status, publishAt])
+  @@index([schoolId, isPublic])
+}
+
+/* A class (sectionId null: the whole class) or one section a families' notice is for. */
+model NoticeTarget {
+  id String @id @default(cuid())
+
+  noticeId String
+  notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  classId String
+  class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  sectionId String?
+  section   Section? @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([noticeId])
+  @@index([classId])
+}
+
+/* A PDF or image with a notice, kept privately in storage (the key) and shown by a signed link. */
+model NoticeAttachment {
+  id String @id @default(cuid())
+
+  noticeId String
+  notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  key         String
+  name        String
+  contentType String
+  size        Int
+  sortOrder   Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([noticeId])
+}
+
+/* Who has opened a notice: unread ones are marked on the board. */
+model NoticeRead {
+  id String @id @default(cuid())
+
+  noticeId String
+  notice   Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  readAt DateTime @default(now())
+
+  @@unique([noticeId, userId])
+  @@index([userId])
+}

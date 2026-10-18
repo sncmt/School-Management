@@ -10,6 +10,16 @@
   /* Latin from Geist, Bangla glyphs from Hind Siliguri */
   --font-sans: var(--font-geist-sans), var(--font-bangla), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
+  /* the accent (amber): the logo block, menu icons, the current page */
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-foreground: var(--brand-foreground);
+  /* the sidebar's navy, for the page: active tabs, primary buttons, soft highlights */
+  --color-navy: var(--navy);
+  --color-navy-foreground: var(--navy-foreground);
+  --color-navy-soft: var(--navy-soft);
+  /* the light-grey page behind the white cards */
+  --color-canvas: var(--canvas);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -53,7 +63,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  /* the sidebar's navy, so buttons and the menu read as one */
+  --primary: oklch(0.305 0.1 258);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -70,14 +81,22 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --brand: oklch(0.8 0.16 75);
+  --brand-soft: oklch(0.965 0.035 85);
+  --brand-foreground: oklch(0.27 0.08 258);
+  --canvas: oklch(0.962 0.004 250);
+  --navy: oklch(0.305 0.1 258);
+  --navy-foreground: oklch(0.985 0 0);
+  --navy-soft: oklch(0.955 0.018 258);
+  /* a quiet off-white with a breath of the accent */
+  --sidebar: oklch(0.982 0.004 185);
+  --sidebar-foreground: oklch(0.32 0.01 220);
+  --sidebar-primary: oklch(0.56 0.1 185);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.955 0.008 185);
+  --sidebar-accent-foreground: oklch(0.2 0.01 220);
+  --sidebar-border: oklch(0.92 0.005 185);
+  --sidebar-ring: oklch(0.56 0.1 185);
 }
 
 .dark {
@@ -104,14 +123,23 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --brand: oklch(0.82 0.16 75);
+  --brand-soft: oklch(0.32 0.06 75);
+  --brand-foreground: oklch(0.22 0.06 258);
+  --canvas: oklch(0.145 0 0);
+  /* on dark pages the navy turns into a light blue-grey, so it still reads */
+  --navy: oklch(0.82 0.07 258);
+  --navy-foreground: oklch(0.2 0.05 258);
+  --navy-soft: oklch(0.27 0.05 258);
+  /* the navy sidebar (it always uses these dark values) */
+  --sidebar: oklch(0.305 0.1 258);
+  --sidebar-foreground: oklch(0.95 0.01 250);
+  --sidebar-primary: oklch(0.82 0.16 75);
+  --sidebar-primary-foreground: oklch(0.27 0.08 258);
+  --sidebar-accent: oklch(0.255 0.085 258);
+  --sidebar-accent-foreground: oklch(0.99 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.74 0.11 185);
 }
 
 @layer base {
@@ -138,6 +166,54 @@
   input[type="checkbox"]:not(:disabled),
   input[type="radio"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+/*
+ * The loading book (components/layout/SchoolLoader): two flat pages with a navy edge and one
+ * page turning right to left. Still when the visitor asks for less motion.
+ */
+.sl-book {
+  position: relative;
+  width: 56px;
+  height: 36px;
+  perspective: 300px;
+}
+.sl-page {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  border: 2px solid var(--color-navy);
+  background: var(--color-card);
+}
+.sl-left {
+  left: 0;
+  border-radius: 4px 0 0 4px;
+}
+.sl-right {
+  right: 0;
+  border-left-width: 1px;
+  border-radius: 0 4px 4px 0;
+}
+/* looks like the pages under it, so the jump back at the end of each turn can't be seen */
+.sl-flip {
+  transform-origin: left center;
+  animation: sl-flip 1.4s ease-in-out infinite;
+}
+@keyframes sl-flip {
+  0%,
+  10% {
+    transform: rotateY(0deg);
+  }
+  90%,
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl-flip {
+    animation: none;
   }
 }
 

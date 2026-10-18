@@ -79,6 +79,10 @@ export type StudentListQuery = {
   limit: number;
   search?: string;
   status?: StudentStatus;
+  gender?: Gender;
+  religion?: Religion;
+  // class, section, group and admission type are for this year; left out = the current year
+  academicYearId?: string;
   classId?: string;
   sectionId?: string;
   groupId?: string;

@@ -34,6 +34,8 @@ export type SchoolMe = {
   // already limited to the school's enabled modules; a super admin gets all of them
   permissions: string[];
   modules: string[];
+  // the school's current academic year (null until one is set)
+  academicYear: { id: string; name: string } | null;
 };
 
 export type Me = PlatformMe | SchoolMe;

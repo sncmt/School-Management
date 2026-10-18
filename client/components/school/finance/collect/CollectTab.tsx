@@ -89,7 +89,8 @@ function StudentPanel({ studentId, onChange }: { studentId: string; onChange: ()
       </Card>
 
       <Tabs defaultValue={tabs[0]}>
-        <TabsList>
+        {/* inside the Finance tabs: the small chip tabs */}
+        <TabsList variant="chip">
           {tabs.map((tab) => (
             <TabsTrigger key={tab} value={tab}>
               {t(`tabs.${tab}` as "tabs.pay")}

@@ -259,7 +259,7 @@ const getMe = async (auth: AuthContext) => {
   const schoolId = auth.schoolId!;
   const membershipId = auth.membershipId!;
 
-  const [school, userRoles, enabledModules] = await Promise.all([
+  const [school, userRoles, enabledModules, currentYear] = await Promise.all([
     prisma.school.findUnique({
       where: { id: schoolId },
       select: {
@@ -291,6 +291,8 @@ const getMe = async (auth: AuthContext) => {
       where: { schoolId, isEnabled: true, module: { isActive: true } },
       select: { moduleId: true, module: { select: { code: true } } },
     }),
+    // shown in the sidebar to everyone of the school
+    prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } }),
   ]);
 
   const enabledModuleIds = new Set(enabledModules.map((m) => m.moduleId));
@@ -326,6 +328,7 @@ const getMe = async (auth: AuthContext) => {
     isSuperAdmin,
     permissions: permissions.sort(),
     modules: enabledModules.map((m) => m.module.code).sort(),
+    academicYear: currentYear,
   };
 };
 

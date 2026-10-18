@@ -567,7 +567,7 @@ const getStudentById = async (schoolId: string, studentId: string) => {
 };
 
 const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
-  const { search, status, religion, academicYearId, classId, sectionId, groupId, admissionType, hasAccount, sortBy, sortOrder, page, limit } =
+  const { search, status, gender, religion, academicYearId, classId, sectionId, groupId, admissionType, hasAccount, sortBy, sortOrder, page, limit } =
     query;
 
   const yearId =
@@ -585,6 +585,7 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
   const where: Prisma.StudentWhereInput = {
     schoolId,
     ...(status ? { status } : {}),
+    ...(gender ? { gender } : {}),
     ...(religion ? { religion } : {}),
     ...(hasAccount ? { userId: hasAccount === "true" ? { not: null } : null } : {}),
     ...(search

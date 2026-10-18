@@ -135,7 +135,16 @@
     "amountRange": "০-এর বেশি পরিমাণ দিন",
     "chooseFund": "একটি তহবিল বেছে নিন",
     "chooseFeeType": "একটি ফি-এর ধরন বেছে নিন",
-    "monthsOverlap": "এই মাসগুলো বছরের আরেকটি অংশে আছে"
+    "monthsOverlap": "এই মাসগুলো বছরের আরেকটি অংশে আছে",
+    "noticeTitleRequired": "শিরোনাম লিখুন (কমপক্ষে ৩ অক্ষর)",
+    "noticeBodyRequired": "নোটিশটি লিখুন",
+    "noticeBodyTooLong": "নোটিশটি খুব বড় (সর্বোচ্চ ১০,০০০ অক্ষর)",
+    "chooseSubject": "একটি বিষয় বেছে নিন",
+    "chooseSections": "অন্তত একটি শাখা বেছে নিন",
+    "homeworkTitleRequired": "শিরোনাম লিখুন",
+    "homeworkTooLong": "নির্দেশনা খুব বড় (সর্বোচ্চ ৫,০০০ অক্ষর)",
+    "dueBeforeGiven": "জমার তারিখ দেওয়ার তারিখের আগে হতে পারে না",
+    "fullMarksInvalid": "পূর্ণ নম্বর ০.৫ থেকে ১০০০-এর মধ্যে দিন"
   },
   "auth": {
     "email": "ইমেইল",
@@ -195,7 +204,8 @@
       "saving": "সংরক্ষণ হচ্ছে…",
       "submit": "পাসওয়ার্ড পরিবর্তন",
       "done": "{name} এর পাসওয়ার্ড পরিবর্তন হয়েছে।"
-    }
+    },
+    "noticeBoardLink": "স্কুলের নোটিশ বোর্ড"
   },
   "roles": {
     "SCHOOL_SUPER_ADMIN": "স্কুল সুপার অ্যাডমিন",
@@ -223,7 +233,9 @@
     "exams": "পরীক্ষা",
     "finance": "অর্থ",
     "promotion": "শ্রেণি উন্নীতকরণ",
-    "roles": "ভূমিকা ও কর্মী"
+    "roles": "ভূমিকা ও কর্মী",
+    "notices": "নোটিশ",
+    "homework": "বাড়ির কাজ"
   },
   "platform": {
     "welcome": "স্বাগতম, {name}",
@@ -508,16 +520,6 @@
   },
   "school": {
     "welcome": "স্বাগতম, {name}",
-    "accessSummary": "{permissions, number}টি অনুমতি · {modules, number}টি মডিউল",
-    "visibleWith": "{code} অনুমতি থাকলে দেখা যাবে",
-    "areas": {
-      "students": "শিক্ষার্থী",
-      "teachers": "শিক্ষক",
-      "sections": "শাখা",
-      "subjects": "বিষয়",
-      "exams": "পরীক্ষা",
-      "routine": "ক্লাস রুটিন"
-    },
     "years": {
       "title": "শিক্ষাবর্ষ",
       "description": "স্কুল একবারে একটি বছরে কাজ করে: এর শ্রেণি, ভর্তি, হাজিরা ও পরীক্ষা।",
@@ -927,6 +929,20 @@
       "allClasses": "সব শ্রেণি",
       "allSections": "সব শাখা",
       "section": "শাখা",
+      "filters": {
+        "academicYear": "শিক্ষাবর্ষ",
+        "currentYear": "{year} (চলতি)",
+        "group": "বিভাগ",
+        "allGroups": "সব বিভাগ",
+        "gender": "লিঙ্গ",
+        "allGenders": "সব লিঙ্গ",
+        "religion": "ধর্ম",
+        "allReligions": "সব ধর্ম",
+        "clear": "ফিল্টার মুছুন",
+        "button": "ফিল্টার",
+        "all": "সব",
+        "remove": "ফিল্টার সরান: {name}"
+      },
       "columns": {
         "student": "শিক্ষার্থী",
         "class": "শ্রেণি",
@@ -2294,9 +2310,13 @@
           "search": "নাম বা ভর্তি নম্বর",
           "class": "শ্রেণি",
           "allClasses": "সব শ্রেণি",
-          "hint": "নাম বা ভর্তি নম্বর লিখুন, অথবা শ্রেণি বেছে নিন।",
+          "hint": "নাম বা ভর্তি নম্বর লিখুন, অথবা শ্রেণি বেছে নিন। অন্য শিক্ষাবর্ষ বেছে না নিলে নাম দিয়ে খুঁজলে সব বছরের শিক্ষার্থী আসবে।",
           "none": "কোনো শিক্ষার্থী পাওয়া যায়নি।",
-          "roll": "রোল {roll}"
+          "roll": "রোল {roll}",
+          "year": "শিক্ষাবর্ষ",
+          "currentYear": "{name} (চলতি)",
+          "section": "শাখা",
+          "allSections": "সব শাখা"
         },
         "pay": {
           "nothingDue": "দেওয়ার কিছু বাকি নেই। সব ফি পরিশোধিত।",
@@ -2810,7 +2830,9 @@
           "student_fee": "শিক্ষার্থীর ফি",
           "payment": "আদায়",
           "expense": "খরচ",
-          "finance_report": "অর্থ প্রতিবেদন"
+          "finance_report": "অর্থ প্রতিবেদন",
+          "notice": "নোটিশ",
+          "homework": "বাড়ির কাজ"
         },
         "perms": {
           "student": {
@@ -2943,8 +2965,382 @@
           },
           "finance_report": {
             "view": "অর্থ প্রতিবেদন দেখা"
+          },
+          "notice": {
+            "view": "খসড়াসহ সব নোটিশ দেখা",
+            "create": "নোটিশ লেখা (খসড়া হিসেবে)",
+            "publish": "নোটিশ প্রকাশ, সরানো ও মোছা"
+          },
+          "homework": {
+            "view": "সব শ্রেণির বাড়ির কাজ দেখা",
+            "manage": "যেকোনো শাখায় বাড়ির কাজ দেওয়া ও টিক দেওয়া"
           }
         }
+      }
+    },
+    "home": {
+      "greeting": {
+        "morning": "শুভ সকাল, {name}",
+        "afternoon": "শুভ অপরাহ্ন, {name}",
+        "evening": "শুভ সন্ধ্যা, {name}"
+      },
+      "openFinance": "অর্থ",
+      "openCalendar": "ক্যালেন্ডার",
+      "stats": {
+        "students": "শিক্ষার্থী",
+        "teachers": "শিক্ষক",
+        "attendance": "আজ উপস্থিত",
+        "collected": "এই মাসে",
+        "boysGirls": "{boys} ছাত্র · {girls} ছাত্রী",
+        "onLeave": "{count, plural, other {# জন ছুটিতে}}",
+        "allWorking": "সবাই কর্মরত",
+        "sectionsTaken": "{total}টি শাখার মধ্যে {taken}টির হাজিরা",
+        "today": "আজ {amount}"
+      },
+      "chart": {
+        "title": "ফি আদায় ও খরচ",
+        "collected": "আদায়",
+        "spent": "খরচ",
+        "month": "মাস",
+        "aria": "গত ছয় মাসের প্রতি মাসে ফি আদায় ও খরচ",
+        "empty": "এই মাসগুলোতে এখনও কোনো আদায় বা খরচ নেই।",
+        "collectedThisMonth": "এই মাসে আদায়",
+        "spentThisMonth": "এই মাসে খরচ",
+        "dueNow": "এখন বকেয়া"
+      },
+      "attendance": {
+        "title": "আজকের হাজিরা",
+        "open": "হাজিরা",
+        "none": "আজ এখনও হাজিরা নেওয়া হয়নি।",
+        "sections": "{total}টি শাখার মধ্যে {taken}টির হাজিরা",
+        "presentOf": "উপস্থিত (দেরিতে আসাসহ), {count} জনের মধ্যে",
+        "present": "উপস্থিত",
+        "late": "দেরিতে",
+        "absent": "অনুপস্থিত",
+        "leave": "ছুটিতে"
+      },
+      "calendar": {
+        "title": "ক্যালেন্ডার",
+        "previous": "আগের মাস",
+        "next": "পরের মাস",
+        "today": "আজ",
+        "holiday": "ছুটি",
+        "weeklyOff": "সাপ্তাহিক ছুটি"
+      },
+      "upcoming": {
+        "title": "সামনের ছুটি",
+        "none": "আগামী ৪৫ দিনে কোনো ছুটি নেই।",
+        "range": "{from} – {to}"
+      },
+      "payments": {
+        "title": "সাম্প্রতিক আদায়",
+        "open": "আদায়",
+        "none": "এখনও কোনো আদায় নেই।",
+        "line": "{student}-এর কাছ থেকে <b>{amount}</b>",
+        "receipt": "রসিদ {no}",
+        "cancelled": "বাতিল"
+      },
+      "notices": {
+        "title": "নোটিশ বোর্ড",
+        "open": "সব নোটিশ",
+        "unread": "{count, plural, other {# টি নতুন}}",
+        "none": "এখন কোনো নোটিশ নেই",
+        "new": "নতুন"
+      },
+      "yourChildren": "আপনার সন্তান"
+    },
+    "notices": {
+      "title": "নোটিশ",
+      "description": "শিক্ষক, কর্মচারী ও অভিভাবকদের জন্য স্কুলের নোটিশ।",
+      "tabs": {
+        "board": "নোটিশ বোর্ড",
+        "manage": "নোটিশ ব্যবস্থাপনা"
+      },
+      "categories": {
+        "GENERAL": "সাধারণ",
+        "EXAM": "পরীক্ষা",
+        "HOLIDAY": "ছুটি",
+        "FEES": "ফি",
+        "EVENT": "অনুষ্ঠান",
+        "URGENT": "জরুরি"
+      },
+      "audiences": {
+        "EVERYONE": "সবাই",
+        "STAFF": "শিক্ষক ও কর্মচারী",
+        "FAMILIES": "শিক্ষার্থী ও অভিভাবক"
+      },
+      "states": {
+        "LIVE": "বোর্ডে আছে",
+        "SCHEDULED": "নির্ধারিত",
+        "EXPIRED": "শেষ হয়েছে",
+        "DRAFT": "খসড়া"
+      },
+      "board": {
+        "all": "সব",
+        "unread": "{count, plural, other {# টি অপঠিত নোটিশ}}",
+        "empty": "এখন আপনার জন্য কোনো নোটিশ নেই।",
+        "emptyCategory": "এই ধরনের কোনো নোটিশ এখন নেই।",
+        "pinned": "পিন করা",
+        "new": "নতুন"
+      },
+      "reader": {
+        "attachments": "{count, plural, other {# টি ফাইল}}",
+        "pinned": "পিন করা",
+        "public": "পাবলিক নোটিশ পাতায় আছে",
+        "posted": "প্রকাশ: {date}",
+        "notPosted": "এখনো প্রকাশিত হয়নি",
+        "until": "{date} পর্যন্ত"
+      },
+      "manage": {
+        "write": "নোটিশ লিখুন",
+        "search": "শিরোনাম দিয়ে খুঁজুন",
+        "allStates": "সব নোটিশ",
+        "columns": {
+          "title": "নোটিশ",
+          "audience": "কার জন্য",
+          "state": "অবস্থা",
+          "reads": "পড়েছেন"
+        },
+        "noMatch": "কোনো নোটিশ মেলেনি।",
+        "empty": "এখনো কোনো নোটিশ নেই। প্রথমটি লিখুন।",
+        "view": "পড়ুন",
+        "edit": "সম্পাদনা",
+        "publish": "প্রকাশ করুন",
+        "unpublish": "সরিয়ে নিন",
+        "delete": "মুছুন",
+        "pinned": "পিন করা",
+        "public": "পাবলিক পাতায়",
+        "by": "লিখেছেন {name}",
+        "allFamilies": "সব পরিবার",
+        "goesUp": "{date} প্রকাশ হবে",
+        "until": "{date} পর্যন্ত",
+        "since": "{date} থেকে",
+        "ended": "{date} শেষ হয়েছে",
+        "written": "লেখা হয়েছে {when}",
+        "scheduled": "\"{title}\" নির্ধারিত সময়ে প্রকাশ হবে",
+        "published": "\"{title}\" বোর্ডে প্রকাশিত হয়েছে",
+        "unpublished": "\"{title}\" সরিয়ে নেওয়া হয়েছে। এটি আবার খসড়া",
+        "deleteDialog": {
+          "title": "\"{title}\" মুছবেন?",
+          "description": "নোটিশ ও এর ফাইল চিরতরে মুছে যাবে। কেউ আর এটি দেখবে না।",
+          "confirm": "মুছুন",
+          "working": "মোছা হচ্ছে…",
+          "done": "\"{title}\" মুছে ফেলা হয়েছে"
+        }
+      },
+      "form": {
+        "addTitle": "নোটিশ লিখুন",
+        "editTitle": "নোটিশ সম্পাদনা",
+        "description": "অ্যাপে কারা পড়বে তা বেছে নিন, চাইলে স্কুলের পাবলিক নোটিশ পাতাতেও দিন।",
+        "title": "শিরোনাম",
+        "titlePlaceholder": "যেমন: অর্ধবার্ষিক পরীক্ষার রুটিন",
+        "category": "ধরন",
+        "audience": "কারা পড়বে",
+        "audienceHints": {
+          "EVERYONE": "কর্মচারী ও সব পরিবার",
+          "STAFF": "শুধু শিক্ষক ও কর্মচারী",
+          "FAMILIES": "অভিভাবক, সব বা বাছাই করা শ্রেণির"
+        },
+        "allFamilies": "সব পরিবার",
+        "someClasses": "শুধু বাছাই করা শ্রেণি",
+        "noClasses": "এখনো কোনো শ্রেণি নেই।",
+        "wholeClass": "পুরো শ্রেণি",
+        "someSections": "{count, plural, other {# টি শাখা}}",
+        "body": "নোটিশ",
+        "bodyPlaceholder": "এখানে নোটিশ লিখুন…",
+        "bodyHint": "অনুচ্ছেদের মাঝে একটি ফাঁকা লাইন রাখুন। কোনো শব্দ মোটা করতে দুই পাশে **দুটি তারা** দিন, আর তালিকার জন্য লাইনের শুরুতে \"- \" দিন।",
+        "write": "লিখুন",
+        "preview": "প্রিভিউ",
+        "nothingYet": "এখনো কিছু লেখা হয়নি।",
+        "files": {
+          "title": "ফাইল (ঐচ্ছিক)",
+          "add": "ফাইল যোগ করুন",
+          "hint": "PDF বা ছবি, প্রতিটি সর্বোচ্চ ১০ MB, সর্বোচ্চ {count} টি।",
+          "waiting": "সংরক্ষণ করলে যুক্ত হবে",
+          "wrongType": "{name}: PDF বা ছবি (JPG, PNG, WebP) দিন",
+          "tooLarge": "{name} ১০ MB-এর বেশি",
+          "tooMany": "একটি নোটিশে সর্বোচ্চ {count} টি ফাইল দেওয়া যায়",
+          "remove": "{name} সরান"
+        },
+        "publishAt": "প্রকাশের সময়",
+        "publishAtHint": "খালি রাখলে প্রকাশ করার সাথে সাথে বোর্ডে উঠবে।",
+        "expiresAt": "সরানোর সময়",
+        "expiresAtHint": "খালি রাখলে বোর্ডে থেকে যাবে।",
+        "isPublic": "পাবলিক নোটিশ পাতায় দেখান",
+        "isPublicHint": "লগইন ছাড়াই যে কেউ স্কুলের ওয়েবসাইটে এটি পড়তে পারবে।",
+        "pinned": "উপরে পিন করুন",
+        "pinnedHint": "নতুন নোটিশের উপরে থাকবে।",
+        "draftOnly": "আপনি খসড়া হিসেবে সংরক্ষণ করতে পারেন। যিনি নোটিশ প্রকাশ করতে পারেন তিনি এটি প্রকাশ করবেন।",
+        "cancel": "বাতিল",
+        "save": "পরিবর্তন সংরক্ষণ",
+        "saving": "সংরক্ষণ হচ্ছে…",
+        "saveDraft": "খসড়া সংরক্ষণ",
+        "publish": "প্রকাশ করুন",
+        "publishing": "প্রকাশ হচ্ছে…",
+        "schedule": "সময় নির্ধারণ",
+        "scheduled": "নোটিশটি নির্ধারিত সময়ে প্রকাশ হবে",
+        "published": "নোটিশটি বোর্ডে প্রকাশিত হয়েছে",
+        "draftSaved": "খসড়া সংরক্ষিত হয়েছে",
+        "saved": "নোটিশ সংরক্ষিত হয়েছে"
+      },
+      "publicPage": "পাবলিক নোটিশ পাতা"
+    },
+    "family": {
+      "noChildren": "এই অ্যাকাউন্টে এখনো কোনো শিক্ষার্থী যুক্ত নেই। অনুগ্রহ করে স্কুলে যোগাযোগ করুন।",
+      "notEnrolled": "এখনো কোনো শ্রেণিতে নেই",
+      "section": "শাখা {name}",
+      "roll": "রোল {roll}",
+      "admissionNo": "ভর্তি নং {no}",
+      "status": {
+        "ACTIVE": "অধ্যয়নরত",
+        "INACTIVE": "অধ্যয়নরত নয়",
+        "GRADUATED": "উত্তীর্ণ",
+        "SUSPENDED": "বহিষ্কৃত"
+      },
+      "today": "আজ",
+      "notTaken": "এখনো হাজিরা নেওয়া হয়নি",
+      "checkIn": "{time}-এ উপস্থিত",
+      "thisMonth": "এই মাস",
+      "noDays": "এখনো কোনো দিনের হাজিরা নেই",
+      "marks": {
+        "PRESENT": "উপস্থিত",
+        "LATE": "দেরি",
+        "ABSENT": "অনুপস্থিত",
+        "LEAVE": "ছুটিতে"
+      },
+      "feesDue": "এখন বকেয়া ফি",
+      "moreFees": "{count, plural, other {আরও # টি ফি}}",
+      "payAtSchool": "স্কুল অফিসে পরিশোধ করুন। প্রতিটি পরিশোধের রসিদ পাবেন।",
+      "noDues": "কোনো বকেয়া নেই",
+      "homeworkDue": "বাকি বাড়ির কাজ",
+      "allHomework": "সব বাড়ির কাজ",
+      "noHomework": "কোনো বাড়ির কাজ বাকি নেই",
+      "moreHomework": "{count, plural, other {আরও # টি}}"
+    },
+    "homework": {
+      "title": "বাড়ির কাজ",
+      "description": "আপনার ক্লাসের বাড়ির কাজ: দিন, তারপর কে করেছে টিক দিন।",
+      "give": "বাড়ির কাজ দিন",
+      "back": "সব বাড়ির কাজ",
+      "edit": "সম্পাদনা",
+      "delete": "মুছুন",
+      "allSubjects": "সব বিষয়",
+      "onlyMine": "শুধু আমার বিষয়",
+      "emptyUpcoming": "আজ থেকে জমা দেওয়ার মতো কোনো বাড়ির কাজ নেই।",
+      "empty": "এখানে কোনো বাড়ির কাজ নেই।",
+      "noSubjects": "কোনো শাখায় বিষয়ের শিক্ষক হলে আপনি বাড়ির কাজ দিতে পারবেন।",
+      "sectionsList": "শাখা {names}",
+      "outOf": "{marks}-এর মধ্যে",
+      "by": "দিয়েছেন {name}",
+      "notTicked": "টিক দেওয়া হয়নি",
+      "tickedSummary": "{done} জন করেছে · {notDone} জন করেনি",
+      "givenOn": "দেওয়া হয়েছে {date}",
+      "dueOn": "জমা {date}",
+      "when": {
+        "UPCOMING": "আসন্ন",
+        "PAST": "আগের",
+        "ALL": "সব"
+      },
+      "columns": {
+        "due": "জমা",
+        "class": "শ্রেণি",
+        "homework": "বাড়ির কাজ",
+        "ticked": "টিক"
+      },
+      "tabs": {
+        "classes": "আমার ক্লাস",
+        "children": "আমার সন্তান"
+      },
+      "due": {
+        "today": "আজ জমা",
+        "tomorrow": "আগামীকাল জমা",
+        "inDays": "{count, plural, other {# দিন পর জমা}}",
+        "past": "জমা ছিল {date}"
+      },
+      "checks": {
+        "DONE": "করেছে",
+        "LATE": "দেরিতে",
+        "NOT_DONE": "করেনি",
+        "EXCUSED": "ছাড়"
+      },
+      "form": {
+        "addTitle": "বাড়ির কাজ দিন",
+        "editTitle": "বাড়ির কাজ সম্পাদনা",
+        "description": "শিক্ষার্থীরা খাতায় করবে; জমার দিনে কে করেছে টিক দিন।",
+        "noSubjects": "এ বছর আপনি এখনো কোনো বিষয় পড়ান না, তাই বাড়ির কাজ দেওয়ার কিছু নেই।",
+        "subject": "বিষয়",
+        "chooseSubject": "শ্রেণি ও বিষয় বেছে নিন",
+        "sections": "শাখা",
+        "wholeClass": "পুরো শ্রেণি",
+        "title": "শিরোনাম",
+        "titlePlaceholder": "যেমন: অনুশীলনী ৩.১, প্রশ্ন ১ থেকে ৫",
+        "instructions": "নির্দেশনা (ঐচ্ছিক)",
+        "preview": "প্রিভিউ",
+        "write": "লিখুন",
+        "nothingYet": "এখনো কিছু লেখা হয়নি।",
+        "instructionsPlaceholder": "কী করতে হবে, কোন পৃষ্ঠা, কীভাবে জমা দেবে…",
+        "instructionsHint": "অনুচ্ছেদের মাঝে একটি ফাঁকা লাইন রাখুন। **দুটি তারা** দিলে শব্দ মোটা হয়; তালিকার জন্য লাইনের শুরুতে \"- \" দিন।",
+        "assignedOn": "দেওয়ার তারিখ",
+        "dueDate": "জমার তারিখ",
+        "hasMarks": "নম্বর দিন",
+        "hasMarksHint": "আপনার ঠিক করা পূর্ণ নম্বরের মধ্যে। বাড়ির কাজের নম্বর পরীক্ষার ফলাফলে যোগ হয় না।",
+        "fullMarks": "পূর্ণ নম্বর",
+        "marksWillGo": "দেওয়া নম্বরগুলো মুছে যাবে (টিক থাকবে)।",
+        "files": {
+          "title": "ফাইল (ঐচ্ছিক)",
+          "add": "ফাইল যোগ করুন",
+          "hint": "ওয়ার্কশিট বা বোর্ডের ছবি: PDF বা ছবি, প্রতিটি সর্বোচ্চ ১০ MB, সর্বোচ্চ {count} টি।",
+          "waiting": "সংরক্ষণ করলে যুক্ত হবে",
+          "wrongType": "{name}: PDF বা ছবি (JPG, PNG, WebP) দিন",
+          "tooLarge": "{name} ১০ MB-এর বেশি",
+          "tooMany": "একটি বাড়ির কাজে সর্বোচ্চ {count} টি ফাইল দেওয়া যায়",
+          "remove": "{name} সরান"
+        },
+        "cancel": "বাতিল",
+        "saving": "সংরক্ষণ হচ্ছে…",
+        "save": "পরিবর্তন সংরক্ষণ",
+        "give": "বাড়ির কাজ দিন",
+        "saved": "বাড়ির কাজ সংরক্ষিত হয়েছে",
+        "given": "বাড়ির কাজ দেওয়া হয়েছে"
+      },
+      "sheet": {
+        "title": "{count, plural, other {# জন শিক্ষার্থী}}",
+        "count": {
+          "DONE": "{count} জন করেছে",
+          "LATE": "{count} জন দেরিতে",
+          "NOT_DONE": "{count} জন করেনি",
+          "EXCUSED": "{count} জন ছাড়"
+        },
+        "unticked": "{count} জনের টিক বাকি",
+        "restDone": "বাকিরা করেছে",
+        "saving": "সংরক্ষণ হচ্ছে…",
+        "save": "সংরক্ষণ",
+        "saveCount": "{count, plural, other {# টি পরিবর্তন সংরক্ষণ}}",
+        "saved": "{count, plural, other {# জন শিক্ষার্থী সংরক্ষিত}}",
+        "noStudents": "কোনো শিক্ষার্থী এই বাড়ির কাজ পায় না।",
+        "section": "শাখা {name}",
+        "tickFor": "{name}-এর বাড়ির কাজ",
+        "marksFor": "{name}-এর নম্বর",
+        "commentFor": "{name}-এর জন্য মন্তব্য",
+        "comment": "পরিবারের জন্য মন্তব্য",
+        "notTicked": "এখনো টিক দেওয়া হয়নি"
+      },
+      "deleteDialog": {
+        "title": "\"{title}\" মুছবেন?",
+        "description": "বাড়ির কাজ, এর ফাইল ও সব শিক্ষার্থীর টিক চিরতরে মুছে যাবে।",
+        "confirm": "মুছুন",
+        "working": "মোছা হচ্ছে…",
+        "done": "\"{title}\" মুছে ফেলা হয়েছে"
+      },
+      "family": {
+        "description": "আপনার সন্তানের বাড়ির কাজ এবং শিক্ষক কীভাবে দেখেছেন।",
+        "noChildren": "এই অ্যাকাউন্টে এখনো কোনো শিক্ষার্থী শ্রেণিতে নেই।",
+        "empty": "এখনো কোনো বাড়ির কাজ নেই।",
+        "given": "দেওয়া হয়েছে {date}",
+        "due": "জমা {date}",
+        "toDo": "করতে হবে",
+        "notTicked": "দেখা হয়নি",
+        "teacherSays": "শিক্ষক:"
       }
     }
   },
@@ -2995,5 +3391,48 @@
     "INACTIVE": "নিষ্ক্রিয়",
     "SUSPENDED": "সাময়িক বহিষ্কৃত",
     "GRADUATED": "উত্তীর্ণ"
+  },
+  "navGroups": {
+    "overview": "সারসংক্ষেপ",
+    "people": "মানুষ",
+    "academics": "একাডেমিক",
+    "results": "পরীক্ষা ও ফলাফল",
+    "money": "অর্থ",
+    "administration": "প্রশাসন"
+  },
+  "shell": {
+    "academicYear": "শিক্ষাবর্ষ {year}",
+    "platformAdmin": "প্ল্যাটফর্ম অ্যাডমিন",
+    "platformSubtitle": "সব স্কুল পরিচালনা",
+    "search": "পাতা খুঁজুন…",
+    "searchPlaceholder": "কোন পাতায় যাবেন…",
+    "noPages": "এই নামে কোনো পাতা নেই।",
+    "darkMode": "ডার্ক মোড",
+    "lightMode": "লাইট মোড",
+    "welcome": "<b>{name}</b>-এ স্বাগতম",
+    "appTagline": "· স্কুল ব্যবস্থাপনা সিস্টেম",
+    "home": "হোম"
+  },
+  "publicNotices": {
+    "subtitle": "নোটিশ বোর্ড",
+    "logIn": "লগইন",
+    "openApp": "অ্যাপ খুলুন",
+    "pageTitle": "নোটিশ · {school}",
+    "pageDescription": "{school}-এর সর্বশেষ নোটিশ।",
+    "title": "নোটিশ বোর্ড",
+    "description": "স্কুলের সর্বশেষ নোটিশসমূহ।",
+    "filter": "নোটিশের ধরন",
+    "all": "সব",
+    "empty": "এখন কোনো নোটিশ নেই।",
+    "emptyCategory": "এই ধরনের কোনো নোটিশ এখন নেই।",
+    "pinned": "পিন করা",
+    "files": "{count, plural, other {# টি ফাইল}}",
+    "pages": "পাতা",
+    "newer": "← নতুনগুলো",
+    "older": "পুরনোগুলো →",
+    "page": "পাতা {page} / {total}",
+    "back": "সব নোটিশ",
+    "posted": "প্রকাশ: {date}",
+    "until": "{date} পর্যন্ত"
   }
 }

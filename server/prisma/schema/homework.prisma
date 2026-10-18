@@ -1,0 +1,108 @@
+// how a student did a homework, ticked by the teacher in class
+enum HomeworkCheckStatus {
+  DONE
+  LATE // done, after the due date
+  NOT_DONE
+  EXCUSED // absent or let off: not counted against the student
+}
+
+/*
+ * Homework for one subject of a class, given to one or more of its sections. Students do
+ * it on paper; the teacher ticks each one (HomeworkCheck), with optional marks out of
+ * fullMarks and a comment the family sees. Homework marks never count in exam results.
+ */
+model Homework {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  classId String
+  class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  // removing the subject from the class removes its homework
+  classSubjectId String
+  classSubject   ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+
+  sections HomeworkSection[]
+
+  title        String
+  // plain text, like notices: blank lines between paragraphs, **bold**, "- " list items
+  instructions String @default("")
+
+  // Bangladesh calendar days
+  assignedOn DateTime @db.Date
+  dueDate    DateTime @db.Date
+
+  // null: no marks, only the tick and a comment
+  fullMarks Decimal? @db.Decimal(6, 2)
+
+  attachments HomeworkAttachment[]
+  checks      HomeworkCheck[]
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId, academicYearId, dueDate])
+  @@index([classSubjectId])
+}
+
+model HomeworkSection {
+  id String @id @default(cuid())
+
+  homeworkId String
+  homework   Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+
+  sectionId String
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([homeworkId, sectionId])
+  @@index([sectionId])
+}
+
+/* A PDF or image with a homework (a worksheet, a photo of the board), shown by a signed link. */
+model HomeworkAttachment {
+  id String @id @default(cuid())
+
+  homeworkId String
+  homework   Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+
+  key         String
+  name        String
+  contentType String
+  size        Int
+  sortOrder   Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([homeworkId])
+}
+
+/* One student's homework, as the teacher ticked it. */
+model HomeworkCheck {
+  id String @id @default(cuid())
+
+  homeworkId String
+  homework   Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  status  HomeworkCheckStatus
+  marks   Decimal?            @db.Decimal(6, 2)
+  comment String?
+
+  checkedBy String
+  checkedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([homeworkId, enrollmentId])
+  @@index([studentId])
+}

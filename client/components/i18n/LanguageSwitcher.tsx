@@ -8,10 +8,9 @@ import { cn } from "@/lib/utils";
 
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
-/** বাংলা | English toggle. The choice is remembered on this site only. */
-export function LanguageSwitcher({ className }: { className?: string }) {
+/** The current language and a way to change it; the choice is remembered on this site only. */
+export const useLocaleChoice = () => {
   const current = useLocale();
-  const t = useTranslations("common");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -21,6 +20,13 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     // re-render the server components in the new language, keeping client state
     startTransition(() => router.refresh());
   };
+  return { current: current as Locale, choose, pending };
+};
+
+/** বাংলা | English toggle. */
+export function LanguageSwitcher({ className }: { className?: string }) {
+  const t = useTranslations("common");
+  const { current, choose, pending } = useLocaleChoice();
 
   return (
     <div

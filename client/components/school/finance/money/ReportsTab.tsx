@@ -24,7 +24,7 @@ export function ReportsTab({ onCollect }: { onCollect: (studentId: string) => vo
   const t = useTranslations("school.finance.reports");
   return (
     <Tabs defaultValue="collection">
-      <TabsList className="no-print">
+      <TabsList variant="chip" className="no-print">
         <TabsTrigger value="collection">{t("tabs.collection")}</TabsTrigger>
         <TabsTrigger value="dues">{t("tabs.dues")}</TabsTrigger>
       </TabsList>

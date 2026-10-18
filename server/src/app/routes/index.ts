@@ -19,6 +19,7 @@ import { examMarksRoutes } from '../modules/exam/examMarks.route';
 import { examResultRoutes } from '../modules/exam/examResult.route';
 import { finalResultRoutes } from '../modules/exam/finalResult.route';
 import { routineRoutes } from '../modules/routine/routine.route';
+import { dashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { roleRoutes } from '../modules/role/role.route';
 import { promotionRoutes } from '../modules/promotion/promotion.route';
 import { financeRoutes } from '../modules/finance/finance.route';
@@ -28,6 +29,9 @@ import { feeStructureRoutes } from '../modules/feeStructure/feeStructure.route';
 import { studentFeeRoutes } from '../modules/studentFee/studentFee.route';
 import { paymentRoutes } from '../modules/payment/payment.route';
 import { expenseRoutes } from '../modules/expense/expense.route';
+import { noticeRoutes } from '../modules/notice/notice.route';
+import { familyRoutes } from '../modules/family/family.route';
+import { homeworkRoutes } from '../modules/homework/homework.route';
 
 
 const router = express.Router();
@@ -132,6 +136,11 @@ const moduleRoutes = [
         route: routineRoutes
     },
     {
+        // the school dashboard: a summary of what the person may see
+        path: '/dashboard',
+        route: dashboardRoutes
+    },
+    {
         // the school's roles and staff (super admin only)
         path: '/role',
         route: roleRoutes
@@ -173,6 +182,21 @@ const moduleRoutes = [
     {
         path: '/expense',
         route: expenseRoutes
+    },
+    {
+        // school notices: the board, writing and publishing, the public notice page
+        path: '/notice',
+        route: noticeRoutes
+    },
+    {
+        // the family login's home: its children, their attendance and fees owed
+        path: '/family',
+        route: familyRoutes
+    },
+    {
+        // homework: given by subject teachers, ticked in class, seen by families
+        path: '/homework',
+        route: homeworkRoutes
     }
 ];
 

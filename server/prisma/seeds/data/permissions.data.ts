@@ -15,6 +15,15 @@ export const permissionsData: PermissionSeed[] = [
   { code: 'staff:view',     name: 'View Staff',      moduleCode: 'core' },
   { code: 'student:change_admission_date', name: 'Change Admission Date', moduleCode: 'core' },
   { code: 'student:promote', name: 'Promote Students', moduleCode: 'core' },
+
+  // notices
+  { code: 'notice:view', name: 'View Notices', moduleCode: 'core' },
+  { code: 'notice:create', name: 'Write Notices', moduleCode: 'core' },
+  { code: 'notice:publish', name: 'Publish Notices', moduleCode: 'core' },
+  // homework: a subject teacher gives and ticks homework for their own subjects and
+  // sections without these; these are for the rest of the school
+  { code: 'homework:view', name: 'View Homework', moduleCode: 'core' },
+  { code: 'homework:manage', name: 'Manage Homework', moduleCode: 'core' },
   { code: 'academic_year:create', name: 'Create Academic Year', moduleCode: 'core' },
   { code: 'academic_year:view',   name: 'View Academic Years',  moduleCode: 'core' },
   { code: 'academic_year:update', name: 'Update Academic Year and Set the Current Year', moduleCode: 'core' },

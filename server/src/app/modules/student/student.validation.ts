@@ -101,6 +101,7 @@ const studentIdParams = z.object({ studentId: idSchema("Student id") });
 const listStudentsQuery = z.object({
   search: z.string().trim().min(1).optional(),
   status: z.enum(StudentStatus).optional(),
+  gender: z.enum(Gender).optional(),
   religion: z.enum(Religion).optional(),
   // class/section/group filters use this year, or the current year when omitted
   academicYearId: z.string().trim().min(1).optional(),

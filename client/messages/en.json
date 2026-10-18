@@ -135,7 +135,16 @@
     "amountRange": "Enter an amount above 0",
     "chooseFund": "Choose a fund",
     "chooseFeeType": "Choose a fee type",
-    "monthsOverlap": "These months are already in another part of the year"
+    "monthsOverlap": "These months are already in another part of the year",
+    "noticeTitleRequired": "Write a title (at least 3 letters)",
+    "noticeBodyRequired": "Write the notice",
+    "noticeBodyTooLong": "The notice is too long (10,000 characters at most)",
+    "chooseSubject": "Choose a subject",
+    "chooseSections": "Choose at least one section",
+    "homeworkTitleRequired": "Write a title",
+    "homeworkTooLong": "The instructions are too long (5,000 characters at most)",
+    "dueBeforeGiven": "The due date can't be before the day it is given",
+    "fullMarksInvalid": "Enter full marks between 0.5 and 1000"
   },
   "auth": {
     "email": "Email",
@@ -195,7 +204,8 @@
       "saving": "Saving…",
       "submit": "Change password",
       "done": "Password changed for {name}."
-    }
+    },
+    "noticeBoardLink": "School notice board"
   },
   "roles": {
     "SCHOOL_SUPER_ADMIN": "School super admin",
@@ -223,7 +233,9 @@
     "exams": "Exams",
     "finance": "Finance",
     "promotion": "Promotion",
-    "roles": "Roles and staff"
+    "roles": "Roles and staff",
+    "notices": "Notices",
+    "homework": "Homework"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -508,16 +520,6 @@
   },
   "school": {
     "welcome": "Welcome, {name}",
-    "accessSummary": "{permissions, plural, one {# permission} other {# permissions}} · {modules, plural, one {# module} other {# modules}}",
-    "visibleWith": "Visible with {code}",
-    "areas": {
-      "students": "Students",
-      "teachers": "Teachers",
-      "sections": "Sections",
-      "subjects": "Subjects",
-      "exams": "Exams",
-      "routine": "Routine"
-    },
     "years": {
       "title": "Academic years",
       "description": "The school works in one year at a time: its classes, admissions, attendance and exams.",
@@ -927,6 +929,20 @@
       "allClasses": "All classes",
       "allSections": "All sections",
       "section": "Section",
+      "filters": {
+        "academicYear": "Academic year",
+        "currentYear": "{year} (current)",
+        "group": "Group",
+        "allGroups": "All groups",
+        "gender": "Gender",
+        "allGenders": "All genders",
+        "religion": "Religion",
+        "allReligions": "All religions",
+        "clear": "Clear filters",
+        "button": "Filters",
+        "all": "All",
+        "remove": "Remove filter: {name}"
+      },
       "columns": {
         "student": "Student",
         "class": "Class",
@@ -2294,9 +2310,13 @@
           "search": "Name or admission number",
           "class": "Class",
           "allClasses": "All classes",
-          "hint": "Type a name or admission number, or choose a class.",
+          "hint": "Type a name or admission number, or choose a class. A name search looks at every year unless you choose another year.",
           "none": "No student found.",
-          "roll": "Roll {roll}"
+          "roll": "Roll {roll}",
+          "year": "Academic year",
+          "currentYear": "{name} (current)",
+          "section": "Section",
+          "allSections": "All sections"
         },
         "pay": {
           "nothingDue": "Nothing left to pay. Every fee is paid.",
@@ -2810,7 +2830,9 @@
           "student_fee": "Student fees",
           "payment": "Payments",
           "expense": "Expenses",
-          "finance_report": "Finance reports"
+          "finance_report": "Finance reports",
+          "notice": "Notices",
+          "homework": "Homework"
         },
         "perms": {
           "student": {
@@ -2943,8 +2965,382 @@
           },
           "finance_report": {
             "view": "See finance reports"
+          },
+          "notice": {
+            "view": "See all notices, drafts too",
+            "create": "Write notices (saved as drafts)",
+            "publish": "Publish, take down and delete notices"
+          },
+          "homework": {
+            "view": "See every class’s homework",
+            "manage": "Give and tick homework for any section"
           }
         }
+      }
+    },
+    "home": {
+      "greeting": {
+        "morning": "Good morning, {name}",
+        "afternoon": "Good afternoon, {name}",
+        "evening": "Good evening, {name}"
+      },
+      "openFinance": "Finance",
+      "openCalendar": "Calendar",
+      "stats": {
+        "students": "Students",
+        "teachers": "Teachers",
+        "attendance": "Present today",
+        "collected": "This month",
+        "boysGirls": "{boys} boys · {girls} girls",
+        "onLeave": "{count, plural, one {# on leave} other {# on leave}}",
+        "allWorking": "All at work",
+        "sectionsTaken": "{taken} of {total} sections marked",
+        "today": "{amount} today"
+      },
+      "chart": {
+        "title": "Fees collected and expenses",
+        "collected": "Collected",
+        "spent": "Spent",
+        "month": "Month",
+        "aria": "Fees collected and money spent in each of the last six months",
+        "empty": "Nothing collected or spent in these months yet.",
+        "collectedThisMonth": "Collected this month",
+        "spentThisMonth": "Spent this month",
+        "dueNow": "Due now"
+      },
+      "attendance": {
+        "title": "Today's attendance",
+        "open": "Attendance",
+        "none": "No roll call taken yet today.",
+        "sections": "{taken} of {total} sections marked",
+        "presentOf": "present (late counted in), of {count} marked",
+        "present": "Present",
+        "late": "Late",
+        "absent": "Absent",
+        "leave": "On leave"
+      },
+      "calendar": {
+        "title": "Calendar",
+        "previous": "Previous month",
+        "next": "Next month",
+        "today": "Today",
+        "holiday": "Holiday",
+        "weeklyOff": "Weekly off"
+      },
+      "upcoming": {
+        "title": "Upcoming holidays",
+        "none": "No holidays in the next 45 days.",
+        "range": "{from} – {to}"
+      },
+      "payments": {
+        "title": "Recent payments",
+        "open": "Payments",
+        "none": "No payments yet.",
+        "line": "<b>{amount}</b> from {student}",
+        "receipt": "Receipt {no}",
+        "cancelled": "cancelled"
+      },
+      "notices": {
+        "title": "Notice board",
+        "open": "All notices",
+        "unread": "{count, plural, one {# new} other {# new}}",
+        "none": "No notices right now",
+        "new": "new"
+      },
+      "yourChildren": "Your children"
+    },
+    "notices": {
+      "title": "Notices",
+      "description": "School notices for teachers, staff and families.",
+      "tabs": {
+        "board": "Notice board",
+        "manage": "Manage notices"
+      },
+      "categories": {
+        "GENERAL": "General",
+        "EXAM": "Exam",
+        "HOLIDAY": "Holiday",
+        "FEES": "Fees",
+        "EVENT": "Event",
+        "URGENT": "Urgent"
+      },
+      "audiences": {
+        "EVERYONE": "Everyone",
+        "STAFF": "Teachers and staff",
+        "FAMILIES": "Students and guardians"
+      },
+      "states": {
+        "LIVE": "On the board",
+        "SCHEDULED": "Scheduled",
+        "EXPIRED": "Ended",
+        "DRAFT": "Draft"
+      },
+      "board": {
+        "all": "All",
+        "unread": "{count, plural, one {# unread notice} other {# unread notices}}",
+        "empty": "There are no notices for you right now.",
+        "emptyCategory": "No notices of this kind right now.",
+        "pinned": "Pinned",
+        "new": "New"
+      },
+      "reader": {
+        "attachments": "{count, plural, one {# file} other {# files}}",
+        "pinned": "Pinned",
+        "public": "On the public notice page",
+        "posted": "Posted {date}",
+        "notPosted": "Not published yet",
+        "until": "until {date}"
+      },
+      "manage": {
+        "write": "Write a notice",
+        "search": "Search by title",
+        "allStates": "All notices",
+        "columns": {
+          "title": "Notice",
+          "audience": "For",
+          "state": "Status",
+          "reads": "Read by"
+        },
+        "noMatch": "No notices match.",
+        "empty": "No notices yet. Write the first one.",
+        "view": "Read",
+        "edit": "Edit",
+        "publish": "Publish",
+        "unpublish": "Take down",
+        "delete": "Delete",
+        "pinned": "Pinned",
+        "public": "On the public page",
+        "by": "by {name}",
+        "allFamilies": "All families",
+        "goesUp": "Goes up {date}",
+        "until": "Until {date}",
+        "since": "Since {date}",
+        "ended": "Ended {date}",
+        "written": "Written {when}",
+        "scheduled": "\"{title}\" is scheduled",
+        "published": "\"{title}\" is on the board",
+        "unpublished": "\"{title}\" was taken down. It is a draft again",
+        "deleteDialog": {
+          "title": "Delete \"{title}\"?",
+          "description": "The notice and its files are removed for good. Nobody will see it again.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "\"{title}\" was deleted"
+        }
+      },
+      "form": {
+        "addTitle": "Write a notice",
+        "editTitle": "Edit the notice",
+        "description": "Choose who reads it in the app, and optionally put it on the school's public notice page.",
+        "title": "Title",
+        "titlePlaceholder": "e.g. Half-yearly exam routine",
+        "category": "Kind",
+        "audience": "Who reads it",
+        "audienceHints": {
+          "EVERYONE": "Staff and every family",
+          "STAFF": "Only teachers and staff",
+          "FAMILIES": "Guardians, for all or chosen classes"
+        },
+        "allFamilies": "Every family",
+        "someClasses": "Only chosen classes",
+        "noClasses": "There are no classes yet.",
+        "wholeClass": "whole class",
+        "someSections": "{count, plural, one {# section} other {# sections}}",
+        "body": "Notice",
+        "bodyPlaceholder": "Write the notice here…",
+        "bodyHint": "Leave a blank line between paragraphs. Put **two stars** around words to make them bold, and start a line with \"- \" for a list.",
+        "write": "Write",
+        "preview": "Preview",
+        "nothingYet": "Nothing written yet.",
+        "files": {
+          "title": "Files (optional)",
+          "add": "Add a file",
+          "hint": "PDFs or pictures, up to 10 MB each, {count} at most.",
+          "waiting": "attached when you save",
+          "wrongType": "{name}: attach a PDF or a picture (JPG, PNG, WebP)",
+          "tooLarge": "{name} is larger than 10 MB",
+          "tooMany": "A notice can have at most {count} files",
+          "remove": "Remove {name}"
+        },
+        "publishAt": "Goes up",
+        "publishAtHint": "Leave empty to put it up when you publish.",
+        "expiresAt": "Comes down",
+        "expiresAtHint": "Leave empty to keep it on the board.",
+        "isPublic": "Show on the public notice page",
+        "isPublicHint": "Anyone can read it on the school's website, without logging in.",
+        "pinned": "Pin to the top",
+        "pinnedHint": "It stays above newer notices.",
+        "draftOnly": "You can save it as a draft. Someone who can publish notices will put it up.",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "saving": "Saving…",
+        "saveDraft": "Save draft",
+        "publish": "Publish",
+        "publishing": "Publishing…",
+        "schedule": "Schedule",
+        "scheduled": "The notice is scheduled",
+        "published": "The notice is on the board",
+        "draftSaved": "Draft saved",
+        "saved": "Notice saved"
+      },
+      "publicPage": "Public notice page"
+    },
+    "family": {
+      "noChildren": "No students are linked to this account yet. Please contact the school.",
+      "notEnrolled": "Not in a class yet",
+      "section": "Section {name}",
+      "roll": "Roll {roll}",
+      "admissionNo": "Admission no. {no}",
+      "status": {
+        "ACTIVE": "Studying",
+        "INACTIVE": "Not studying",
+        "GRADUATED": "Graduated",
+        "SUSPENDED": "Suspended"
+      },
+      "today": "Today",
+      "notTaken": "Attendance not taken yet",
+      "checkIn": "in at {time}",
+      "thisMonth": "This month",
+      "noDays": "No school days marked yet",
+      "marks": {
+        "PRESENT": "Present",
+        "LATE": "Late",
+        "ABSENT": "Absent",
+        "LEAVE": "On leave"
+      },
+      "feesDue": "Fees due now",
+      "moreFees": "{count, plural, one {and # more fee} other {and # more fees}}",
+      "payAtSchool": "Pay at the school office. You get a receipt for every payment.",
+      "noDues": "No fees due",
+      "homeworkDue": "Homework due",
+      "allHomework": "All homework",
+      "noHomework": "No homework due",
+      "moreHomework": "{count, plural, one {and # more} other {and # more}}"
+    },
+    "homework": {
+      "title": "Homework",
+      "description": "Homework for your classes: give it, then tick who did it.",
+      "give": "Give homework",
+      "back": "All homework",
+      "edit": "Edit",
+      "delete": "Delete",
+      "allSubjects": "All subjects",
+      "onlyMine": "Only my subjects",
+      "emptyUpcoming": "No homework due from today.",
+      "empty": "No homework here.",
+      "noSubjects": "You can give homework once you are a subject's teacher in a section.",
+      "sectionsList": "Section {names}",
+      "outOf": "out of {marks}",
+      "by": "by {name}",
+      "notTicked": "Not ticked",
+      "tickedSummary": "{done} done · {notDone} not done",
+      "givenOn": "Given {date}",
+      "dueOn": "Due {date}",
+      "when": {
+        "UPCOMING": "Upcoming",
+        "PAST": "Past",
+        "ALL": "All"
+      },
+      "columns": {
+        "due": "Due",
+        "class": "Class",
+        "homework": "Homework",
+        "ticked": "Ticked"
+      },
+      "tabs": {
+        "classes": "My classes",
+        "children": "My children"
+      },
+      "due": {
+        "today": "Due today",
+        "tomorrow": "Due tomorrow",
+        "inDays": "{count, plural, one {Due in # day} other {Due in # days}}",
+        "past": "Was due {date}"
+      },
+      "checks": {
+        "DONE": "Done",
+        "LATE": "Late",
+        "NOT_DONE": "Not done",
+        "EXCUSED": "Excused"
+      },
+      "form": {
+        "addTitle": "Give homework",
+        "editTitle": "Edit homework",
+        "description": "Students do it on paper; you tick who did it once it is due.",
+        "noSubjects": "You don't teach any subject this year yet, so there is nothing to give homework for.",
+        "subject": "Subject",
+        "chooseSubject": "Choose the class and subject",
+        "sections": "Sections",
+        "wholeClass": "Whole class",
+        "title": "Title",
+        "titlePlaceholder": "e.g. Exercise 3.1, questions 1 to 5",
+        "instructions": "Instructions (optional)",
+        "preview": "Preview",
+        "write": "Write",
+        "nothingYet": "Nothing written yet.",
+        "instructionsPlaceholder": "What to do, pages, how to hand it in…",
+        "instructionsHint": "Leave a blank line between paragraphs. **Two stars** make words bold; start a line with \"- \" for a list.",
+        "assignedOn": "Given on",
+        "dueDate": "Due on",
+        "hasMarks": "Give marks",
+        "hasMarksHint": "Marks out of a number you choose. Homework marks never count in exam results.",
+        "fullMarks": "Full marks",
+        "marksWillGo": "The marks already given will be removed (the ticks stay).",
+        "files": {
+          "title": "Files (optional)",
+          "add": "Add a file",
+          "hint": "A worksheet or a photo of the board: PDFs or pictures, up to 10 MB each, {count} at most.",
+          "waiting": "attached when you save",
+          "wrongType": "{name}: attach a PDF or a picture (JPG, PNG, WebP)",
+          "tooLarge": "{name} is larger than 10 MB",
+          "tooMany": "Homework can have at most {count} files",
+          "remove": "Remove {name}"
+        },
+        "cancel": "Cancel",
+        "saving": "Saving…",
+        "save": "Save changes",
+        "give": "Give homework",
+        "saved": "Homework saved",
+        "given": "Homework given"
+      },
+      "sheet": {
+        "title": "{count, plural, one {# student} other {# students}}",
+        "count": {
+          "DONE": "{count} done",
+          "LATE": "{count} late",
+          "NOT_DONE": "{count} not done",
+          "EXCUSED": "{count} excused"
+        },
+        "unticked": "{count} not ticked",
+        "restDone": "Rest done",
+        "saving": "Saving…",
+        "save": "Save",
+        "saveCount": "{count, plural, one {Save # change} other {Save # changes}}",
+        "saved": "{count, plural, one {# student saved} other {# students saved}}",
+        "noStudents": "No students get this homework.",
+        "section": "Section {name}",
+        "tickFor": "Homework of {name}",
+        "marksFor": "Marks of {name}",
+        "commentFor": "Comment for {name}",
+        "comment": "Comment for the family",
+        "notTicked": "Not ticked yet"
+      },
+      "deleteDialog": {
+        "title": "Delete \"{title}\"?",
+        "description": "The homework, its files and every student's tick are removed for good.",
+        "confirm": "Delete",
+        "working": "Deleting…",
+        "done": "\"{title}\" was deleted"
+      },
+      "family": {
+        "description": "Your children's homework and how the teacher checked it.",
+        "noChildren": "No students are in a class on this account yet.",
+        "empty": "No homework yet.",
+        "given": "Given {date}",
+        "due": "Due {date}",
+        "toDo": "To do",
+        "notTicked": "Not checked",
+        "teacherSays": "Teacher:"
       }
     }
   },
@@ -2995,5 +3391,48 @@
     "INACTIVE": "Inactive",
     "SUSPENDED": "Suspended",
     "GRADUATED": "Graduated"
+  },
+  "navGroups": {
+    "overview": "Overview",
+    "people": "People",
+    "academics": "Academics",
+    "results": "Exams and results",
+    "money": "Finance",
+    "administration": "Administration"
+  },
+  "shell": {
+    "academicYear": "Academic year {year}",
+    "platformAdmin": "Platform admin",
+    "platformSubtitle": "Manage every school",
+    "search": "Search pages…",
+    "searchPlaceholder": "Go to a page…",
+    "noPages": "No page with that name.",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "welcome": "Welcome to <b>{name}</b>",
+    "appTagline": "· School Management System",
+    "home": "Home"
+  },
+  "publicNotices": {
+    "subtitle": "Notice board",
+    "logIn": "Log in",
+    "openApp": "Open the app",
+    "pageTitle": "Notices · {school}",
+    "pageDescription": "The latest notices from {school}.",
+    "title": "Notice board",
+    "description": "The school's latest notices.",
+    "filter": "Kinds of notice",
+    "all": "All",
+    "empty": "There are no notices right now.",
+    "emptyCategory": "No notices of this kind right now.",
+    "pinned": "Pinned",
+    "files": "{count, plural, one {# file} other {# files}}",
+    "pages": "Pages",
+    "newer": "← Newer",
+    "older": "Older →",
+    "page": "Page {page} of {total}",
+    "back": "All notices",
+    "posted": "Posted {date}",
+    "until": "until {date}"
   }
 }

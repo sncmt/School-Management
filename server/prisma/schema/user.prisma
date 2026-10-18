@@ -27,6 +27,7 @@ model User {
 
   // codes emailed to a school super admin to confirm a password change
   passwordChangeCodes PasswordChangeCode[]
+  noticeReads         NoticeRead[]
 
   @@index([email])
   @@index([phone])

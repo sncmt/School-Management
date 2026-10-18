@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 
 import QueryProviders from "@/providers/QueryProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -45,10 +46,12 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>
-          <QueryProviders>
-            <TooltipProvider>{children}</TooltipProvider>
-            <Toaster position="top-right" richColors closeButton />
-          </QueryProviders>
+          <ThemeProvider>
+            <QueryProviders>
+              <TooltipProvider>{children}</TooltipProvider>
+              <Toaster position="top-right" richColors closeButton />
+            </QueryProviders>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>
