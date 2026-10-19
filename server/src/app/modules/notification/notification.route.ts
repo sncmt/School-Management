@@ -1,0 +1,21 @@
+import express from "express";
+import validateRequest from "../../errorHandler/validateRequest";
+import authenticate from "../../middlewares/auth";
+import { NotificationController } from "./notification.controller";
+import { NotificationValidation } from "./notification.validation";
+
+const router = express.Router();
+
+// every member of the school reads their own inbox: no permission needed
+router.use(authenticate("SCHOOL"));
+
+router.get("/", validateRequest({ query: NotificationValidation.listQuery }), NotificationController.listMine);
+router.get("/unread-count", NotificationController.unreadCount);
+router.post("/read-all", NotificationController.markAllRead);
+router.post(
+  "/:notificationId/read",
+  validateRequest({ params: NotificationValidation.notificationIdParams }),
+  NotificationController.markRead,
+);
+
+export const notificationRoutes = router;

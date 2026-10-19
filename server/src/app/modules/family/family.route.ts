@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import authenticate from "../../middlewares/auth";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
+import { familyAdmitCardRoute } from "../admitCard/admitCard.route";
 import { familyHomeworkRoute } from "../homework/homework.route";
 import { FamilyService } from "./family.service";
 
@@ -20,5 +21,8 @@ router.get(
 
 // one child's homework, with the teacher's ticks
 router.get("/homework", authenticate("SCHOOL"), ...familyHomeworkRoute);
+
+// one child's admit card for an exam, once the school has released it
+router.get("/admit-card", authenticate("SCHOOL"), ...familyAdmitCardRoute);
 
 export const familyRoutes = router;

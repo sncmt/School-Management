@@ -258,8 +258,8 @@ export async function realignAdmissionFees(
 
 // ---------------------------------------------------------------- listing
 
-/* Unpaid fees whose month has started (in Bangladesh), and every unpaid one-time fee. */
-const dueFilter = (): Prisma.StudentFeeWhereInput => {
+/* Unpaid fees whose month has started (in Bangladesh), and every unpaid one-time fee. Also the monthly fee reminder's rule. */
+export const dueFilter = (): Prisma.StudentFeeWhereInput => {
   const { year, month } = currentMonth();
   return {
     status: { in: ["UNPAID", "PARTIAL"] },

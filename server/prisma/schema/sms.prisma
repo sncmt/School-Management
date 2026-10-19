@@ -1,0 +1,114 @@
+// the school's SMS gateway; TEST logs messages instead of sending them (until a real gateway is added)
+enum SmsProvider {
+  TEST
+}
+
+// the language SMS go out in (each event has a template in both)
+enum SmsLanguage {
+  BN
+  EN
+}
+
+// an automatic SMS: what happened (promotion is split: promoted and graduated read differently)
+enum SmsEvent {
+  STUDENT_ADMITTED
+  PAYMENT_RECEIVED
+  PAYMENT_CANCELLED
+  STUDENT_ABSENT
+  STUDENT_LATE
+  RESULT_PUBLISHED
+  ADMIT_CARD_RELEASED
+  FEE_DUE
+  STUDENT_PROMOTED
+  STUDENT_GRADUATED
+}
+
+enum SmsStatus {
+  QUEUED // waiting for its time (quiet hours, the attendance correction window)
+  SENDING // taken by the sender
+  SENT
+  FAILED // gave up after the retries
+  CANCELLED // never sent: SMS turned off, or the event was undone first
+}
+
+/* A school's SMS account: its own gateway, the language, and the switch for all SMS. */
+model SmsSetting {
+  id String @id @default(cuid())
+
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // off: no SMS at all (each event keeps its own switch)
+  isActive Boolean     @default(false)
+  provider SmsProvider @default(TEST)
+  // the name or number SMS come from (the gateway's approved sender ID)
+  senderId String?
+  language SmsLanguage @default(BN)
+
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/* One automatic SMS of a school: on or off, and the school's own wording (null = the default text). */
+model SmsTemplate {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  event   SmsEvent
+  enabled Boolean  @default(false)
+  bodyBn  String?
+  bodyEn  String?
+
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, event])
+}
+
+/*
+ * Every SMS: the outbox and the log. Written as QUEUED when something happens (or by hand);
+ * the sender (sms.worker) sends it once sendAfter has come.
+ */
+model SmsMessage {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // the student it is about (SetNull: the log outlives the student)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  phone String
+  body  String
+  // how many SMS it takes (Bangla: ~70 characters each, English: 160)
+  parts Int
+
+  // null: written by hand
+  event     SmsEvent?
+  // one SMS per thing (e.g. a student's absence on a day); null for SMS sent by hand
+  dedupeKey String?
+
+  status    SmsStatus @default(QUEUED)
+  sendAfter DateTime  @default(now())
+  attempts  Int       @default(0)
+  error     String?
+
+  // the gateway it went through and the gateway's own id for it
+  provider    SmsProvider?
+  providerRef String?
+  sentAt      DateTime?
+
+  // the user who sent it by hand
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, dedupeKey])
+  @@index([status, sendAfter])
+  @@index([schoolId, createdAt])
+}

@@ -30,7 +30,13 @@ model School {
   resultCardSetting ResultCardSetting?
   financeSetting    FinanceSetting?
   notices           Notice[]
+  notifications     Notification[]
+  smsSetting        SmsSetting?
+  smsTemplates      SmsTemplate[]
+  smsMessages       SmsMessage[]
   homework          Homework[]
+  rooms             Room[]
+  admitCardSetting  AdmitCardSetting?
   subjectTeachers   SubjectTeacher[]
   weeklyHolidayRules        WeeklyHolidayRule[]
   attendanceSessions        AttendanceSession[]

@@ -162,8 +162,12 @@ model Exam {
   attendanceFrom DateTime? @db.Date
   attendanceTo   DateTime? @db.Date
 
+  // when families could first see their admit cards in the app; null = not released
+  admitCardsReleasedAt DateTime?
+
   classes ExamClass[]
   finalComponents FinalResultComponentExam[]
+  seatPlan        SeatPlan?
 
   createdBy String?
   createdAt DateTime @default(now())

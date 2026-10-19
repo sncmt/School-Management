@@ -32,6 +32,11 @@ import { expenseRoutes } from '../modules/expense/expense.route';
 import { noticeRoutes } from '../modules/notice/notice.route';
 import { familyRoutes } from '../modules/family/family.route';
 import { homeworkRoutes } from '../modules/homework/homework.route';
+import { roomRoutes } from '../modules/room/room.route';
+import { seatPlanRoutes } from '../modules/seatPlan/seatPlan.route';
+import { admitCardRoutes } from '../modules/admitCard/admitCard.route';
+import { notificationRoutes } from '../modules/notification/notification.route';
+import { smsRoutes } from '../modules/sms/sms.route';
 
 
 const router = express.Router();
@@ -194,9 +199,34 @@ const moduleRoutes = [
         route: familyRoutes
     },
     {
+        // each member's in-app messages (admitted, fee paid, absent today...)
+        path: '/notification',
+        route: notificationRoutes
+    },
+    {
+        // SMS to guardians: settings, templates per activity, the log, sending by hand
+        path: '/sms',
+        route: smsRoutes
+    },
+    {
         // homework: given by subject teachers, ticked in class, seen by families
         path: '/homework',
         route: homeworkRoutes
+    },
+    {
+        // the school's rooms (for exam seat plans)
+        path: '/room',
+        route: roomRoutes
+    },
+    {
+        // each exam's seat plan
+        path: '/seat-plan',
+        route: seatPlanRoutes
+    },
+    {
+        // exam admit cards: settings, printing, releasing to families
+        path: '/admit-card',
+        route: admitCardRoutes
     }
 ];
 

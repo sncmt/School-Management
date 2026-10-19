@@ -1,0 +1,51 @@
+// what happened; the app writes the sentence from this and `data`, in the reader's language
+enum NotificationType {
+  STUDENT_ADMITTED
+  PAYMENT_RECEIVED
+  PAYMENT_CANCELLED
+  STUDENT_ABSENT
+  STUDENT_LATE
+  RESULT_PUBLISHED
+  ADMIT_CARD_RELEASED
+  // the monthly reminder: what is owed now
+  FEE_DUE
+  // end of year: moved up a class, or graduated
+  STUDENT_PROMOTED
+}
+
+/*
+ * A message in a user's in-app inbox, made by the system when something happens (a student
+ * admitted, a fee paid, absent today...). For now they go to the family login; siblings share
+ * that login, so each message names its student.
+ */
+model Notification {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // who reads it
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // the student it is about, if any
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  type NotificationType
+  // what the sentence needs: names (both languages), amounts, dates
+  data Json
+
+  // one message per thing: re-marking attendance updates that day's message instead of
+  // adding another. Null for messages that can repeat.
+  dedupeKey String?
+
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, schoolId, createdAt])
+  @@index([userId, schoolId, readAt])
+  @@index([schoolId, dedupeKey])
+}

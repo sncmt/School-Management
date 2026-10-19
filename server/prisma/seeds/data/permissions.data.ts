@@ -73,6 +73,8 @@ export const permissionsData: PermissionSeed[] = [
   { code: 'exam:unlock',         name: 'Unlock a Published Result', moduleCode: 'exam' },
   { code: 'exam:publish_result', name: 'Publish Result',       moduleCode: 'exam' },
   { code: 'exam:view_result',    name: 'View Result',          moduleCode: 'exam' },
+  // exam rooms, seat plans and invigilator duties (seeing them needs only exam:view)
+  { code: 'exam:seat_plan',      name: 'Manage Rooms, Seat Plans and Invigilators', moduleCode: 'exam' },
   { code: 'grading:view',        name: 'View Grading Scales and Result Settings', moduleCode: 'exam' },
   { code: 'grading:manage',      name: 'Manage Grading Scales, Marks Setup and Result Settings', moduleCode: 'exam' },
 
@@ -115,4 +117,16 @@ export const permissionsData: PermissionSeed[] = [
   { code: 'expense:view',        name: 'View Expenses',        moduleCode: 'finance' },
   { code: 'expense:void', name: 'Void Expense', moduleCode: 'finance' },
   { code: 'finance_report:view', name: 'View Finance Reports', moduleCode: 'finance' },
+
+  // sms: one per activity (turn that activity's automatic SMS on or off), then the rest
+  { code: 'sms:admission',  name: 'Admission SMS',               moduleCode: 'sms' },
+  { code: 'sms:payment',    name: 'Payment SMS',                 moduleCode: 'sms' },
+  { code: 'sms:attendance', name: 'Absent / Late SMS',           moduleCode: 'sms' },
+  { code: 'sms:result',     name: 'Result and Admit Card SMS',   moduleCode: 'sms' },
+  { code: 'sms:fee_due',    name: 'Fee Due Reminder SMS',        moduleCode: 'sms' },
+  { code: 'sms:promotion',  name: 'Promotion SMS',               moduleCode: 'sms' },
+  { code: 'sms:templates',  name: 'Edit SMS Templates',          moduleCode: 'sms' },
+  { code: 'sms:send',       name: 'Send SMS by Hand',            moduleCode: 'sms' },
+  { code: 'sms:log',        name: 'View SMS Log',                moduleCode: 'sms' },
+  { code: 'sms:gateway',    name: 'Set Up the SMS Gateway and Language', moduleCode: 'sms' },
 ];

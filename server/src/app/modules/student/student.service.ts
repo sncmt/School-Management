@@ -17,6 +17,7 @@ import type {
   UpdateStudentPayload,
 } from "./student.type";
 import { isUniqueViolation } from "../../utils/prismaError";
+import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { processImage } from "../../shared/imageUpload";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
@@ -216,7 +217,7 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
   const { enrollment: enr, phone, admissionNo: givenAdmissionNo, ...profile } = data;
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const academicYear = await resolveAcademicYear(tx, schoolId, enr.academicYearId);
       await assertPlacement(tx, schoolId, enr);
       const admissionDate = data.admissionDate ?? todayInBangladesh();
@@ -329,6 +330,10 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
         warnings,
       };
     }, TX_OPTIONS);
+
+    // the family's welcome message, once the admission is saved
+    notifyInBackground("admission", () => NotificationService.notifyAdmitted(schoolId, result.student.id));
+    return result;
   } catch (e) {
     if (isUniqueViolation(e)) throw new AppError(CONFLICT_MESSAGE, httpStatus.CONFLICT);
     throw e;

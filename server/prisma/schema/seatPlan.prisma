@@ -1,0 +1,117 @@
+/*
+ * A room of the school, by its number ("101", "Lab 2"), with how many students it seats.
+ * Seats are numbered 1..capacity: neighbouring numbers sit side by side. Used by exam
+ * seat plans; a room already in a plan is deactivated rather than deleted.
+ */
+model Room {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  number   String
+  // e.g. "Main building, 2nd floor"
+  building String?
+  capacity Int
+  isActive Boolean @default(true)
+
+  planRooms SeatPlanRoom[]
+  seats     Seat[]
+  duties    InvigilatorDuty[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, number])
+  @@index([schoolId, isActive])
+}
+
+/*
+ * An exam's seat plan: each student keeps one seat for the whole exam. Classes are put in
+ * groups that share rooms; inside a group seats alternate between its classes, so students
+ * side by side write different papers.
+ */
+model SeatPlan {
+  id String @id @default(cuid())
+
+  examId String @unique
+  exam   Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  // the groups of class ids, in the order they fill the rooms: [["six", "eight"], ["seven"]]
+  groups Json
+
+  rooms SeatPlanRoom[]
+  seats Seat[]
+
+  // invigilators for each room at each sitting
+  invigilatorsPerRoom Int               @default(1)
+  duties              InvigilatorDuty[]
+
+  generatedBy String?
+  generatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/* A room used by a plan, in fill order, with its seats as they were when the plan was made. */
+model SeatPlanRoom {
+  id String @id @default(cuid())
+
+  planId String
+  plan   SeatPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  // Restrict: a room in a plan is deactivated, never deleted
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  sortOrder Int
+  seats     Int
+
+  @@unique([planId, roomId])
+}
+
+/* One student's seat: room and seat number (1..seats). */
+model Seat {
+  id String @id @default(cuid())
+
+  planId String
+  plan   SeatPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  seatNo Int
+
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, roomId, seatNo])
+  @@unique([planId, enrollmentId])
+  @@index([roomId])
+}
+
+/*
+ * A teacher on invigilation duty in a room at one sitting of the exam (a date and a start
+ * time from the routine). A teacher is in one room at a time.
+ */
+model InvigilatorDuty {
+  id String @id @default(cuid())
+
+  planId String
+  plan   SeatPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  date      DateTime @db.Date
+  // "HH:mm"; "" when the routine has no time for that day
+  startTime String   @default("")
+
+  teacherId String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([planId, date, startTime, teacherId])
+  @@index([planId, date])
+  @@index([teacherId, date])
+}

@@ -36,6 +36,8 @@ model Student {
   examResults ExamResult[]
   finalResults FinalResult[]
   payments    Payment[]
+  notifications Notification[]
+  smsMessages   SmsMessage[]
   homeworkChecks HomeworkCheck[]
 
   createdAt DateTime @default(now())
@@ -80,6 +82,7 @@ model Enrollment {
   examRemarks     ExamRemark[]
   finalResults    FinalResult[]
   homeworkChecks  HomeworkCheck[]
+  seats           Seat[]
   enrolledAt DateTime         @default(now())
   leftAt     DateTime?
 

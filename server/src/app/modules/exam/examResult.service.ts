@@ -15,6 +15,7 @@ import {
   type SubjectInput,
 } from "./examResult.calc";
 import type { ExamClassPayload, MarksheetQuery, SummaryQuery, TabulationQuery } from "./examResult.validation";
+import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { marksProgress } from "./examMarks.service";
 import { loadExamStudents } from "./examStudents";
 
@@ -293,6 +294,9 @@ const publishResult = async (auth: Auth, data: ExamClassPayload) => {
     { maxWait: 10_000, timeout: 120_000 },
   );
 
+  // every family in the class: the result is out
+  notifyInBackground("result published", () => NotificationService.notifyResultPublished(schoolId, examClass.id));
+
   const passed = results.filter((r) => r.result.passed).length;
   return {
     exam: { id: examClass.exam.id, nameEn: examClass.exam.nameEn, nameBn: examClass.exam.nameBn },
@@ -333,6 +337,8 @@ const unlockResult = async (schoolId: string, data: ExamClassPayload) => {
       data: { status: "MARKS_ENTRY", publishedAt: null, publishedBy: null, resultRules: Prisma.DbNull },
     });
   });
+  // its "result published" messages go; publishing again sends new ones
+  notifyInBackground("result withdrawn", () => NotificationService.withdrawResult(schoolId, examClass.id));
   return { exam: examClass.exam.nameEn, class: examClass.class, status: "MARKS_ENTRY" as const };
 };
 

@@ -2,10 +2,20 @@ import app from "./app";
 import config from "./app/config";
 import { redis } from "./app/config/redis";
 import { prisma } from "../lib/prisma";
+import { startNotificationJobs } from "./app/modules/notification/notification.jobs";
+import { startSmsWorker } from "./app/modules/sms/sms.worker";
 
 const port = Number(config.port ?? 5000);
 
 const server = app.listen(port);
+
+// the monthly fee reminder, and the SMS sender
+const stopNotificationJobs = startNotificationJobs();
+const stopSmsWorker = startSmsWorker();
+const stopJobs = () => {
+  stopNotificationJobs();
+  stopSmsWorker();
+};
 
 let stopping = false;
 
@@ -17,6 +27,7 @@ let stopping = false;
 const shutdown = (signal: "SIGTERM" | "SIGINT") => {
   if (stopping) process.exit(1);
   stopping = true;
+  stopJobs();
 
   const finish = async () => {
     await Promise.allSettled([prisma.$disconnect(), redis.quit()]);

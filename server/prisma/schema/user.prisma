@@ -28,6 +28,8 @@ model User {
   // codes emailed to a school super admin to confirm a password change
   passwordChangeCodes PasswordChangeCode[]
   noticeReads         NoticeRead[]
+  // the in-app inbox
+  notifications       Notification[]
 
   @@index([email])
   @@index([phone])

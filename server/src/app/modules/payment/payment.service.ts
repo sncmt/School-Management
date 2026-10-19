@@ -5,6 +5,7 @@ import { AppError } from "../../errorHandler/AppError";
 import { displayName, type Names } from "../../shared/names";
 import { fileUrl } from "../../shared/storage";
 import { getFundBalance, lockFund } from "../fund/fund.ledger";
+import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { computeFeeStatus, currentMonth, lockStudentFees, round2 } from "../studentFee/studentFee.service";
 import type {
   CancelPaymentPayload,
@@ -167,7 +168,7 @@ const recordPayment = async (schoolId: string, userId: string, data: RecordPayme
   const feeIds = allocations.map((a) => a.studentFeeId);
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const student = await tx.student.findFirst({
         where: { id: studentId, schoolId },
         select: { id: true, admissionNo: true },
@@ -268,6 +269,9 @@ const recordPayment = async (schoolId: string, userId: string, data: RecordPayme
 
       return getPaymentDetail(tx, schoolId, payment.id);
     }, TX_OPTIONS);
+
+    notifyInBackground("payment", () => NotificationService.notifyPayment(schoolId, result.id, "PAYMENT_RECEIVED"));
+    return result;
   } catch (e) {
     // the partial unique index on (schoolId, transactionRef) for successful payments
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
@@ -294,7 +298,7 @@ const cancelPayment = async (
   paymentId: string,
   data: CancelPaymentPayload,
 ) => {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     // lock the payment so two simultaneous cancels can't both go through
     const locked = await tx.$queryRaw<{ id: string }[]>`
       SELECT "id" FROM "Payment"
@@ -394,6 +398,9 @@ const cancelPayment = async (
 
     return getPaymentDetail(tx, schoolId, paymentId);
   }, TX_OPTIONS);
+
+  notifyInBackground("payment cancelled", () => NotificationService.notifyPayment(schoolId, paymentId, "PAYMENT_CANCELLED"));
+  return result;
 };
 
 // ------------------------------------------------------------------- reading

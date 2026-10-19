@@ -6,6 +6,7 @@ import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { GUARDIAN_ROLE } from "../../shared/schoolAccounts";
 import { fileUrl } from "../../shared/storage";
 import { upcomingHolidays } from "../dashboard/dashboard.service";
+import { releasedForEnrollment } from "../admitCard/admitCard.service";
 import { homeworkDueSoon } from "../homework/homework.service";
 import { currentMonth } from "../studentFee/studentFee.service";
 
@@ -81,7 +82,7 @@ const getHome = async (auth: Auth) => {
         enrollments[0] ??
         null;
 
-      const [todayRecord, monthByStatus, dueFees, homework] = await Promise.all([
+      const [todayRecord, monthByStatus, dueFees, homework, admitCards] = await Promise.all([
         prisma.studentAttendance.findFirst({
           where: { studentId: student.id, session: { date: today } },
           select: { status: true, checkInAt: true },
@@ -114,6 +115,8 @@ const getHome = async (auth: Auth) => {
         }),
         // homework due from today, in the class they are in now
         enrollment ? homeworkDueSoon(schoolId, { id: student.id, religion, enrollments: [enrollment] }) : { total: 0, items: [] },
+        // exams whose admit cards the school has released for this class
+        enrollment && enrollment.status === "ACTIVE" ? releasedForEnrollment(enrollment) : [],
       ]);
 
       const count = (s: string) => monthByStatus.find((x) => x.status === s)?._count._all ?? 0;
@@ -135,6 +138,7 @@ const getHome = async (auth: Auth) => {
           group: enrollment.group,
         },
         homework,
+        admitCards,
         attendance: {
           today: todayRecord ? { status: todayRecord.status, checkInAt: todayRecord.checkInAt } : null,
           month: { present: count("PRESENT"), late: count("LATE"), absent: count("ABSENT"), leave: count("LEAVE") },

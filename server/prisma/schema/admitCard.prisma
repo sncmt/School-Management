@@ -1,0 +1,19 @@
+/*
+ * The school's admit card: the rules printed on it and the signature lines. The colour,
+ * logo and address come from the result card design, so both cards look alike.
+ */
+model AdmitCardSetting {
+  id String @id @default(cuid())
+
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // a few lines, one rule per line
+  rules      String @default("")
+  // e.g. ["Class Teacher", "Head Teacher"]
+  signatures Json
+
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

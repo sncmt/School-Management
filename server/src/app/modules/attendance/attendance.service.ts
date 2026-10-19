@@ -8,6 +8,7 @@ import { fileUrl } from "../../shared/storage";
 import { checkPermission } from "../../middlewares/authorize";
 import { dayKey, endOfBangladeshDay, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, eachDay, loadCalendar } from "../calendar/calendar.resolver";
+import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { resolveSectionHours } from "../schedule/schedule.service";
 import { WORKING_STATUSES } from "../teacher/teacher.service";
 import type {
@@ -286,6 +287,8 @@ const saveStudentSheet = async (auth: Auth, data: SaveStudentSheetPayload) => {
     if (creates.length > 0) await tx.studentAttendance.createMany({ data: creates });
   }, TX_OPTIONS);
 
+  // families of absent and late students get a message for the day (kept in step on every save)
+  notifyInBackground("attendance", () => NotificationService.syncAttendance(schoolId, section.id, date));
   return getStudentSheet(auth, { sectionId: section.id, date });
 };
 

@@ -3,6 +3,7 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { endOfBangladeshDay } from "../../shared/scheduleSchemas";
+import { NotificationService, notifyInBackground, type PromotionMove } from "../notification/notification.service";
 import { currentMonth, generateStudentFees, removeUntouchedMonthlyFees } from "../studentFee/studentFee.service";
 import type { PromotePayload, PromotionPreviewQuery } from "./promotion.validation";
 
@@ -129,8 +130,8 @@ const getPreview = async (schoolId: string, query: PromotionPreviewQuery) => {
 
 // ------------------------------------------------------------------- promote
 
-const promote = async (schoolId: string, data: PromotePayload) =>
-  prisma.$transaction(async (tx) => {
+const promote = async (schoolId: string, data: PromotePayload) => {
+  const { result, moves, toYearId, fromClassName } = await prisma.$transaction(async (tx) => {
     const { from, to } = await resolveYears(tx, schoolId, data.academicYearId);
     if (!to) throw new AppError("Make the next academic year first: students move into it", httpStatus.BAD_REQUEST);
     const { schoolClass, nextClass } = await resolveClasses(tx, schoolId, data.classId);
@@ -157,6 +158,8 @@ const promote = async (schoolId: string, data: PromotePayload) =>
     const now = currentMonth();
     const moved = { PROMOTE: [] as string[], REPEAT: [] as string[] };
     const counts = { promoted: 0, repeated: 0, graduated: 0, left: 0 };
+    // who gets a message: the promoted and the graduates
+    const moves: PromotionMove[] = [];
 
     for (const choice of data.students) {
       const e = byId.get(choice.enrollmentId)!;
@@ -188,6 +191,7 @@ const promote = async (schoolId: string, data: PromotePayload) =>
         await tx.enrollment.update({ where: { id: e.id }, data: { status: choice.action === "PROMOTE" ? "PROMOTED" : "REPEATED", leftAt } });
         moved[choice.action].push(e.studentId);
         counts[choice.action === "PROMOTE" ? "promoted" : "repeated"]++;
+        if (choice.action === "PROMOTE") moves.push({ enrollmentId: e.id, studentId: e.studentId, outcome: "PROMOTED" });
       } else {
         const graduate = choice.action === "GRADUATE";
         await tx.enrollment.update({ where: { id: e.id }, data: { status: graduate ? "GRADUATED" : "WITHDRAWN", leftAt } });
@@ -195,6 +199,7 @@ const promote = async (schoolId: string, data: PromotePayload) =>
         // like leaving: unpaid monthly fees after this month go
         await removeUntouchedMonthlyFees(tx, { schoolId, studentId: e.studentId, after: now });
         counts[graduate ? "graduated" : "left"]++;
+        if (graduate) moves.push({ enrollmentId: e.id, studentId: e.studentId, outcome: "GRADUATED" });
       }
     }
 
@@ -206,8 +211,17 @@ const promote = async (schoolId: string, data: PromotePayload) =>
       await generateStudentFees(tx, { schoolId, studentIds: moved.REPEAT, academicYearId: to.id, classId: schoolClass.id });
     }
 
-    return { fromYear: { id: from.id, name: from.name }, toYear: { id: to.id, name: to.name }, ...counts };
+    return {
+      result: { fromYear: { id: from.id, name: from.name }, toYear: { id: to.id, name: to.name }, ...counts },
+      moves,
+      toYearId: to.id,
+      fromClassName: schoolClass.name,
+    };
   }, TX_OPTIONS);
+
+  notifyInBackground("promotion", () => NotificationService.notifyPromotion(schoolId, moves, { toYearId, fromClassName }));
+  return result;
+};
 
 // ---------------------------------------------------------------------- undo
 
@@ -216,8 +230,8 @@ const promote = async (schoolId: string, data: PromotePayload) =>
  * this year's is active again; a student who graduated or left is active again. Refused
  * once next year has money paid or other records (attendance, marks) for the student.
  */
-const undo = async (schoolId: string, enrollmentId: string) =>
-  prisma.$transaction(async (tx) => {
+const undo = async (schoolId: string, enrollmentId: string) => {
+  const result = await prisma.$transaction(async (tx) => {
     const old = await tx.enrollment.findFirst({
       where: { id: enrollmentId, student: { schoolId } },
       select: { id: true, status: true, studentId: true, classId: true, academicYearId: true, academicYear: { select: { startDate: true } } },
@@ -260,5 +274,10 @@ const undo = async (schoolId: string, enrollmentId: string) =>
     }
     return { enrollmentId: old.id, status: "ACTIVE" as const };
   }, TX_OPTIONS);
+
+  // the "promoted" or "graduated" message goes with the move
+  notifyInBackground("promotion undone", () => NotificationService.withdrawPromotion(schoolId, result.enrollmentId));
+  return result;
+};
 
 export const PromotionService = { getPreview, promote, undo };

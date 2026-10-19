@@ -42,6 +42,7 @@ model TeacherProfile {
   attendance         TeacherAttendance[]
   routineEntries     RoutineEntry[]
   substitutions      RoutineSubstitution[]
+  invigilations      InvigilatorDuty[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
