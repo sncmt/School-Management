@@ -12,7 +12,7 @@ function Tabs({ className, ...props }: React.ComponentProps<typeof TabsPrimitive
 /*
  * Two looks, matching the sidebar:
  * - "line" (default): the page's sections. Quiet labels on a hairline; the open one in navy
- *   with the amber bar the sidebar puts on its current page.
+ *   with the teal bar the sidebar puts on its current page.
  * - "chip": tabs inside a tab, or a small switch. Small rounded labels; the open one a navy chip.
  */
 function TabsList({

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { SidebarShell } from "@/components/layout/SidebarShell";
 import { useSchoolMe } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
+import { MessagesMenu } from "./messages/MessagesMenu";
 import { schoolMenu } from "./navigation";
 
 /** School layout: the school's name and logo, its modules in the sidebar. */
@@ -32,6 +33,7 @@ export function SchoolShell({ children }: { children: ReactNode }) {
         home: "/dashboard",
       }}
       menu={schoolMenu}
+      topBarItems={<MessagesMenu />}
     >
       {children}
     </SidebarShell>

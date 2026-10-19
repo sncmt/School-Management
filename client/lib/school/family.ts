@@ -34,6 +34,8 @@ export type FamilyChild = {
     today: { status: AttendanceMark; checkInAt: string | null } | null;
     month: { present: number; late: number; absent: number; leave: number };
   };
+  // exams whose admit cards the school has released for the child's class
+  admitCards: { id: string; nameEn: string | null; nameBn: string | null }[];
   // homework due from today, soonest first (the first few) and how many in all
   homework: { total: number; items: FamilyHomeworkItem[] };
   // owed now: one-time fees and started months, earlier years too

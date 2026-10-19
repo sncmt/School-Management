@@ -465,7 +465,7 @@ function AddressFields({ form }: { form: ReturnType<typeof useForm<StudentFormIn
               <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
                 <input
                   type="checkbox"
-                  className="size-3.5 accent-primary"
+                  className="size-3.5 accent-primary "
                   checked={same}
                   disabled={!present.trim()}
                   onChange={(e) => form.setValue("permanentAddress", e.target.checked ? present : "")}

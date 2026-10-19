@@ -15,11 +15,13 @@ import {
   Rows3,
   Shapes,
   ShieldCheck,
+  Smartphone,
   TrendingUp,
   UserCheck,
   Users,
 } from "lucide-react";
 import type { MenuGroup } from "@/components/layout/SidebarShell";
+import { SMS_PERMISSIONS } from "@/lib/school/smsKinds";
 
 // The school's modules, in sidebar order. A titled group opens into a list of its pages
 // (shown as one row when only one of them is visible); each page shows only with its
@@ -30,6 +32,8 @@ export const schoolMenu: MenuGroup[] = [
       { href: "/dashboard", label: "dashboard", icon: LayoutDashboard },
       // every member: each reads the notices meant for them
       { href: "/notices", label: "notices", icon: Megaphone },
+      // SMS to guardians: anyone with one of its permissions (each tab checks its own)
+      { href: "/sms", label: "sms", icon: Smartphone, permission: SMS_PERMISSIONS, anyPermission: true },
       // teachers (their own subjects), staff with homework permissions and families
       { href: "/homework", label: "homework", icon: BookOpenCheck },
     ],

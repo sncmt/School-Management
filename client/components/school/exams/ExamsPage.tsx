@@ -12,6 +12,8 @@ import { OptionalSubjects } from "./OptionalSubjects";
 import { CardSettingsTab } from "./results/CardSettingsTab";
 import { ResultsTab } from "./results/ResultsTab";
 import { ResultSettings } from "./ResultSettings";
+import { SeatingTab } from "./seating/SeatingTab";
+import { AdmitCardsTab } from "./admit/AdmitCardsTab";
 
 /** Exams and results: grading, result settings, exams, marks and results. */
 export function ExamsPage() {
@@ -25,6 +27,8 @@ export function ExamsPage() {
     can("exam:view_result") && "final",
     can("exam:view_result") && "card",
     can("exam:view") && "optional",
+    can("exam:view") && "seating",
+    can("exam:view") && "admit",
     can("grading:view") && "scales",
     can("grading:view") && "settings",
   ].filter(Boolean) as string[];
@@ -70,6 +74,12 @@ export function ExamsPage() {
         </TabsContent>
         <TabsContent value="optional">
           <OptionalSubjects canManage={can("exam:create")} />
+        </TabsContent>
+        <TabsContent value="admit">
+          <AdmitCardsTab />
+        </TabsContent>
+        <TabsContent value="seating">
+          <SeatingTab />
         </TabsContent>
         <TabsContent value="scales">
           <GradingScales canManage={canManageGrading} />

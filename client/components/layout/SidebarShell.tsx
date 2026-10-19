@@ -56,10 +56,12 @@ type Props = {
   // the logo block: logo, site name, and a line under it (the academic year)
   brand: { icon: ReactNode; title: string; subtitle?: ReactNode; home: string };
   menu: MenuGroup[];
+  // the site's own buttons in the top bar, before the language menu (the school's messages)
+  topBarItems?: ReactNode;
   children: ReactNode;
 };
 
-// a menu row: full width, divided by a hairline; the current page darker with an amber bar
+// a menu row: full width, divided by a hairline; the current page darker with a teal bar
 const rowClass = (active: boolean) =>
   cn(
     "relative flex h-12 w-full items-center gap-3 border-b border-sidebar-border px-5 text-left text-[14px] transition-colors",
@@ -70,7 +72,7 @@ const rowClass = (active: boolean) =>
   );
 
 /** Logged-in layout: the navy menu on the left; a white top bar and the page on a light-grey canvas. Used by the admin and school sites. */
-export function SidebarShell({ session, brand, menu, children }: Props) {
+export function SidebarShell({ session, brand, menu, topBarItems, children }: Props) {
   const t = useTranslations("nav");
   const tGroups = useTranslations("navGroups");
   const tShell = useTranslations("shell");
@@ -90,18 +92,18 @@ export function SidebarShell({ session, brand, menu, children }: Props) {
   return (
     <SidebarProvider style={{ "--sidebar-width": "16.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
       <Sidebar collapsible="icon" className="dark border-r-0">
-        {/* the amber logo block, as tall as the top bar */}
+        {/* the logo block in the brand colour, as tall as the top bar; its text is white */}
         <SidebarHeader className="h-[68px] flex-row items-center gap-0 bg-brand px-4 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link href={brand.home} className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:hidden">
             <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white text-sidebar shadow-sm">
               {brand.icon}
             </span>
-            <span className="grid min-w-0 leading-tight">
-              <span className="truncate text-[16px] font-bold tracking-tight text-brand-foreground">{brand.title}</span>
-              {brand.subtitle && <span className="truncate text-xs font-medium text-brand-foreground/70">{brand.subtitle}</span>}
+            <span className="grid min-w-0 leading-tight text-white">
+              <span className="truncate text-[16px] font-bold tracking-tight">{brand.title}</span>
+              {brand.subtitle && <span className="truncate text-xs font-medium text-white/75">{brand.subtitle}</span>}
             </span>
           </Link>
-          <SidebarTrigger className="size-9 shrink-0 text-brand-foreground hover:bg-black/10 hover:text-brand-foreground [&_svg]:size-5!" />
+          <SidebarTrigger className="size-9 shrink-0 text-white hover:bg-white/15 hover:text-white [&_svg]:size-5!" />
         </SidebarHeader>
 
         <SidebarContent className="gap-0 p-0">
@@ -122,6 +124,7 @@ export function SidebarShell({ session, brand, menu, children }: Props) {
             <div className="hidden w-72 lg:block">
               <PageSearch pages={pages} />
             </div>
+            {topBarItems}
             <LanguageMenu />
             <ThemeToggle />
             <Separator orientation="vertical" className="mx-1 hidden data-[orientation=vertical]:h-8 sm:block" />

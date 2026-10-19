@@ -227,6 +227,11 @@ const moduleRoutes = [
         // exam admit cards: settings, printing, releasing to families
         path: '/admit-card',
         route: admitCardRoutes
+    },
+    {
+        // student ID cards: the school's design and printing
+        path: '/id-card',
+        route: idCardRoutes
     }
 ];
 

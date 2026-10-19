@@ -10,7 +10,7 @@
   /* Latin from Geist, Bangla glyphs from Hind Siliguri */
   --font-sans: var(--font-geist-sans), var(--font-bangla), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  /* the accent (amber): the logo block, menu icons, the current page */
+  /* the accent (teal): the logo block, the current tab, badges and highlights */
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
   --color-brand-foreground: var(--brand-foreground);
@@ -81,9 +81,10 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --brand: oklch(0.8 0.16 75);
-  --brand-soft: oklch(0.965 0.035 85);
-  --brand-foreground: oklch(0.27 0.08 258);
+  --brand: oklch(41.179% 0.07047 185.321);
+  --brand-soft: oklch(0.96 0.02 185);
+  /* teal is dark: text on it is white */
+  --brand-foreground: oklch(0.985 0 0);
   --canvas: oklch(0.962 0.004 250);
   --navy: oklch(0.305 0.1 258);
   --navy-foreground: oklch(0.985 0 0);
@@ -123,9 +124,9 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --brand: oklch(0.82 0.16 75);
-  --brand-soft: oklch(0.32 0.06 75);
-  --brand-foreground: oklch(0.22 0.06 258);
+  --brand: oklch(50.381% 0.08642 185.347);
+  --brand-soft: oklch(0.3 0.04 185);
+  --brand-foreground: oklch(0.985 0 0);
   --canvas: oklch(0.145 0 0);
   /* on dark pages the navy turns into a light blue-grey, so it still reads */
   --navy: oklch(0.82 0.07 258);
@@ -134,7 +135,8 @@
   /* the navy sidebar (it always uses these dark values) */
   --sidebar: oklch(0.305 0.1 258);
   --sidebar-foreground: oklch(0.95 0.01 250);
-  --sidebar-primary: oklch(0.82 0.16 75);
+  /* the menu's icons and current-page bar: a brighter teal, so it shows on the navy */
+  --sidebar-primary: oklch(0.78 0.11 185);
   --sidebar-primary-foreground: oklch(0.27 0.08 258);
   --sidebar-accent: oklch(0.255 0.085 258);
   --sidebar-accent-foreground: oklch(0.99 0 0);

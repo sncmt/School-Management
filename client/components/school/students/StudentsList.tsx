@@ -314,7 +314,7 @@ export function StudentsList() {
         <div className={cn("border-t transition-opacity", isFetching && !isPending && "opacity-60")}>
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/40 hover:bg-muted/40">
+              <TableRow>
                 {COLUMNS.map((column) => (
                   <TableHead key={column} className={HEAD}>
                     {t(`columns.${column}`)}
@@ -379,8 +379,8 @@ export function StudentsList() {
   );
 }
 
-// the table's quiet header and its roomier rows (the first and last cells line up with the card's padding)
-const HEAD = "h-10 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase first:pl-5 last:pr-5";
+// roomier rows; the first and last cells line up with the card's padding
+const HEAD = "first:pl-5 last:pr-5";
 const CELL = "py-3 first:pl-5 last:pr-5";
 
 /** A labelled dropdown in the filter panel; its "all" choice (if any) clears it. */
@@ -458,7 +458,7 @@ function StudentRow({ student, canUpdate }: { student: StudentListItem; canUpdat
     : [];
 
   return (
-    <TableRow className="group/row hover:bg-navy-soft/40">
+    <TableRow className="group/row">
       <TableCell className={CELL}>
         <div className="flex items-center gap-3">
           <StudentAvatar photo={student.photo} name={name(student)} />

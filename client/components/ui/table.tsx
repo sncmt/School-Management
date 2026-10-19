@@ -20,9 +20,13 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
+    // a pale teal band with navy headings (the sidebar's two colours); plain when printed
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn(
+        "bg-brand-soft [&_tr]:border-b [&_tr]:border-brand/15 [&_tr]:hover:bg-transparent print:bg-transparent",
+        className
+      )}
       {...props}
     />
   )
@@ -43,7 +47,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        "border-t border-brand/15 bg-brand-soft/60 font-medium text-navy [&>tr]:last:border-b-0 [&>tr]:hover:bg-transparent print:bg-transparent print:text-foreground",
         className
       )}
       {...props}
@@ -56,7 +60,8 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        // every other row lightly striped; teal tint under the pointer
+        "border-b transition-colors even:bg-muted/40 hover:bg-brand-soft/70 has-aria-expanded:bg-brand-soft/70 data-[state=selected]:bg-brand-soft print:even:bg-transparent",
         className
       )}
       {...props}
@@ -69,7 +74,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "h-10 px-2 text-left align-middle text-xs font-semibold tracking-wide whitespace-nowrap text-navy uppercase print:text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

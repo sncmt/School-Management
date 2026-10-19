@@ -17,7 +17,7 @@ import { ChildrenGrid, FamilyHome } from "../family/FamilyHome";
 import { ReceiptDialog } from "../finance/collect/ReceiptDialog";
 import { FeesChart } from "./FeesChart";
 import { MiniCalendar } from "./MiniCalendar";
-import { NoticesPanel, Panel, PanelLink, UpcomingPanel } from "./panels";
+import { MyDutiesPanel, NoticesPanel, Panel, PanelLink, UpcomingPanel } from "./panels";
 
 /** The school's home: the numbers that matter today, each part shown only to those allowed to see it. */
 export function DashboardPage() {
@@ -142,6 +142,9 @@ function Dashboard({ data }: { data: DashboardSummary }) {
           {data.attendance && <AttendancePanel attendance={data.attendance} className={data.money ? "" : "lg:col-span-3"} />}
         </div>
       )}
+
+      {/* a teacher's own invigilation duties, when there are any coming up */}
+      <MyDutiesPanel />
 
       <NoticesPanel />
 

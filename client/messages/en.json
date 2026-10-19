@@ -14,7 +14,7 @@
     "close": "Close",
     "loginPage": "Login page",
     "email": "Email",
-    "mobileNumber": "Mobile number",
+    "mobileNumber": "Mobile number", 
     "back": "Back",
     "upload": "Upload",
     "change": "Change",
@@ -235,6 +235,7 @@
     "promotion": "Promotion",
     "roles": "Roles and staff",
     "notices": "Notices",
+    "sms": "SMS",
     "homework": "Homework"
   },
   "platform": {
@@ -919,6 +920,148 @@
         "saved": "Teachers saved."
       }
     },
+    "sms": {
+      "title": "SMS",
+      "description": "Text messages to guardians' phones: automatic for each activity, or written by hand.",
+      "loadFailed": "Couldn't load the SMS settings.",
+      "cancel": "Cancel",
+      "parts": "{count, plural, one {# SMS} other {# SMS}}",
+      "status": {
+        "on": "SMS on",
+        "off": "SMS off",
+        "testMode": "Test mode"
+      },
+      "tabs": {
+        "activities": "Activities & templates",
+        "send": "Send SMS",
+        "log": "SMS log",
+        "settings": "Settings"
+      },
+      "languages": {
+        "BN": "Bangla",
+        "EN": "English"
+      },
+      "activities": {
+        "intro": "Each activity's SMS goes to the guardian's phone (or the family login's) when it is switched on. They go out in {language}. Absent / late SMS wait 10 minutes, so a corrected roll call can stop them; none are sent between 9 pm and 8 am.",
+        "offBanner": "SMS is turned off for the school, so none of these are sent.",
+        "openSettings": "Open settings",
+        "viewOnly": "View only",
+        "noPermission": "You don't have permission to turn these on or off",
+        "custom": "Your wording",
+        "default": "Default wording",
+        "edit": "Edit",
+        "turnedOn": "{name} SMS turned on",
+        "turnedOff": "{name} SMS turned off",
+        "names": {
+          "admission": "Admission",
+          "payment": "Payments",
+          "attendance": "Attendance",
+          "result": "Results and admit cards",
+          "fee_due": "Fee due reminder",
+          "promotion": "Promotion"
+        }
+      },
+      "events": {
+        "STUDENT_ADMITTED": { "title": "Admission confirmed", "when": "When a student is admitted" },
+        "PAYMENT_RECEIVED": { "title": "Fee payment received", "when": "When a fee payment is taken" },
+        "PAYMENT_CANCELLED": { "title": "Payment cancelled", "when": "When a payment is cancelled" },
+        "STUDENT_ABSENT": { "title": "Absent", "when": "When a student is marked absent in the roll call" },
+        "STUDENT_LATE": { "title": "Came late", "when": "When a student is marked late in the roll call" },
+        "RESULT_PUBLISHED": { "title": "Result published", "when": "When a class's exam result is published" },
+        "ADMIT_CARD_RELEASED": { "title": "Admit card ready", "when": "When an exam's admit cards are released" },
+        "FEE_DUE": { "title": "Fees due", "when": "On the 10th of each month, to families who owe fees" },
+        "STUDENT_PROMOTED": { "title": "Promoted", "when": "When a student is promoted to the next class" },
+        "STUDENT_GRADUATED": { "title": "Graduated", "when": "When a student in the last class graduates" }
+      },
+      "placeholders": {
+        "student": "student's name",
+        "school": "school's name",
+        "class": "class (and section)",
+        "year": "academic year",
+        "admissionNo": "admission no.",
+        "amount": "amount",
+        "receipt": "receipt no.",
+        "date": "date",
+        "exam": "exam",
+        "fees": "number of fees"
+      },
+      "template": {
+        "text": "SMS text",
+        "reset": "Use the default",
+        "length": "{length, number} characters · {count, plural, one {# SMS} other {# SMS}}",
+        "unicode": "Bangla / Unicode: 70 characters per SMS",
+        "unknown": "This SMS can't use {names}",
+        "placeholders": "Click to add (filled in for each student)",
+        "save": "Save",
+        "saved": "SMS template saved"
+      },
+      "send": {
+        "to": "Send to",
+        "wholeSchool": "The whole school",
+        "section": "Section",
+        "allSections": "All sections",
+        "message": "Message",
+        "placeholder": "Write your message to the guardians…",
+        "send": "Send SMS",
+        "offHint": "SMS is turned off for the school. Turn it on in Settings first.",
+        "summary": "Who gets it",
+        "phones": "Phones",
+        "students": "Students",
+        "withoutPhone": "Students without a phone",
+        "totalSms": "SMS in all",
+        "siblingsNote": "Brothers and sisters with the same guardian phone get one SMS.",
+        "confirmTitle": "Send this SMS?",
+        "confirmText": "It goes to {phones} phones and uses {total} SMS from your gateway account. This can't be undone.",
+        "queued": "{count, plural, one {# SMS} other {# SMS}} on the way"
+      },
+      "log": {
+        "all": "All",
+        "search": "Search a phone number or student",
+        "empty": "No SMS yet.",
+        "byHand": "By hand",
+        "test": "Test mode: not really sent",
+        "sendsAt": "Sends at {time}",
+        "statuses": {
+          "QUEUED": "Waiting",
+          "SENDING": "Sending",
+          "SENT": "Sent",
+          "FAILED": "Failed",
+          "CANCELLED": "Cancelled"
+        },
+        "columns": {
+          "when": "When",
+          "to": "To",
+          "message": "Message",
+          "type": "Type",
+          "status": "Status"
+        },
+        "tiles": {
+          "sent": "Sent this month",
+          "parts": "SMS used this month",
+          "waiting": "Waiting",
+          "failed": "Failed this month"
+        }
+      },
+      "settings": {
+        "active": "SMS on",
+        "activeHint": "The switch for all SMS. When it is off, nothing is sent, automatic or by hand.",
+        "gateway": "SMS gateway",
+        "providers": {
+          "TEST": "Test mode"
+        },
+        "testHint": "Test mode: SMS are written to the log as sent but don't reach any phone. Real gateways will be added here; your school will use its own gateway account.",
+        "senderId": "Sender ID",
+        "senderIdPlaceholder": "e.g. SUNRISE",
+        "senderIdHint": "The name or number your SMS come from, as approved by your gateway. Leave empty to use the gateway's default.",
+        "language": "SMS language",
+        "languageHints": {
+          "BN": "Friendlier for guardians; about 70 characters per SMS, so longer texts take 2 SMS",
+          "EN": "160 characters per SMS: the cheapest"
+        },
+        "save": "Save",
+        "saved": "SMS settings saved"
+      }
+    },
     "students": {
       "title": "Students",
       "description": "The school's students.",
@@ -1576,7 +1719,9 @@
         "marks": "Marks",
         "results": "Results",
         "card": "Result card",
-        "final": "Final results"
+        "final": "Final results",
+        "seating": "Seat plan",
+        "admit": "Admit cards"
       },
       "scales": {
         "description": "How marks become grades: each subject's marks % gives a grade and point, the average point is the GPA, and the GPA gives the overall grade. A scale used by a published result is locked; copy it to change it.",
@@ -2108,6 +2253,259 @@
           "confirm": "Delete",
           "working": "Deleting…",
           "done": "{name} deleted."
+        }
+      },
+      "seating": {
+        "tabs": {
+          "rooms": "Rooms",
+          "plan": "Seat plan",
+          "duties": "Invigilators"
+        },
+        "rooms": {
+          "summary": "{rooms} rooms in use · {seats} seats",
+          "showInactive": "Show unused rooms",
+          "add": "Add room",
+          "addMany": "Add several",
+          "empty": "No rooms yet. Add the rooms used for exams.",
+          "columns": {
+            "number": "Room",
+            "building": "Building / floor",
+            "seats": "Seats",
+            "status": "Status"
+          },
+          "active": "In use",
+          "inactive": "Not in use",
+          "edit": "Edit",
+          "activate": "Use again",
+          "deactivate": "Stop using",
+          "delete": "Delete",
+          "activated": "Room {number} is in use again",
+          "deactivated": "Room {number} is no longer used",
+          "form": {
+            "addTitle": "Add a room",
+            "editTitle": "Edit room",
+            "description": "Seats are numbered 1, 2, 3… in the room; neighbouring numbers sit side by side.",
+            "number": "Room number",
+            "seats": "Seats",
+            "building": "Building / floor (optional)",
+            "buildingHint": "e.g. Main building, 2nd floor",
+            "numberRequired": "Enter the room number",
+            "seatsInvalid": "Enter seats from 1 to {max}",
+            "cancel": "Cancel",
+            "saving": "Saving…",
+            "save": "Save",
+            "add": "Add room",
+            "added": "Room {number} added",
+            "saved": "Room {number} saved"
+          },
+          "bulk": {
+            "title": "Add several rooms",
+            "description": "Rooms numbered in a row, all with the same seats. Numbers that already exist are skipped.",
+            "prefix": "Before the number",
+            "prefixPlaceholder": "e.g. A-",
+            "from": "From",
+            "to": "To",
+            "preview": "{count, plural, one {# room: {first}} other {# rooms: {first} to {last}}}",
+            "rangeInvalid": "Enter whole numbers",
+            "rangeOrder": "The last number must not be before the first",
+            "rangeTooBig": "Add at most 100 rooms at a time",
+            "seatsEach": "Seats in each",
+            "add": "{count, plural, one {Add # room} other {Add # rooms}}",
+            "done": "{count, plural, =0 {No new rooms} one {# room added} other {# rooms added}}",
+            "skipped": "Already there, skipped: {numbers}"
+          },
+          "deleteDialog": {
+            "title": "Delete room {number}?",
+            "description": "The room is removed. To keep it for old seat plans, stop using it instead.",
+            "confirm": "Delete",
+            "working": "Deleting…",
+            "done": "Room {number} deleted"
+          }
+        },
+        "exam": "Exam",
+        "noExams": "There are no exams this year yet.",
+        "noPlan": "No seat plan has been made for this exam yet.",
+        "setup": {
+          "groupsTitle": "Classes that share rooms",
+          "groupsHint": "Classes in the same group sit side by side, taking turns seat by seat, so neighbours write different papers. A class alone in its group sits by itself.",
+          "suggest": "Suggest groups",
+          "noClasses": "This exam has no classes.",
+          "students": "{count, plural, one {# student} other {# students}}",
+          "groupFor": "Group of {name}",
+          "group": "Group {n}",
+          "newGroup": "Group {n} (new)",
+          "notSeated": "Not seated",
+          "roomsTitle": "Rooms, in the order they fill",
+          "roomsHint": "Choose the rooms; the first group starts in room 1, seat 1, and each group carries on where the last one stopped.",
+          "noRooms": "There are no rooms yet. Add them in the Rooms tab.",
+          "seats": "{count, plural, one {# seat} other {# seats}}",
+          "up": "Move up",
+          "down": "Move down",
+          "fits": "{needed} students · {seats} seats in the chosen rooms",
+          "short": "{needed} students need seats but the chosen rooms have {seats}. Choose more rooms.",
+          "make": "Make the seat plan",
+          "remake": "Make it again",
+          "making": "Making…",
+          "made": "{count, plural, one {# student seated} other {# students seated}}",
+          "remakeTitle": "Make the seat plan again?",
+          "remakeDescription": "Every seat is made anew from these groups and rooms. Changes made by hand are lost."
+        },
+        "plan": {
+          "summary": "{seated} students in {seats} seats · {rooms, plural, one {# room} other {# rooms}}",
+          "made": "Made {when} by {by}",
+          "outside": "{count, plural, one {# student in classes not seated} other {# students in classes not seated}}",
+          "setupAgain": "Set up again",
+          "delete": "Delete the seat plan",
+          "waiting": "{count, plural, one {# student has no seat yet} other {# students have no seat yet}}",
+          "fill": "Seat them in empty seats",
+          "filled": "{count, plural, one {# student seated} other {# students seated}}",
+          "filledSome": "{placed} seated; {left} still need a seat. Add a room.",
+          "gone": "{count, plural, one {# seated student has left the class} other {# seated students have left the class}}",
+          "clearFor": "Clear the seat of {name}",
+          "picked": "<b>{name}</b> ({info}).",
+          "pickSeat": "Choose a seat: an empty one to move, a taken one to swap.",
+          "pickEmptySeat": "Choose an empty seat.",
+          "unseat": "Take out of seat",
+          "cancelPick": "Cancel",
+          "swapped": "Seats swapped",
+          "moved": "Moved to room {room}, seat {seat}",
+          "roll": "Roll {roll}",
+          "room": "Room {number}",
+          "roomUse": "{used} of {seats} seats",
+          "capacityChanged": "the room now has {now} seats",
+          "removeRoom": "Remove room",
+          "seatOf": "Seat {seat}: {name}",
+          "emptySeat": "Seat {seat}: empty",
+          "addRoom": "Add room",
+          "roomAdded": "Room added to the plan",
+          "seats": "{count, plural, one {# seat} other {# seats}}",
+          "deleteDialog": {
+            "title": "Delete the seat plan?",
+            "description": "Every seat of this exam is removed. The rooms stay.",
+            "confirm": "Delete",
+            "working": "Deleting…",
+            "done": "Seat plan deleted"
+          },
+          "stickers": "Desk stickers"
+        },
+        "stickers": {
+          "title": "Desk stickers",
+          "description": "One card for each seated student, in room and seat order, to cut out and stick on the benches.",
+          "room": "Room",
+          "allRooms": "All rooms",
+          "roomName": "Room {number}",
+          "size": "Card size",
+          "sizes": {
+            "small": "Small ({count} a sheet)",
+            "large": "Large ({count} a sheet)"
+          },
+          "roomPerPage": "Each room on new sheets",
+          "none": "No seated students to print.",
+          "count": "{stickers, plural, one {# sticker} other {# stickers}} on {pages, plural, one {# sheet} other {# sheets}}",
+          "printHint": "Print on A4 at 100% (no scaling).",
+          "print": "Print",
+          "roomSeat": "Room {room} · Seat {seat}",
+          "class": "Class {name}",
+          "section": "Section {name}",
+          "roll": "Roll {roll}"
+        },
+        "duties": {
+          "exam": "Exam",
+          "noExams": "There are no exams this year yet.",
+          "noPlan": "Make the seat plan first: duties are given for the rooms in it.",
+          "noRoutine": "The exam routine has no dates yet.",
+          "printRoster": "Duty roster",
+          "printTeachers": "Teachers' lists",
+          "summary": "{duties, plural, one {# duty} other {# duties}} over {sittings, plural, one {# sitting} other {# sittings}}",
+          "autoHint": "Spreads the duties evenly, one room at a time for each teacher, keeping teachers away from their own subject's paper where possible. Teachers on leave are left out.",
+          "perRoom": "Invigilators a room",
+          "perRoomN": "{count, plural, one {# invigilator a room} other {# invigilators a room}}",
+          "auto": "Assign automatically",
+          "assigning": "Assigning…",
+          "autoDone": "{count, plural, one {# duty assigned} other {# duties assigned}}",
+          "autoShort": "{count, plural, one {Not enough teachers: # place is still empty} other {Not enough teachers: # places are still empty}}",
+          "clear": "Clear all duties",
+          "cleared": "Duties cleared",
+          "autoAgainTitle": "Assign the duties again?",
+          "autoAgainDescription": "Every duty of this exam is made anew. Changes made by hand are lost.",
+          "roomsShort": "{count, plural, one {# room needs invigilators} other {# rooms need invigilators}}",
+          "noRooms": "Nobody seated in the plan writes a paper at this time.",
+          "room": "Room {number}",
+          "students": "{count, plural, one {# student} other {# students}}",
+          "nobody": "No invigilator yet",
+          "ownSubject": "own subject",
+          "edit": "Edit",
+          "editDialog": {
+            "title": "Invigilators of room {number}",
+            "dutyCount": "{count, plural, =0 {no duties yet} one {# duty} other {# duties}}",
+            "onLeave": "on leave",
+            "ownSubject": "teaches a paper written here",
+            "busy": "in room {number} at this time",
+            "saving": "Saving…",
+            "save": "{count, plural, =0 {Save (no invigilator)} one {Save # invigilator} other {Save # invigilators}}",
+            "saved": "Invigilators saved"
+          },
+          "print": {
+            "rosterTitle": "Invigilation duty roster",
+            "teachersTitle": "Invigilation duties by teacher",
+            "when": "Date and time",
+            "room": "Room",
+            "students": "Students",
+            "invigilators": "Invigilators",
+            "signature": "Signature",
+            "roomN": "Room {number}"
+          }
+        }
+      },
+      "admit": {
+        "exam": "Exam",
+        "class": "Class",
+        "allClasses": "All classes",
+        "section": "Section",
+        "allSections": "All sections",
+        "noExams": "There are no exams this year yet.",
+        "settings": "Rules and signatures",
+        "print": "Print",
+        "released": "Families can see these admit cards",
+        "notReleased": "Not shown to families yet",
+        "releasedHint": "Guardians see their child's card on the family home and can print it.",
+        "notReleasedHint": "Turn it on when the cards are ready: guardians then see and print them at home.",
+        "showFamilies": "Show to families",
+        "releasedToast": "Admit cards released to families",
+        "hiddenToast": "Admit cards hidden from families",
+        "none": "No students on roll for these classes.",
+        "count": "{cards, plural, one {# admit card} other {# admit cards}} on {sheets, plural, one {# sheet} other {# sheets}}",
+        "noSeat": "{count, plural, one {# without a seat (no seat plan yet?)} other {# without a seat (no seat plan yet?)}}",
+        "printHint": "Print on A4 at 100% (no scaling).",
+        "more": "{count, plural, one {and # more card, printed with the rest} other {and # more cards, printed with the rest}}",
+        "card": {
+          "title": "Admit card",
+          "name": "Name",
+          "father": "Father",
+          "mother": "Mother",
+          "class": "Class",
+          "roll": "Roll",
+          "section": "Section",
+          "admissionNo": "Admission no.",
+          "group": "Group",
+          "dates": "Exam dates",
+          "seat": "Seat",
+          "roomSeat": "Room {room} · Seat {seat}",
+          "photo": "Photo",
+          "rules": "Rules"
+        },
+        "settingsDialog": {
+          "title": "Rules and signatures",
+          "description": "Printed on every admit card. The colour, logo and address come from the result card design.",
+          "rules": "Rules",
+          "rulesHint": "One rule on each line; up to 6 fit on a card.",
+          "signatures": "Signature lines",
+          "signatureN": "Signature {n}",
+          "removeSignature": "Remove",
+          "addSignature": "Add a signature line",
+          "saving": "Saving…",
+          "save": "Save",
+          "saved": "Admit card settings saved"
         }
       }
     },
@@ -2832,7 +3230,8 @@
           "expense": "Expenses",
           "finance_report": "Finance reports",
           "notice": "Notices",
-          "homework": "Homework"
+          "homework": "Homework",
+          "sms": "SMS"
         },
         "perms": {
           "student": {
@@ -2916,7 +3315,8 @@
             "enter_marks": "Enter marks for any section",
             "unlock": "Unlock a published result",
             "publish_result": "Publish results",
-            "view_result": "See results"
+            "view_result": "See results",
+            "seat_plan": "Manage rooms, seat plans and invigilators"
           },
           "grading": {
             "view": "See grading scales and result settings",
@@ -2974,6 +3374,18 @@
           "homework": {
             "view": "See every class’s homework",
             "manage": "Give and tick homework for any section"
+          },
+          "sms": {
+            "admission": "Turn admission SMS on or off",
+            "payment": "Turn payment SMS on or off",
+            "attendance": "Turn absent / late SMS on or off",
+            "result": "Turn result and admit card SMS on or off",
+            "fee_due": "Turn the fee due reminder SMS on or off",
+            "promotion": "Turn promotion SMS on or off",
+            "templates": "Change the wording of SMS",
+            "send": "Send SMS by hand",
+            "log": "See every SMS sent",
+            "gateway": "Set up the SMS gateway, sender ID and language"
           }
         }
       }
@@ -3047,7 +3459,12 @@
         "none": "No notices right now",
         "new": "new"
       },
-      "yourChildren": "Your children"
+      "yourChildren": "Your children",
+      "duties": {
+        "title": "My invigilation duties",
+        "room": "Room {number}",
+        "with": "with {names}"
+      }
     },
     "notices": {
       "title": "Notices",
@@ -3215,7 +3632,8 @@
       "homeworkDue": "Homework due",
       "allHomework": "All homework",
       "noHomework": "No homework due",
-      "moreHomework": "{count, plural, one {and # more} other {and # more}}"
+      "moreHomework": "{count, plural, one {and # more} other {and # more}}",
+      "admitCards": "Admit card"
     },
     "homework": {
       "title": "Homework",
@@ -3347,6 +3765,59 @@
   "marketing": {
     "title": "School management built for Bangladesh",
     "subtitle": "Students, teachers, attendance, exams, results and routines for your school, in English and Bangla, on your own school address."
+  },
+  "inbox": {
+    "title": "Messages",
+    "description": "Updates from the school about your children.",
+    "unreadCount": "{count, number} unread",
+    "markAllRead": "Mark all as read",
+    "viewAll": "See all messages",
+    "empty": "No messages yet.",
+    "emptyUnread": "You're all caught up.",
+    "loadFailed": "Couldn't load messages.",
+    "new": "New",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "types": {
+      "STUDENT_ADMITTED": {
+        "title": "Admission confirmed",
+        "body": "{student} has been admitted to {place} for {year}. Admission no.: {no}."
+      },
+      "PAYMENT_RECEIVED": {
+        "title": "Fee payment received",
+        "body": "{amount} received for {student}. Receipt no.: {receipt}."
+      },
+      "PAYMENT_CANCELLED": {
+        "title": "Payment cancelled",
+        "body": "The payment of {amount} for {student} (receipt {receipt}) has been cancelled."
+      },
+      "STUDENT_ABSENT": {
+        "title": "Absent",
+        "body": "{student} was absent on {date}."
+      },
+      "STUDENT_LATE": {
+        "title": "Came late",
+        "body": "{student} came late on {date}."
+      },
+      "RESULT_PUBLISHED": {
+        "title": "Result published",
+        "body": "{student}'s {exam} result is out."
+      },
+      "ADMIT_CARD_RELEASED": {
+        "title": "Admit card ready",
+        "body": "{student}'s admit card for {exam} is ready to view."
+      },
+      "FEE_DUE": {
+        "title": "Fees due",
+        "body": "{student} has {amount} in fees due ({fees, plural, one {# fee} other {# fees}}). Please pay at the school office."
+      },
+      "STUDENT_PROMOTED": {
+        "title": "{outcome, select, GRADUATED {Graduated} other {Promoted to the next class}}",
+        "body": "{outcome, select, GRADUATED {Congratulations! {student} has completed {className} and graduated.} other {{student} has been promoted to {place} for {year}.}}"
+      }
+    }
   },
   "pagination": {
     "summary": "Showing {from, number}–{to, number} of {total, number}",

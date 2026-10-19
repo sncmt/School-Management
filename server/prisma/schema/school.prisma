@@ -37,6 +37,7 @@ model School {
   homework          Homework[]
   rooms             Room[]
   admitCardSetting  AdmitCardSetting?
+  idCardSetting     IdCardSetting?
   subjectTeachers   SubjectTeacher[]
   weeklyHolidayRules        WeeklyHolidayRule[]
   attendanceSessions        AttendanceSession[]

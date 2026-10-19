@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowRight, CalendarHeart, Megaphone, Pin } from "lucide-react";
+import { ArrowRight, CalendarHeart, Eye, Megaphone, Pin } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalizedName } from "@/lib/i18n/names";
+import { useMyDuties } from "@/lib/school/invigilators";
 import { useNoticeBoard, type BoardNotice } from "@/lib/school/notices";
 import { cn } from "@/lib/utils";
 import { CategoryBadge, NoticeReader, useNoticeDate } from "../notices/shared";
@@ -119,6 +120,39 @@ export function NoticesPanel({ className }: { className?: string }) {
         </ul>
       )}
       <NoticeReader notice={open} onClose={() => setOpen(null)} />
+    </Panel>
+  );
+}
+
+/* A teacher's coming invigilation duties: shown only when there are some. */
+export function MyDutiesPanel({ className }: { className?: string }) {
+  const t = useTranslations("school.home.duties");
+  const format = useFormatter();
+  const name = useLocalizedName();
+  const { data } = useMyDuties();
+  if (!data || data.items.length === 0) return null;
+  const day = (d: string) => format.dateTime(new Date(`${d}T00:00:00Z`), { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  return (
+    <Panel title={t("title")} className={className}>
+      <ul className="-my-2 divide-y">
+        {data.items.slice(0, 6).map((d, i) => (
+          <li key={i} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-sm">
+            <span className="flex w-12 shrink-0 flex-col items-center rounded-lg bg-brand-soft py-1 text-center">
+              <Eye className="size-4 text-muted-foreground" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-medium">
+                {day(d.date)}
+                {d.startTime && ` · ${d.startTime}`} · {t("room", { number: d.room.number })}
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                {name(d.exam)}
+                {d.with.length > 0 && ` · ${t("with", { names: d.with.map((w) => name(w)).join(", ") })}`}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
     </Panel>
   );
 }

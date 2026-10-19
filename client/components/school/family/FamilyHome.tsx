@@ -1,8 +1,9 @@
 "use client";
 
-import { CircleCheck, Users } from "lucide-react";
+import { CircleCheck, IdCard, Users } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
@@ -13,6 +14,7 @@ import { NoticesPanel, UpcomingPanel } from "../dashboard/panels";
 import { useFeeLabel } from "../finance/shared";
 import { CheckBadge, DueLabel } from "../homework/shared";
 import { StudentAvatar } from "../students/StudentAvatar";
+import { FamilyAdmitCardDialog } from "./FamilyAdmitCardDialog";
 
 /** The family login's home: each child at a glance, then notices and holidays. */
 export function FamilyHome() {
@@ -81,6 +83,7 @@ function ChildCard({ child, mainYearId }: { child: FamilyChild; mainYearId?: str
   const month = child.attendance.month;
   const days = month.present + month.late + month.absent + month.leave;
   const owed = Number(child.dues.total) > 0;
+  const [admitExam, setAdmitExam] = useState<string | null>(null);
 
   const placement = e
     ? [
@@ -178,6 +181,24 @@ function ChildCard({ child, mainYearId }: { child: FamilyChild; mainYearId?: str
           )}
         </div>
       </div>
+
+      {/* admit cards the school has released */}
+      {child.admitCards.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 border-t bg-brand-soft/30 px-5 py-3">
+          <span className="text-xs font-medium text-muted-foreground">{t("admitCards")}</span>
+          {child.admitCards.map((exam) => (
+            <button
+              key={exam.id}
+              type="button"
+              onClick={() => setAdmitExam(exam.id)}
+              className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium hover:bg-muted"
+            >
+              <IdCard className="size-3.5" /> {name(exam)}
+            </button>
+          ))}
+          <FamilyAdmitCardDialog query={admitExam ? { studentId: child.id, examId: admitExam } : null} onClose={() => setAdmitExam(null)} />
+        </div>
+      )}
 
       {/* homework due from today */}
       {e && (
