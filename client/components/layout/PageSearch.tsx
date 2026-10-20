@@ -31,14 +31,16 @@ export function PageSearch({ pages }: { pages: SearchablePage[] }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-10 w-full items-center gap-2 rounded-full bg-muted px-4 text-sm text-muted-foreground ring-1 ring-transparent transition-colors hover:ring-border"
+        aria-label={t("search")}
+        // a round icon on small screens; the full box from lg
+        className="flex size-9 items-center justify-center gap-2 rounded-full text-sm text-muted-foreground ring-1 ring-transparent transition-colors hover:bg-muted/60 hover:text-foreground lg:h-10 lg:w-full lg:justify-start lg:bg-muted lg:px-4 lg:hover:bg-muted lg:hover:text-muted-foreground lg:hover:ring-border"
       >
-        <span className="flex-1 text-left">{t("search")}</span>
-        <kbd className="hidden rounded border bg-background px-1.5 font-mono text-[10px] sm:inline">Ctrl K</kbd>
-        <Search className="size-4" />
+        <span className="hidden flex-1 text-left lg:block">{t("search")}</span>
+        <kbd className="hidden rounded border bg-background px-1.5 font-mono text-[10px] lg:inline">Ctrl K</kbd>
+        <Search className="size-4.5 lg:size-4" />
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="top-[20%] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg" showCloseButton={false}>
+        <DialogContent className="top-[10%] translate-y-0 gap-0 overflow-hidden p-0 sm:top-[20%] sm:max-w-lg" showCloseButton={false}>
           <DialogTitle className="sr-only">{t("search")}</DialogTitle>
           {open && <Finder pages={pages} onDone={() => setOpen(false)} />}
         </DialogContent>

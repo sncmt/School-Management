@@ -14,7 +14,7 @@
     "close": "Close",
     "loginPage": "Login page",
     "email": "Email",
-    "mobileNumber": "Mobile number", 
+    "mobileNumber": "Mobile number",
     "back": "Back",
     "upload": "Upload",
     "change": "Change",
@@ -236,7 +236,8 @@
     "roles": "Roles and staff",
     "notices": "Notices",
     "sms": "SMS",
-    "homework": "Homework"
+    "homework": "Homework",
+    "idCards": "ID cards"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -942,9 +943,15 @@
         "EN": "English"
       },
       "activities": {
-        "intro": "Each activity's SMS goes to the guardian's phone (or the family login's) when it is switched on. They go out in {language}. Absent / late SMS wait 10 minutes, so a corrected roll call can stop them; none are sent between 9 pm and 8 am.",
+        "intro": "Each activity's SMS goes to the guardian's phone (or the family login's) when it is switched on. They go out in {language}. Attendance SMS (present, absent, late) wait 10 minutes, so a corrected roll call can change or stop them; none are sent between 9 pm and 8 am.",
         "offBanner": "SMS is turned off for the school, so none of these are sent.",
         "openSettings": "Open settings",
+        "inAppPresent": {
+          "title": "Present: in-app message",
+          "when": "Not an SMS: a free message in the family's app each day the student is marked present. Turn it off if it is too many; absent and late messages still go.",
+          "turnedOn": "Present messages in the app turned on",
+          "turnedOff": "Present messages in the app turned off"
+        },
         "viewOnly": "View only",
         "noPermission": "You don't have permission to turn these on or off",
         "custom": "Your wording",
@@ -962,16 +969,50 @@
         }
       },
       "events": {
-        "STUDENT_ADMITTED": { "title": "Admission confirmed", "when": "When a student is admitted" },
-        "PAYMENT_RECEIVED": { "title": "Fee payment received", "when": "When a fee payment is taken" },
-        "PAYMENT_CANCELLED": { "title": "Payment cancelled", "when": "When a payment is cancelled" },
-        "STUDENT_ABSENT": { "title": "Absent", "when": "When a student is marked absent in the roll call" },
-        "STUDENT_LATE": { "title": "Came late", "when": "When a student is marked late in the roll call" },
-        "RESULT_PUBLISHED": { "title": "Result published", "when": "When a class's exam result is published" },
-        "ADMIT_CARD_RELEASED": { "title": "Admit card ready", "when": "When an exam's admit cards are released" },
-        "FEE_DUE": { "title": "Fees due", "when": "On the 10th of each month, to families who owe fees" },
-        "STUDENT_PROMOTED": { "title": "Promoted", "when": "When a student is promoted to the next class" },
-        "STUDENT_GRADUATED": { "title": "Graduated", "when": "When a student in the last class graduates" }
+        "STUDENT_ADMITTED": {
+          "title": "Admission confirmed",
+          "when": "When a student is admitted"
+        },
+        "PAYMENT_RECEIVED": {
+          "title": "Fee payment received",
+          "when": "When a fee payment is taken"
+        },
+        "PAYMENT_CANCELLED": {
+          "title": "Payment cancelled",
+          "when": "When a payment is cancelled"
+        },
+        "STUDENT_PRESENT": {
+          "title": "Present",
+          "when": "When a student is marked present in the roll call (an SMS for every student, every school day)"
+        },
+        "STUDENT_ABSENT": {
+          "title": "Absent",
+          "when": "When a student is marked absent in the roll call"
+        },
+        "STUDENT_LATE": {
+          "title": "Came late",
+          "when": "When a student is marked late in the roll call"
+        },
+        "RESULT_PUBLISHED": {
+          "title": "Result published",
+          "when": "When a class's exam result is published"
+        },
+        "ADMIT_CARD_RELEASED": {
+          "title": "Admit card ready",
+          "when": "When an exam's admit cards are released"
+        },
+        "FEE_DUE": {
+          "title": "Fees due",
+          "when": "On the 10th of each month, to families who owe fees"
+        },
+        "STUDENT_PROMOTED": {
+          "title": "Promoted",
+          "when": "When a student is promoted to the next class"
+        },
+        "STUDENT_GRADUATED": {
+          "title": "Graduated",
+          "when": "When a student in the last class graduates"
+        }
       },
       "placeholders": {
         "student": "student's name",
@@ -1010,6 +1051,13 @@
         "withoutPhone": "Students without a phone",
         "totalSms": "SMS in all",
         "siblingsNote": "Brothers and sisters with the same guardian phone get one SMS.",
+        "class": "Class",
+        "student": "Student",
+        "allStudents": "All students ({count, number})",
+        "loadingStudents": "Loading students…",
+        "noPhone": "No phone",
+        "phone": "Phone",
+        "confirmOne": "It goes to {name}'s guardian at {phone} and uses {total} SMS from your gateway account. This can't be undone.",
         "confirmTitle": "Send this SMS?",
         "confirmText": "It goes to {phones} phones and uses {total} SMS from your gateway account. This can't be undone.",
         "queued": "{count, plural, one {# SMS} other {# SMS}} on the way"
@@ -1216,7 +1264,8 @@
           "edit": "Edit",
           "move": "Change section, roll or admission type",
           "changePassword": "Change family password",
-          "fees": "Fees"
+          "fees": "Fees",
+          "idCard": "ID card"
         },
         "statusActions": {
           "ACTIVE": "Make active again",
@@ -2641,6 +2690,9 @@
           "feeType": "Fee type",
           "chooseFeeType": "Choose a fee type",
           "noFeeTypes": "Every active fee type is already set for this class. Add fee types in Fee types.",
+          "noFeeTypesYet": "There are no fee types yet. Make them first in Fee types (e.g. Tuition, Admission, Exam), then set what this class pays for each.",
+          "openFeeTypes": "Open Fee types",
+          "loadingFeeTypes": "Loading fee types…",
           "byMonth": "Different amounts in parts of the year",
           "byMonthHint": "e.g. ৳700 from January to April, then ৳800 from May",
           "amount": "Amount",
@@ -3760,6 +3812,75 @@
         "notTicked": "Not checked",
         "teacherSays": "Teacher:"
       }
+    },
+    "idCards": {
+      "title": "Student ID cards",
+      "description": "Print ID cards by class and section in the school's design.",
+      "tabs": {
+        "print": "Print",
+        "design": "Design"
+      },
+      "print": {
+        "year": "Academic year",
+        "class": "Class",
+        "allClasses": "All classes",
+        "section": "Section",
+        "allSections": "All sections",
+        "withBacks": "Print the backs too",
+        "print": "Print",
+        "chooseClass": "Choose a class to see its ID cards.",
+        "none": "No students on roll here.",
+        "count": "{cards, plural, one {# card} other {# cards}} on {sheets, plural, one {# sheet} other {# sheets}}",
+        "duplexHint": "each sheet of fronts is followed by its backs, for double-sided printing",
+        "printHint": "Print on A4 at 100% (no scaling)",
+        "more": "{count, plural, one {and # more, printed with the rest} other {and # more, printed with the rest}}"
+      },
+      "design": {
+        "templates": "Templates",
+        "names": {
+          "CLASSIC": "Classic",
+          "MODERN": "Modern",
+          "MINIMAL": "Minimal",
+          "BOLD": "Bold",
+          "ELEGANT": "Elegant"
+        },
+        "colour": "Colour",
+        "customColour": "Another colour",
+        "showLogo": "School logo",
+        "showLogoHint": "The logo from the school's settings.",
+        "showAdmissionNo": "Admission number",
+        "showAdmissionNoHint": "Adds the admission number to the card.",
+        "showBack": "Back side",
+        "showBackHint": "The school's address and contacts, a note and a signature line.",
+        "backText": "Note on the back",
+        "signatureLabel": "Signature line",
+        "save": "Save design",
+        "saving": "Saving…",
+        "undo": "Undo changes",
+        "saved": "ID card design saved",
+        "preview": "Preview"
+      },
+      "card": {
+        "title": "Student ID card",
+        "father": "Father",
+        "class": "Class",
+        "section": "Section",
+        "roll": "Roll",
+        "admissionNo": "Adm. no",
+        "mobile": "Mobile",
+        "year": "Year",
+        "validFor": "Academic year {year}"
+      },
+      "sample": {
+        "name": "Ayesha Rahman",
+        "father": "Abdur Rahman",
+        "class": "Eight"
+      },
+      "single": {
+        "title": "ID card",
+        "description": "This student's card in the school's design.",
+        "notOnRoll": "This student is not on roll, so there is no ID card to print."
+      }
     }
   },
   "marketing": {
@@ -3792,6 +3913,10 @@
       "PAYMENT_CANCELLED": {
         "title": "Payment cancelled",
         "body": "The payment of {amount} for {student} (receipt {receipt}) has been cancelled."
+      },
+      "STUDENT_PRESENT": {
+        "title": "Present",
+        "body": "{student} was present at school on {date}."
       },
       "STUDENT_ABSENT": {
         "title": "Absent",

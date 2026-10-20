@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ID_CARD_TEMPLATES = ["CLASSIC", "MODERN", "MINIMAL", "BOLD"] as const;
+export const ID_CARD_TEMPLATES = ["CLASSIC", "MODERN", "MINIMAL", "BOLD", "ELEGANT"] as const;
 
 /*
  * The ID card design. Every field has a default, so a school that never saved one (or
@@ -8,7 +8,7 @@ export const ID_CARD_TEMPLATES = ["CLASSIC", "MODERN", "MINIMAL", "BOLD"] as con
  * back to the school's language in the service.
  */
 export const idCardSettingsSchema = z.object({
-  // CLASSIC and MINIMAL are landscape, MODERN and BOLD portrait
+  // all portrait, each its own design
   template: z.enum(ID_CARD_TEMPLATES).default("CLASSIC"),
   accentColor: z
     .string()

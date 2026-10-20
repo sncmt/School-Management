@@ -37,20 +37,31 @@ const logQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-// who an SMS by hand goes to: the whole school, a class, or a section
+// who an SMS by hand goes to: the whole school, a class, a section, or one student
 const recipientsQuery = z.object({
   classId: z.string().trim().min(1).optional(),
   sectionId: z.string().trim().min(1).optional(),
+  studentId: z.string().trim().min(1).optional(),
 });
+
+// the students to pick one from: a class (and section) this year, or a search by name, admission no. or phone
+const studentSearchQuery = z
+  .object({
+    classId: z.string().trim().min(1).optional(),
+    sectionId: z.string().trim().min(1).optional(),
+    search: z.string().trim().min(1).max(100).optional(),
+  })
+  .refine((q) => q.classId || q.search, { message: "Choose a class or search for a student" });
 
 const sendSms = recipientsQuery.extend({
   message: z.string({ error: "Write the message" }).trim().min(1, "Write the message").max(1000, "A message can be at most 1000 characters"),
 });
 
-export const SmsValidation = { updateSettings, updateTemplate, eventParams, logQuery, recipientsQuery, sendSms };
+export const SmsValidation = { updateSettings, updateTemplate, eventParams, logQuery, recipientsQuery, studentSearchQuery, sendSms };
 
 export type UpdateSmsSettingsPayload = z.infer<typeof updateSettings>;
 export type UpdateSmsTemplatePayload = z.infer<typeof updateTemplate>;
 export type SmsLogQuery = z.infer<typeof logQuery>;
 export type SmsRecipientsQuery = z.infer<typeof recipientsQuery>;
+export type SmsStudentSearchQuery = z.infer<typeof studentSearchQuery>;
 export type SendSmsPayload = z.infer<typeof sendSms>;

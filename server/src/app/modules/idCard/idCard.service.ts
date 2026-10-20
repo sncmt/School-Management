@@ -91,4 +91,14 @@ const getCards = async (schoolId: string, query: IdCardsQuery) => {
   };
 };
 
-export const IdCardService = { getSettings, saveSettings, getCards };
+/* The school's name, logo and contacts, as printed on the cards (for the design previews). */
+const getSchool = async (schoolId: string) => {
+  const school = await prisma.school.findUnique({
+    where: { id: schoolId },
+    select: { nameEn: true, nameBn: true, logo: true, address: true, phone: true, email: true, website: true },
+  });
+  if (!school) throw new AppError("School not found!", httpStatus.NOT_FOUND);
+  return { ...school, logo: await fileUrl(school.logo) };
+};
+
+export const IdCardService = { getSettings, saveSettings, getCards, getSchool };

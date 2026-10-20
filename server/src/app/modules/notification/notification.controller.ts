@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import httpStatus from "http-status";
+import type { NotificationType } from "../../../../generated/prisma/enums";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { NotificationService } from "./notification.service";
@@ -23,4 +24,12 @@ const markAllRead = catchAsync(async (req: Request, res: Response) => {
   ok(res, "All messages marked as read", await NotificationService.markAllRead(req.auth!));
 });
 
-export const NotificationController = { listMine, unreadCount, markRead, markAllRead };
+const getSettings = catchAsync(async (req: Request, res: Response) => {
+  ok(res, "Message settings retrieved", await NotificationService.getSettings(req.auth!.schoolId!));
+});
+
+const setTypeEnabled = catchAsync(async (req: Request, res: Response) => {
+  ok(res, "Message setting saved", await NotificationService.setTypeEnabled(req.auth!, req.params.type as NotificationType, req.body.enabled));
+});
+
+export const NotificationController = { listMine, unreadCount, markRead, markAllRead, getSettings, setTypeEnabled };

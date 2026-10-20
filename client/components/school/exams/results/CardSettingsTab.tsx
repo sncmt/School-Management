@@ -73,7 +73,7 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
     );
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[22rem_1fr]">
+    <div className="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
       {/* ----------------------------------------------------------- options */}
       <div className="space-y-3">
         {canManage && (

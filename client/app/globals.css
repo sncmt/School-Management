@@ -172,6 +172,35 @@
 }
 
 /*
+ * The sidebar menu's scrollbar: thin and rounded, in the sidebar's own light colour on the
+ * navy. Faint while resting, clearer while the pointer is over the menu, brightest when held.
+ * Firefox and newer Chrome use scrollbar-width/-color; Safari and older Chrome the ::-webkit parts.
+ */
+.sidebar-scroll {
+  --sb-thumb: color-mix(in oklab, var(--sidebar-foreground) 14%, transparent);
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) transparent;
+}
+.sidebar-scroll:hover,
+.sidebar-scroll:focus-within {
+  --sb-thumb: color-mix(in oklab, var(--sidebar-foreground) 30%, transparent);
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--sb-thumb);
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.sidebar-scroll::-webkit-scrollbar-thumb:active {
+  background: color-mix(in oklab, var(--sidebar-foreground) 45%, transparent);
+}
+
+/*
  * The loading book (components/layout/SchoolLoader): two flat pages with a navy edge and one
  * page turning right to left. Still when the visitor asks for less motion.
  */

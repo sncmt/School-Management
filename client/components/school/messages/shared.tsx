@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Award, Banknote, CircleX, Clock, GraduationCap, IdCard, UserPlus, UserX, Wallet } from "lucide-react";
+import { Award, Banknote, CircleX, Clock, GraduationCap, IdCard, UserCheck, UserPlus, UserX, Wallet } from "lucide-react";
 import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useMoney } from "@/lib/school/finance";
@@ -15,6 +15,7 @@ const KINDS: Record<NotificationType, { icon: LucideIcon; tone: string }> = {
   STUDENT_ADMITTED: { icon: UserPlus, tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" },
   PAYMENT_RECEIVED: { icon: Banknote, tone: "bg-brand-soft text-brand dark:text-sidebar-primary" },
   PAYMENT_CANCELLED: { icon: CircleX, tone: "bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400" },
+  STUDENT_PRESENT: { icon: UserCheck, tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" },
   STUDENT_ABSENT: { icon: UserX, tone: "bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400" },
   STUDENT_LATE: { icon: Clock, tone: "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400" },
   RESULT_PUBLISHED: { icon: Award, tone: "bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400" },

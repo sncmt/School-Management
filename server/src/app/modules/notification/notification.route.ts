@@ -12,6 +12,14 @@ router.use(authenticate("SCHOOL"));
 router.get("/", validateRequest({ query: NotificationValidation.listQuery }), NotificationController.listMine);
 router.get("/unread-count", NotificationController.unreadCount);
 router.post("/read-all", NotificationController.markAllRead);
+
+// the school's in-app message switches (changing one needs its permission, checked in the service)
+router.get("/settings", NotificationController.getSettings);
+router.patch(
+  "/settings/:type",
+  validateRequest({ params: NotificationValidation.typeParams, body: NotificationValidation.setTypeEnabled }),
+  NotificationController.setTypeEnabled,
+);
 router.post(
   "/:notificationId/read",
   validateRequest({ params: NotificationValidation.notificationIdParams }),

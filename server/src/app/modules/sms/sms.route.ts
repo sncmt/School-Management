@@ -43,7 +43,8 @@ router.patch(
 // every SMS: automatic and by hand
 router.get("/messages", authorize("sms:log"), validateRequest({ query: SmsValidation.logQuery }), SmsController.listMessages);
 
-// by hand, to the guardians of the school, a class or a section
+// by hand, to the guardians of the school, a class, a section or one student
+router.get("/students", authorize("sms:send"), validateRequest({ query: SmsValidation.studentSearchQuery }), SmsController.searchStudents);
 router.get("/recipients", authorize("sms:send"), validateRequest({ query: SmsValidation.recipientsQuery }), SmsController.previewRecipients);
 router.post("/send", authorize("sms:send"), validateRequest({ body: SmsValidation.sendSms }), SmsController.sendByHand);
 

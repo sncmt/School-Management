@@ -3,6 +3,7 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import type { NotificationType, SmsEvent } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { checkPermission } from "../../middlewares/authorize";
 import { dayKey } from "../../shared/scheduleSchemas";
 import { SmsService, type SmsEventMessage, type SmsFacts } from "../sms/sms.service";
 import { currentMonth, dueFilter } from "../studentFee/studentFee.service";
@@ -48,9 +49,20 @@ const send = async (messages: Message[], options: { sms?: boolean } = {}) => {
   }
 };
 
+/* The in-app message types each school has switched off. */
+const mutedTypesOf = async (schoolIds: string[]) =>
+  new Map(
+    (await prisma.notificationSetting.findMany({ where: { schoolId: { in: schoolIds } }, select: { schoolId: true, mutedTypes: true } })).map(
+      (s) => [s.schoolId, new Set(s.mutedTypes)],
+    ),
+  );
+
 const writeInApp = async (messages: Message[]) => {
-  const rows = messages
-    .filter((m) => m.student.userId)
+  const withLogin = messages.filter((m) => m.student.userId);
+  if (withLogin.length === 0) return;
+  const muted = await mutedTypesOf([...new Set(withLogin.map((m) => m.schoolId))]);
+  const rows = withLogin
+    .filter((m) => !muted.get(m.schoolId)?.has(m.type))
     .map((m) => ({
       schoolId: m.schoolId,
       userId: m.student.userId!,
@@ -128,11 +140,17 @@ const notifyPayment = async (schoolId: string, paymentId: string, type: "PAYMENT
 };
 
 /*
- * After a section's roll call is saved: absent and late students get a message for that day.
- * Saving again changes it rather than adding another: late instead of absent updates it
- * (unread again), present or on leave removes it. Their SMS wait a few minutes, so a
- * correction can still change or stop them; one already sent can't be taken back.
+ * After a section's roll call is saved: present, absent and late students get an in-app
+ * message for that day. Saving again changes it rather than adding another: another status
+ * updates it (unread again), on leave removes it.
+ *
+ * SMS go for present, absent and late (each switched on by the school). They wait a few
+ * minutes, so a correction can still change or stop them. One already sent can't be taken
+ * back, but each status has its own SMS: a student corrected from absent to present after the
+ * absent SMS went out gets the present SMS too.
  */
+// the attendance statuses that get a message, in the app and by SMS (on leave gets none)
+const ATTENDANCE_SMS = { PRESENT: "STUDENT_PRESENT", ABSENT: "STUDENT_ABSENT", LATE: "STUDENT_LATE" } as const;
 const syncAttendance = async (schoolId: string, sectionId: string, date: Date) => {
   const day = dayKey(date);
   const keyOf = (studentId: string) => `attendance:${studentId}:${day}`;
@@ -141,10 +159,13 @@ const syncAttendance = async (schoolId: string, sectionId: string, date: Date) =
     where: { session: { schoolId, sectionId, date } },
     select: { status: true, student: { select: studentRef } },
   });
+  // in-app: the types the school sends (it may have switched "present" off: those messages go too)
+  const muted = (await mutedTypesOf([schoolId])).get(schoolId);
   const wanted = new Map(
     records
-      .filter((r) => r.status === "ABSENT" || r.status === "LATE")
-      .map((r) => [keyOf(r.student.id), { student: r.student, type: r.status === "ABSENT" ? ("STUDENT_ABSENT" as const) : ("STUDENT_LATE" as const) }]),
+      .filter((r) => r.status in ATTENDANCE_SMS)
+      .map((r) => [keyOf(r.student.id), { student: r.student, type: ATTENDANCE_SMS[r.status as keyof typeof ATTENDANCE_SMS] }] as const)
+      .filter(([, w]) => !muted?.has(w.type)),
   );
 
   const existing = await prisma.notification.findMany({
@@ -171,7 +192,16 @@ const syncAttendance = async (schoolId: string, sectionId: string, date: Date) =
     { sms: false },
   );
   // every SMS of this roll call not sent yet is written afresh from the latest marks
-  await SmsService.replaceQueued(schoolId, records.map((r) => keyOf(r.student.id)), messages.map(asSms));
+  const smsKey = (studentId: string, event: SmsEvent) => `${keyOf(studentId)}:${event}`;
+  const sms: SmsEventMessage[] = records.flatMap((r) => {
+    const event = r.status in ATTENDANCE_SMS ? ATTENDANCE_SMS[r.status as keyof typeof ATTENDANCE_SMS] : null;
+    return event ? [{ schoolId, student: r.student, event, dedupeKey: smsKey(r.student.id, event), facts: { date: day } }] : [];
+  });
+  await SmsService.replaceQueued(
+    schoolId,
+    records.flatMap((r) => Object.values(ATTENDANCE_SMS).map((event) => smsKey(r.student.id, event))),
+    sms,
+  );
 };
 
 /* A class's exam result is out: every student in it. */
@@ -334,6 +364,38 @@ const syncAdmitCards = async (schoolId: string, examId: string, released: boolea
   );
 };
 
+// ------------------------------------------------------------------ settings
+
+// the in-app messages a school may switch off, and the permission that may do it
+const SWITCHABLE: Partial<Record<NotificationType, string>> = {
+  // a message every school day for every student: some schools find it too many
+  STUDENT_PRESENT: "sms:attendance",
+};
+
+const getSettings = async (schoolId: string) => {
+  const setting = await prisma.notificationSetting.findUnique({ where: { schoolId }, select: { mutedTypes: true } });
+  return { mutedTypes: setting?.mutedTypes ?? [] };
+};
+
+/* Turns one in-app message type on or off for the school. */
+const setTypeEnabled = async (auth: Auth, type: NotificationType, enabled: boolean) => {
+  const schoolId = auth.schoolId!;
+  const permission = SWITCHABLE[type];
+  if (!permission) throw new AppError("This message can't be turned off", httpStatus.BAD_REQUEST);
+  if ((await checkPermission(auth, permission)) !== "OK") {
+    throw new AppError("You don't have permission to change this", httpStatus.FORBIDDEN);
+  }
+
+  const { mutedTypes } = await getSettings(schoolId);
+  const next = enabled ? mutedTypes.filter((t) => t !== type) : [...new Set([...mutedTypes, type])];
+  await prisma.notificationSetting.upsert({
+    where: { schoolId },
+    create: { schoolId, mutedTypes: next, updatedBy: auth.userId },
+    update: { mutedTypes: next, updatedBy: auth.userId },
+  });
+  return { mutedTypes: next };
+};
+
 // ------------------------------------------------------------------ the inbox
 
 // a user's messages in the school they are logged in to
@@ -396,6 +458,8 @@ export const NotificationService = {
   notifyPromotion,
   withdrawPromotion,
   sendFeeDueReminders,
+  getSettings,
+  setTypeEnabled,
   listMine,
   unreadCountMine,
   markRead,

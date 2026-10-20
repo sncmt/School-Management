@@ -31,6 +31,7 @@ model School {
   financeSetting    FinanceSetting?
   notices           Notice[]
   notifications     Notification[]
+  notificationSetting NotificationSetting?
   smsSetting        SmsSetting?
   smsTemplates      SmsTemplate[]
   smsMessages       SmsMessage[]

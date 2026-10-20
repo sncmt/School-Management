@@ -35,6 +35,7 @@ import { homeworkRoutes } from '../modules/homework/homework.route';
 import { roomRoutes } from '../modules/room/room.route';
 import { seatPlanRoutes } from '../modules/seatPlan/seatPlan.route';
 import { admitCardRoutes } from '../modules/admitCard/admitCard.route';
+import { idCardRoutes } from '../modules/idCard/idCard.route';
 import { notificationRoutes } from '../modules/notification/notification.route';
 import { smsRoutes } from '../modules/sms/sms.route';
 

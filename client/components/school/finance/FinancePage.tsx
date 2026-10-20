@@ -75,7 +75,11 @@ export function FinancePage() {
           <ReportsTab onCollect={collectFrom} />
         </TabsContent>
         <TabsContent value="structures">
-          <FeeStructuresTab canManage={can("fee_structure:create")} canSync={can("fee_structure:update")} />
+          <FeeStructuresTab
+            canManage={can("fee_structure:create")}
+            canSync={can("fee_structure:update")}
+            onOpenFeeTypes={tabs.includes("feeTypes") ? () => setTab("feeTypes") : undefined}
+          />
         </TabsContent>
         <TabsContent value="feeTypes">
           <FeeTypesTab canCreate={can("fee_type:create")} canUpdate={can("fee_type:update")} />

@@ -6,6 +6,7 @@ import {
   Banknote,
   Ban,
   GraduationCap,
+  IdCard,
   KeyRound,
   MoreHorizontal,
   Pause,
@@ -72,6 +73,7 @@ import {
 } from "@/lib/school/students";
 import { placementSchema, type PlacementInput, type PlacementValues } from "@/zod/student";
 import { AdmissionTypeField } from "./AdmissionTypeField";
+import { StudentIdCardDialog } from "./idCards/StudentIdCardDialog";
 import { StudentStatusBadge } from "./StudentStatusBadge";
 import { usePlacementLabel } from "./placement";
 
@@ -149,12 +151,15 @@ function Detail({ student }: { student: StudentDetail }) {
   const [statusTo, setStatusTo] = useState<StudentStatus | null>(null);
   const me = useSchoolMe();
   const [settingPassword, setSettingPassword] = useState(false);
+  const [idCardOpen, setIdCardOpen] = useState(false);
 
   const studentName = name(student);
   // the other language's name, under the main one
   const otherName = studentName === student.nameEn ? student.nameBn : student.nameEn;
   const currentYearId = classes.data?.academicYear?.id;
   const current = student.enrollments.find((e) => e.academicYearId === currentYearId) ?? null;
+  // the ID card is for a student on roll: this year's class, else the latest one
+  const cardEnrollment = student.status === "ACTIVE" ? (current ?? student.enrollments.find((e) => e.status === "ACTIVE") ?? null) : null;
   const notSet = <span className="text-muted-foreground">{t("notSet")}</span>;
   const date = (value: string | null) =>
     value ? format.dateTime(new Date(value), { dateStyle: "medium", timeZone: "UTC" }) : null;
@@ -208,6 +213,11 @@ function Detail({ student }: { student: StudentDetail }) {
               <Link href={`/finance?student=${student.id}`}>
                 <Banknote /> {t("actions.fees")}
               </Link>
+            </Button>
+          )}
+          {cardEnrollment && (
+            <Button variant="outline" onClick={() => setIdCardOpen(true)}>
+              <IdCard /> {t("actions.idCard")}
             </Button>
           )}
           {canUpdate && (
@@ -353,6 +363,7 @@ function Detail({ student }: { student: StudentDetail }) {
         }
         onClose={() => setSettingPassword(false)}
       />
+      {cardEnrollment && <StudentIdCardDialog enrollment={cardEnrollment} open={idCardOpen} onClose={() => setIdCardOpen(false)} />}
     </div>
   );
 }

@@ -16,28 +16,39 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useClasses } from "@/lib/school/classes";
-import { smsParts, useSendSms, useSmsRecipients, type SmsSettings } from "@/lib/school/sms";
+import { smsParts, useSendSms, useSmsClassStudents, useSmsRecipients, type SmsSettings } from "@/lib/school/sms";
+import { localPhone } from "@/lib/school/students";
 
 const ALL = "ALL";
 
-/** An SMS by hand to the guardians of the whole school, a class or a section (one per phone). */
+/**
+ * An SMS by hand to the guardians of the whole school, a class, a section, or one student
+ * picked from the class's (or section's) list. One SMS per phone.
+ */
 export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) {
   const t = useTranslations("school.sms.send");
   const tSms = useTranslations("school.sms");
   const format = useFormatter();
   const describeError = useErrorMessage();
   const classes = useClasses();
+  const name = useLocalizedName();
   const [classId, setClassId] = useState<string | undefined>();
   const [sectionId, setSectionId] = useState<string | undefined>();
+  const [studentId, setStudentId] = useState<string | undefined>();
   const [message, setMessage] = useState("");
   const [confirming, setConfirming] = useState(false);
   const send = useSendSms();
 
-  const target = { classId, sectionId };
+  // the chosen class's (or section's) students, to pick one from
+  const students = useSmsClassStudents(classId, sectionId);
+  const student = students.data?.find((s) => s.id === studentId) ?? null;
+  const oneStudent = !!student;
+  const target = student ? { studentId: student.id } : { classId, sectionId };
   const recipients = useSmsRecipients(target);
   const sections = classes.data?.items.find((c) => c.id === classId)?.sections.filter((s) => !s.isDefault) ?? [];
   const { parts, length, unicode } = smsParts(message.trim());
@@ -61,16 +72,17 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
     );
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <section className="space-y-5 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
-            <Label htmlFor="sms-class">{t("to")}</Label>
+            <Label htmlFor="sms-class">{t("class")}</Label>
             <Select
               value={classId ?? ALL}
               onValueChange={(v) => {
                 setClassId(v === ALL ? undefined : v);
                 setSectionId(undefined);
+                setStudentId(undefined);
               }}
             >
               <SelectTrigger id="sms-class" className="w-full">
@@ -89,7 +101,13 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
           {sections.length > 0 && (
             <div className="space-y-1.5">
               <Label htmlFor="sms-section">{t("section")}</Label>
-              <Select value={sectionId ?? ALL} onValueChange={(v) => setSectionId(v === ALL ? undefined : v)}>
+              <Select
+                value={sectionId ?? ALL}
+                onValueChange={(v) => {
+                  setSectionId(v === ALL ? undefined : v);
+                  setStudentId(undefined);
+                }}
+              >
                 <SelectTrigger id="sms-section" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -98,6 +116,30 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
                   {sections.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {classId && (
+            <div className="space-y-1.5">
+              <Label htmlFor="sms-student">{t("student")}</Label>
+              <Select value={studentId ?? ALL} onValueChange={(v) => setStudentId(v === ALL ? undefined : v)} disabled={students.isPending}>
+                <SelectTrigger id="sms-student" className="w-full">
+                  <SelectValue placeholder={t("loadingStudents")} />
+                </SelectTrigger>
+                <SelectContent className="max-h-80">
+                  <SelectItem value={ALL}>{t("allStudents", { count: students.data?.length ?? 0 })}</SelectItem>
+                  {!!students.data?.length && <SelectSeparator />}
+                  {students.data?.map((s) => (
+                    // a student without any phone can't be texted
+                    <SelectItem key={s.id} value={s.id} disabled={!s.smsPhone}>
+                      <span className="flex w-full min-w-0 items-center gap-2">
+                        {s.rollNumber && <span className="w-7 shrink-0 text-muted-foreground tabular-nums">{s.rollNumber}</span>}
+                        <span className="truncate">{name(s)}</span>
+                        {!s.smsPhone && <span className="ml-auto shrink-0 text-xs text-amber-700 dark:text-amber-400">{t("noPhone")}</span>}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -127,7 +169,15 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
         <div className="flex items-center gap-2 font-semibold">
           <Users className="size-4 text-brand dark:text-sidebar-primary" /> {t("summary")}
         </div>
-        {recipients.isPending ? (
+        {student ? (
+          <dl className="space-y-2 text-sm">
+            <Row label={t("student")} value={name(student)} strong />
+            <Row label={t("phone")} value={localPhone(student.smsPhone)} />
+            <div className="border-t pt-2">
+              <Row label={t("totalSms")} value={format.number(parts)} strong />
+            </div>
+          </dl>
+        ) : recipients.isPending ? (
           <p className="text-sm text-muted-foreground">…</p>
         ) : recipients.isError ? (
           <p className="text-sm text-muted-foreground">{describeError(recipients.error)}</p>
@@ -141,14 +191,18 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
             </div>
           </dl>
         )}
-        <p className="text-xs text-muted-foreground">{t("siblingsNote")}</p>
+        {!oneStudent && <p className="text-xs text-muted-foreground">{t("siblingsNote")}</p>}
       </aside>
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("confirmText", { phones: format.number(phones), total: format.number(phones * parts) })}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {oneStudent && student
+                ? t("confirmOne", { name: name(student), phone: localPhone(student.smsPhone), total: format.number(parts) })
+                : t("confirmText", { phones: format.number(phones), total: format.number(phones * parts) })}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={send.isPending}>{tSms("cancel")}</AlertDialogCancel>

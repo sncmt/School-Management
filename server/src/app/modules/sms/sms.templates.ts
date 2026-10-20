@@ -41,6 +41,15 @@ export const SMS_EVENTS: Record<SmsEvent, EventInfo> = {
       EN: "Dear guardian, the payment of Tk {amount} for {student} (receipt {receipt}) was cancelled. -{school}",
     },
   },
+  STUDENT_PRESENT: {
+    activity: "attendance",
+    placeholders: ["student", "date", "school"],
+    defaults: {
+      // as short as absent: one Bangla SMS for usual names
+      BN: "{student} {date} তারিখে স্কুলে উপস্থিত। -{school}",
+      EN: "Dear guardian, {student} was present at school on {date}. -{school}",
+    },
+  },
   STUDENT_ABSENT: {
     activity: "attendance",
     placeholders: ["student", "date", "school"],

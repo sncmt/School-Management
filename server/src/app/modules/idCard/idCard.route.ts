@@ -29,6 +29,12 @@ router.put(
 );
 
 router.get(
+  "/school",
+  authorize("student:view"),
+  catchAsync(async (req, res) => ok(res, "School retrieved successfully!", await IdCardService.getSchool(schoolOf(req)))),
+);
+
+router.get(
   "/",
   authorize("student:view"),
   validateRequest({ query: IdCardValidation.cardsQuery }),

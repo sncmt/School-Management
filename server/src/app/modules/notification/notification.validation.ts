@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NotificationType } from "../../../../generated/prisma/enums";
 import { idSchema } from "../../shared/financeSchemas";
 
 const listQuery = z.object({
@@ -13,6 +14,10 @@ const listQuery = z.object({
 
 const notificationIdParams = z.object({ notificationId: idSchema("Message id") });
 
-export const NotificationValidation = { listQuery, notificationIdParams };
+// turning one in-app message type on or off for the school
+const typeParams = z.object({ type: z.enum(NotificationType) });
+const setTypeEnabled = z.strictObject({ enabled: z.boolean({ error: "Say whether it is on or off" }) });
+
+export const NotificationValidation = { listQuery, notificationIdParams, typeParams, setTypeEnabled };
 
 export type NotificationListQuery = z.infer<typeof listQuery>;

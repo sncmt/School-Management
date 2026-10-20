@@ -69,7 +69,7 @@ export const useSyncToast = () => {
 };
 
 /** What each class pays in a year: one row per fee type. */
-export function FeeStructuresTab({ canManage, canSync }: { canManage: boolean; canSync: boolean }) {
+export function FeeStructuresTab({ canManage, canSync, onOpenFeeTypes }: { canManage: boolean; canSync: boolean; onOpenFeeTypes?: () => void }) {
   const t = useTranslations("school.finance.structures");
   const tTypes = useTranslations("school.finance.feeTypes");
   const describeError = useErrorMessage();
@@ -288,6 +288,7 @@ export function FeeStructuresTab({ canManage, canSync }: { canManage: boolean; c
           schoolClass={schoolClass}
           taken={items.map((s) => s.feeTypeId)}
           onClose={() => setEditing(undefined)}
+          onOpenFeeTypes={onOpenFeeTypes}
         />
       )}
     </div>

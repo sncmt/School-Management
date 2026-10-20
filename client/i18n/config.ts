@@ -17,7 +17,7 @@ export const siteDefaultLocale: Record<Exclude<Site["type"], "SCHOOL">, Locale> 
 };
 
 // Used when a school's language can't be loaded
-export const fallbackLocale: Locale = "bn";
+export const fallbackLocale: Locale = "bn"; 
 
 /** The server's School.language (EN | BN) as a locale. */
 export const localeFromSchoolLanguage = (language: "EN" | "BN"): Locale =>

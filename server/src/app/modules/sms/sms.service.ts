@@ -6,7 +6,14 @@ import { AppError } from "../../errorHandler/AppError";
 import { checkPermission } from "../../middlewares/authorize";
 import type { Names } from "../../shared/names";
 import { activityPermission, fillTemplate, SMS_EVENTS, smsParts, unknownPlaceholders } from "./sms.templates";
-import type { SendSmsPayload, SmsLogQuery, SmsRecipientsQuery, UpdateSmsSettingsPayload, UpdateSmsTemplatePayload } from "./sms.validation";
+import type {
+  SendSmsPayload,
+  SmsLogQuery,
+  SmsRecipientsQuery,
+  SmsStudentSearchQuery,
+  UpdateSmsSettingsPayload,
+  UpdateSmsTemplatePayload,
+} from "./sms.validation";
 
 type Auth = NonNullable<Express.Request["auth"]>;
 
@@ -299,9 +306,20 @@ const listMessages = async (schoolId: string, query: SmsLogQuery) => {
 
 /*
  * The phones an SMS by hand goes to: the guardians of the school's active students this year
- * (or one class / section). Siblings sharing a phone get one SMS.
+ * (or one class / section), or of one student (whatever their status: a former student's
+ * family can still be told about dues). Siblings sharing a phone get one SMS.
  */
 const recipientsOf = async (schoolId: string, target: SmsRecipientsQuery) => {
+  if (target.studentId) {
+    const student = await prisma.student.findFirst({
+      where: { id: target.studentId, schoolId },
+      select: { id: true, phone: true, guardianPhone: true },
+    });
+    if (!student) throw new AppError("Student not found", httpStatus.NOT_FOUND);
+    const phone = student.guardianPhone || student.phone;
+    return { students: 1, withoutPhone: phone ? 0 : 1, phones: new Map(phone ? [[phone, student.id]] : []) };
+  }
+
   const year = await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } });
   if (!year) throw new AppError("No current academic year is set", httpStatus.BAD_REQUEST);
 
@@ -326,6 +344,86 @@ const recipientsOf = async (schoolId: string, target: SmsRecipientsQuery) => {
   return { students: enrollments.length, withoutPhone, phones: byPhone };
 };
 
+/*
+ * The students to pick one from, with the phone the SMS would go to. Needs only sms:send, not
+ * student:view. With a class: its active students this year (one section, if given), by roll.
+ * Otherwise a search by name, admission number or phone, with each one's latest class.
+ */
+const searchStudents = async (schoolId: string, { classId, sectionId, search }: SmsStudentSearchQuery) => {
+  if (classId) return classStudents(schoolId, classId, sectionId);
+
+  const students = await prisma.student.findMany({
+    where: {
+      schoolId,
+      OR: [
+        { nameEn: { contains: search, mode: "insensitive" } },
+        { nameBn: { contains: search } },
+        { admissionNo: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search } },
+        { guardianPhone: { contains: search } },
+      ],
+    },
+    // the students still at the school first
+    orderBy: [{ status: "asc" }, { nameEn: "asc" }],
+    take: 10,
+    select: {
+      id: true,
+      nameEn: true,
+      nameBn: true,
+      admissionNo: true,
+      status: true,
+      phone: true,
+      guardianPhone: true,
+      enrollments: {
+        orderBy: { academicYear: { startDate: "desc" } },
+        take: 1,
+        select: { class: { select: { name: true } }, section: { select: { name: true, isDefault: true } } },
+      },
+    },
+  });
+  return students.map(({ phone, guardianPhone, enrollments, ...s }) => ({
+    ...s,
+    smsPhone: guardianPhone || phone,
+    rollNumber: null,
+    className: enrollments[0]?.class.name ?? null,
+    section: enrollments[0] && !enrollments[0].section.isDefault ? enrollments[0].section.name : null,
+  }));
+};
+
+// roll numbers in their natural order (2 before 10), students without one last
+const byRoll = (a: string | null, b: string | null) =>
+  a === null ? (b === null ? 0 : 1) : b === null ? -1 : a.localeCompare(b, undefined, { numeric: true });
+
+const classStudents = async (schoolId: string, classId: string, sectionId?: string) => {
+  const year = await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } });
+  if (!year) throw new AppError("No current academic year is set", httpStatus.BAD_REQUEST);
+
+  const enrollments = await prisma.enrollment.findMany({
+    where: {
+      academicYearId: year.id,
+      classId,
+      status: "ACTIVE",
+      student: { schoolId, status: "ACTIVE" },
+      ...(sectionId ? { sectionId } : {}),
+    },
+    select: {
+      rollNumber: true,
+      class: { select: { name: true } },
+      section: { select: { name: true, isDefault: true } },
+      student: { select: { id: true, nameEn: true, nameBn: true, admissionNo: true, status: true, phone: true, guardianPhone: true } },
+    },
+  });
+  return enrollments
+    .sort((a, b) => byRoll(a.rollNumber, b.rollNumber) || a.student.nameEn.localeCompare(b.student.nameEn))
+    .map(({ rollNumber, class: cls, section, student: { phone, guardianPhone, ...s } }) => ({
+      ...s,
+      smsPhone: guardianPhone || phone,
+      rollNumber,
+      className: cls.name,
+      section: section.isDefault ? null : section.name,
+    }));
+};
+
 const previewRecipients = async (schoolId: string, target: SmsRecipientsQuery) => {
   const { students, withoutPhone, phones } = await recipientsOf(schoolId, target);
   return { students, withoutPhone, phones: phones.size };
@@ -337,7 +435,9 @@ const sendByHand = async (auth: Auth, data: SendSmsPayload) => {
   if (!setting?.isActive) throw new AppError("SMS is turned off for the school. Turn it on in SMS settings first", httpStatus.BAD_REQUEST);
 
   const { phones } = await recipientsOf(schoolId, data);
-  if (phones.size === 0) throw new AppError("None of these students has a phone number", httpStatus.BAD_REQUEST);
+  if (phones.size === 0) {
+    throw new AppError(data.studentId ? "This student has no phone number" : "None of these students has a phone number", httpStatus.BAD_REQUEST);
+  }
 
   const parts = smsParts(data.message).parts;
   // sent now: a person chose the moment, so the quiet hours don't apply
@@ -363,6 +463,7 @@ export const SmsService = {
   listTemplates,
   updateTemplate,
   listMessages,
+  searchStudents,
   previewRecipients,
   sendByHand,
 };

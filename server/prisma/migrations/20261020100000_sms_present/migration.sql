@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "SmsEvent" ADD VALUE 'STUDENT_PRESENT';

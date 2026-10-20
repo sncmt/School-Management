@@ -12,6 +12,7 @@ export type NotificationType =
   | "STUDENT_ADMITTED"
   | "PAYMENT_RECEIVED"
   | "PAYMENT_CANCELLED"
+  | "STUDENT_PRESENT"
   | "STUDENT_ABSENT"
   | "STUDENT_LATE"
   | "RESULT_PUBLISHED"
@@ -34,7 +35,7 @@ export type NotificationData = {
   // FEE_DUE: how many fees make up the amount
   fees?: number;
   receiptNo?: string;
-  // STUDENT_ABSENT / STUDENT_LATE: YYYY-MM-DD
+  // STUDENT_PRESENT / STUDENT_ABSENT / STUDENT_LATE: YYYY-MM-DD
   date?: string;
   // RESULT_PUBLISHED / ADMIT_CARD_RELEASED
   exam?: BilingualName;
@@ -68,6 +69,11 @@ export const notificationsApi = {
     (await httpClient.post<ApiResponse<{ unread: number }>>(`/notification/${notificationId}/read`)).data.data,
 
   markAllRead: async () => (await httpClient.post<ApiResponse<{ unread: number }>>("/notification/read-all")).data.data,
+
+  // the in-app message types the school has switched off
+  settings: async () => (await httpClient.get<ApiResponse<{ mutedTypes: NotificationType[] }>>("/notification/settings")).data.data,
+  setTypeEnabled: async ({ type, enabled }: { type: NotificationType; enabled: boolean }) =>
+    (await httpClient.patch<ApiResponse<{ mutedTypes: NotificationType[] }>>(`/notification/settings/${type}`, { enabled })).data.data,
 };
 
 const notificationsKey = ["school", "notifications"] as const;
@@ -118,6 +124,18 @@ const useInboxMutation = <TArgs>(mutationFn: (args: TArgs) => Promise<{ unread: 
       queryClient.setQueryData(countKey, { unread });
       queryClient.invalidateQueries({ queryKey: [...notificationsKey, "list"] });
     },
+  });
+};
+
+const settingsKey = [...notificationsKey, "settings"] as const;
+
+export const useNotificationSettings = () => useQuery({ queryKey: settingsKey, queryFn: notificationsApi.settings });
+
+export const useSetNotificationTypeEnabled = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: notificationsApi.setTypeEnabled,
+    onSuccess: (data) => queryClient.setQueryData(settingsKey, data),
   });
 };
 

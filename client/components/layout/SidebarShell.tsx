@@ -106,22 +106,23 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
           <SidebarTrigger className="size-9 shrink-0 text-white hover:bg-white/15 hover:text-white [&_svg]:size-5!" />
         </SidebarHeader>
 
-        <SidebarContent className="gap-0 p-0">
+        <SidebarContent className="sidebar-scroll gap-0 p-0">
           <Menu groups={groups} pathname={pathname} />
         </SidebarContent>
         <SidebarRail />
       </Sidebar>
 
-      <SidebarInset className="bg-canvas">
+      <SidebarInset className="min-w-0 bg-canvas">
         <header className="no-print sticky top-0 z-20 flex h-[68px] shrink-0 items-center gap-3 border-b bg-background px-4 shadow-[0_1px_3px_rgb(0_0_0/0.04)] lg:px-6">
           {/* on a phone the menu is hidden: its button lives here */}
           <SidebarTrigger className="-ml-1 md:hidden" />
-          <p className="min-w-0 truncate text-[17px] tracking-tight">
+          <p className="min-w-0 truncate text-[15px] tracking-tight sm:text-[17px]">
             {tShell.rich("welcome", { name: brand.title, b: (chunks) => <b className="font-semibold">{chunks}</b> })}
             <span className="hidden text-muted-foreground xl:inline"> {tShell("appTagline")}</span>
           </p>
-          <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
-            <div className="hidden w-72 lg:block">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
+            {/* an icon below lg, the search box from lg */}
+            <div className="lg:w-72">
               <PageSearch pages={pages} />
             </div>
             {topBarItems}

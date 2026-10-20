@@ -29,6 +29,7 @@ export function FeeStructureDialog({
   schoolClass,
   taken,
   onClose,
+  onOpenFeeTypes,
 }: {
   open: boolean;
   structure: FeeStructure | null;
@@ -37,6 +38,8 @@ export function FeeStructureDialog({
   // fee types the class already has (a new one is chosen from the others)
   taken: string[];
   onClose: () => void;
+  // to the Fee types tab, when there is none to choose (for those who may see it)
+  onOpenFeeTypes?: () => void;
 }) {
   const t = useTranslations("school.finance.structures.form");
   return (
@@ -47,7 +50,21 @@ export function FeeStructureDialog({
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         {open && (
-          <FeeStructureForm key={structure?.id ?? "new"} structure={structure} year={year} classId={schoolClass.id} taken={taken} onDone={onClose} />
+          <FeeStructureForm
+            key={structure?.id ?? "new"}
+            structure={structure}
+            year={year}
+            classId={schoolClass.id}
+            taken={taken}
+            onDone={onClose}
+            onOpenFeeTypes={
+              onOpenFeeTypes &&
+              (() => {
+                onClose();
+                onOpenFeeTypes();
+              })
+            }
+          />
         )}
       </DialogContent>
     </Dialog>
@@ -60,12 +77,14 @@ function FeeStructureForm({
   classId,
   taken,
   onDone,
+  onOpenFeeTypes,
 }: {
   structure: FeeStructure | null;
   year: AcademicYear;
   classId: string;
   taken: string[];
   onDone: () => void;
+  onOpenFeeTypes?: () => void;
 }) {
   const t = useTranslations("school.finance.structures.form");
   const tTypes = useTranslations("school.finance.feeTypes");
@@ -80,6 +99,9 @@ function FeeStructureForm({
   const months = yearMonths(year);
 
   const options = (feeTypes.data ?? []).filter((f) => (f.isActive && !taken.includes(f.id)) || f.id === structure?.feeTypeId);
+  // nothing to choose: no active fee type at all yet, or the class already has every one
+  const noneToChoose = !structure && feeTypes.isSuccess && options.length === 0;
+  const noFeeTypesYet = noneToChoose && !feeTypes.data.some((f) => f.isActive);
   // the schedule as periods of the year: consecutive months with the same amount
   const initialPeriods = () => {
     if (!structure || structure.monthlyAmounts.length === 0) return [];
@@ -170,30 +192,42 @@ function FeeStructureForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel required>{t("feeType")}</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={(v) => {
-                  field.onChange(v);
-                  // another fee type starts from one amount
-                  form.setValue("byMonth", false);
-                  periods.replace([]);
-                }}
-                disabled={!!structure}
-              >
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t("chooseFeeType")} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {options.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      {name(f)} · {tTypes(`frequencies.${f.frequency}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {!structure && options.length === 0 && <p className="text-sm text-muted-foreground">{t("noFeeTypes")}</p>}
+              {noneToChoose ? (
+                // an empty dropdown would open as a blank box that blocks the page: say why instead
+                <div className="space-y-2 rounded-md border border-amber-500/30 bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                  <p>{t(noFeeTypesYet ? "noFeeTypesYet" : "noFeeTypes")}</p>
+                  {onOpenFeeTypes && (
+                    <Button type="button" size="sm" variant="outline" onClick={onOpenFeeTypes}>
+                      {t("openFeeTypes")}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Select
+                  value={field.value}
+                  onValueChange={(v) => {
+                    field.onChange(v);
+                    // another fee type starts from one amount
+                    form.setValue("byMonth", false);
+                    periods.replace([]);
+                  }}
+                  disabled={!!structure || !feeTypes.isSuccess}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t(feeTypes.isSuccess ? "chooseFeeType" : "loadingFeeTypes")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {options.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {name(f)} · {tTypes(`frequencies.${f.frequency}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {feeTypes.isError && <p className="text-sm text-destructive">{describeError(feeTypes.error)}</p>}
               <FormMessage />
             </FormItem>
           )}
@@ -231,7 +265,8 @@ function FeeStructureForm({
         {feeType && monthly && byMonth && (
           <div className="space-y-2">
             {periods.fields.map((p, i) => (
-              <div key={p.id} className="grid grid-cols-[1fr_1fr_8rem_auto] items-start gap-2">
+              // on a phone: the two months on one line, the amount and the remove button under them
+              <div key={p.id} className="grid grid-cols-2 items-start gap-2 rounded-md border p-2 sm:grid-cols-[1fr_1fr_8rem_auto] sm:border-0 sm:p-0">
                 <FormField
                   control={form.control}
                   name={`periods.${i}.fromMonth`}
@@ -262,7 +297,7 @@ function FeeStructureForm({
                     </FormItem>
                   )}
                 />
-                <Button type="button" variant="ghost" size="icon" onClick={() => periods.remove(i)} aria-label={t("removePeriod")}>
+                <Button type="button" variant="ghost" size="icon" className="justify-self-end sm:justify-self-auto" onClick={() => periods.remove(i)} aria-label={t("removePeriod")}>
                   <Trash2 />
                 </Button>
               </div>

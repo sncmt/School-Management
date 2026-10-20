@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Award, Banknote, ClipboardCheck, GraduationCap, Lock, Pencil, PowerOff, UserPlus, Wallet } from "lucide-react";
+import { Award, Banknote, ClipboardCheck, GraduationCap, Lock, MessageSquareText, Pencil, PowerOff, UserPlus, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { useCan } from "@/lib/auth/hooks";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
+import { useNotificationSettings, useSetNotificationTypeEnabled } from "@/lib/school/notifications";
 import {
   activityPermission,
   SMS_ACTIVITIES,
@@ -88,6 +89,7 @@ export function SmsActivitiesTab({ settings, onOpenSettings }: { settings: SmsSe
                 )}
               </header>
               <ul className="divide-y">
+                {activity === "attendance" && <InAppPresentRow mayToggle={mayToggle} />}
                 {items.map((tpl) => (
                   <EventRow
                     key={tpl.event}
@@ -106,6 +108,37 @@ export function SmsActivitiesTab({ settings, onOpenSettings }: { settings: SmsSe
 
       <SmsTemplateDialog template={editing} language={language} onClose={() => setEditing(null)} />
     </div>
+  );
+}
+
+/*
+ * Not an SMS: the daily "present" message in the family's app (the message icon). On unless
+ * the school turns it off; the same permission as the attendance SMS.
+ */
+function InAppPresentRow({ mayToggle }: { mayToggle: boolean }) {
+  const t = useTranslations("school.sms.activities.inAppPresent");
+  const describeError = useErrorMessage();
+  const settings = useNotificationSettings();
+  const update = useSetNotificationTypeEnabled();
+  const enabled = !settings.data?.mutedTypes.includes("STUDENT_PRESENT");
+
+  const toggle = (on: boolean) =>
+    update.mutate(
+      { type: "STUDENT_PRESENT", enabled: on },
+      { onSuccess: () => toast.success(t(on ? "turnedOn" : "turnedOff")), onError: (e) => toast.error(describeError(e)) },
+    );
+
+  return (
+    <li className="flex items-start gap-3 bg-brand-soft/30 px-5 py-4">
+      <MessageSquareText className="mt-0.5 size-4 shrink-0 text-brand dark:text-sidebar-primary" />
+      <div className="min-w-0 flex-1">
+        <label htmlFor="inapp-present" className="font-medium">
+          {t("title")}
+        </label>
+        <p className="text-xs text-muted-foreground">{t("when")}</p>
+      </div>
+      <Switch id="inapp-present" checked={enabled} onCheckedChange={toggle} disabled={!mayToggle || !settings.isSuccess || update.isPending} />
+    </li>
   );
 }
 

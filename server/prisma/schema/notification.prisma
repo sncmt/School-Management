@@ -3,6 +3,7 @@ enum NotificationType {
   STUDENT_ADMITTED
   PAYMENT_RECEIVED
   PAYMENT_CANCELLED
+  STUDENT_PRESENT
   STUDENT_ABSENT
   STUDENT_LATE
   RESULT_PUBLISHED
@@ -11,6 +12,20 @@ enum NotificationType {
   FEE_DUE
   // end of year: moved up a class, or graduated
   STUDENT_PROMOTED
+}
+
+/* A school's choices for in-app messages: the types it doesn't send (e.g. the daily "present"). */
+model NotificationSetting {
+  id String @id @default(cuid())
+
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  mutedTypes NotificationType[] @default([])
+
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /*

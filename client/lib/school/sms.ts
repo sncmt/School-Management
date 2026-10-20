@@ -16,6 +16,7 @@ export type SmsEvent =
   | "STUDENT_ADMITTED"
   | "PAYMENT_RECEIVED"
   | "PAYMENT_CANCELLED"
+  | "STUDENT_PRESENT"
   | "STUDENT_ABSENT"
   | "STUDENT_LATE"
   | "RESULT_PUBLISHED"
@@ -75,7 +76,19 @@ export type SmsLog = {
 };
 
 export type SmsLogQuery = { page: number; limit: number; status?: SmsStatus; search?: string };
-export type SmsTarget = { classId?: string; sectionId?: string };
+// the whole school, a class, a section, or one student
+export type SmsTarget = { classId?: string; sectionId?: string; studentId?: string };
+
+/* A student found to text by hand, with the phone the SMS would go to. */
+export type SmsStudentOption = BilingualName & {
+  id: string;
+  admissionNo: string;
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "GRADUATED";
+  smsPhone: string | null;
+  rollNumber: string | null;
+  className: string | null;
+  section: string | null;
+};
 export type SmsRecipients = { students: number; withoutPhone: number; phones: number };
 
 export const smsApi = {
@@ -90,6 +103,10 @@ export const smsApi = {
 
   log: async (query: SmsLogQuery) => (await httpClient.get<ApiResponse<SmsLog>>("/sms/messages", { params: query })).data.data,
 
+  // a class's (or section's) students this year, by roll
+  classStudents: async (params: { classId: string; sectionId?: string }) =>
+    (await httpClient.get<ApiResponse<SmsStudentOption[]>>("/sms/students", { params })).data.data,
+
   recipients: async (target: SmsTarget) => (await httpClient.get<ApiResponse<SmsRecipients>>("/sms/recipients", { params: target })).data.data,
   send: async (body: SmsTarget & { message: string }) =>
     (await httpClient.post<ApiResponse<{ queued: number; parts: number; totalParts: number }>>("/sms/send", body)).data.data,
@@ -101,6 +118,12 @@ export const useSmsSettings = (enabled = true) => useQuery({ queryKey: [...smsKe
 export const useSmsTemplates = (enabled = true) => useQuery({ queryKey: [...smsKey, "templates"], queryFn: smsApi.templates, enabled });
 export const useSmsLog = (query: SmsLogQuery, enabled = true) =>
   useQuery({ queryKey: [...smsKey, "log", query], queryFn: () => smsApi.log(query), placeholderData: keepPreviousData, enabled, refetchInterval: 30_000 });
+export const useSmsClassStudents = (classId: string | undefined, sectionId: string | undefined) =>
+  useQuery({
+    queryKey: [...smsKey, "students", classId, sectionId],
+    queryFn: () => smsApi.classStudents({ classId: classId!, sectionId }),
+    enabled: !!classId,
+  });
 export const useSmsRecipients = (target: SmsTarget, enabled = true) =>
   useQuery({ queryKey: [...smsKey, "recipients", target], queryFn: () => smsApi.recipients(target), enabled });
 

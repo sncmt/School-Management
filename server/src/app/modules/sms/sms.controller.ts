@@ -4,7 +4,7 @@ import type { SmsEvent } from "../../../../generated/prisma/enums";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { SmsService } from "./sms.service";
-import type { SmsLogQuery, SmsRecipientsQuery } from "./sms.validation";
+import type { SmsLogQuery, SmsRecipientsQuery, SmsStudentSearchQuery } from "./sms.validation";
 
 const ok = <T>(res: Response, message: string, data: T, statusCode: number = httpStatus.OK) =>
   sendResponse(res, { statusCode, success: true, message, data });
@@ -29,6 +29,10 @@ const listMessages = catchAsync(async (req: Request, res: Response) => {
   ok(res, "SMS log retrieved", await SmsService.listMessages(req.auth!.schoolId!, req.query as unknown as SmsLogQuery));
 });
 
+const searchStudents = catchAsync(async (req: Request, res: Response) => {
+  ok(res, "Students found", await SmsService.searchStudents(req.auth!.schoolId!, req.query as unknown as SmsStudentSearchQuery));
+});
+
 const previewRecipients = catchAsync(async (req: Request, res: Response) => {
   ok(res, "Recipients counted", await SmsService.previewRecipients(req.auth!.schoolId!, req.query as unknown as SmsRecipientsQuery));
 });
@@ -38,4 +42,13 @@ const sendByHand = catchAsync(async (req: Request, res: Response) => {
   ok(res, `${result.queued} SMS queued`, result, httpStatus.CREATED);
 });
 
-export const SmsController = { getSettings, updateSettings, listTemplates, updateTemplate, listMessages, previewRecipients, sendByHand };
+export const SmsController = {
+  getSettings,
+  updateSettings,
+  listTemplates,
+  updateTemplate,
+  listMessages,
+  searchStudents,
+  previewRecipients,
+  sendByHand,
+};
