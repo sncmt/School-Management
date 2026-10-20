@@ -1,6 +1,7 @@
 import type { SmsProvider } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { sendThrough } from "./sms.provider";
+import { outsideQuietHours } from "./sms.service";
 
 /*
  * The sender: every few seconds it takes the SMS whose time has come and sends each through
@@ -16,7 +17,8 @@ const MAX_ATTEMPTS = 3;
 const RETRY_MINUTES = 5;
 const STUCK_MINUTES = 10;
 
-type Claimed = { id: string; schoolId: string; phone: string; body: string; attempts: number };
+// event: null for an SMS sent by hand (its retries don't wait for the morning)
+type Claimed = { id: string; schoolId: string; phone: string; body: string; attempts: number; event: string | null };
 
 const claimBatch = () =>
   prisma.$queryRaw<Claimed[]>`
@@ -28,14 +30,17 @@ const claimBatch = () =>
       LIMIT ${BATCH}
       FOR UPDATE SKIP LOCKED
     )
-    RETURNING "id", "schoolId", "phone", "body", "attempts"`;
+    RETURNING "id", "schoolId", "phone", "body", "attempts", "event"`;
 
 const tick = async () => {
-  // a process that died mid-send left these: back to the queue
+  // a process that died mid-send left these. The gateway may have taken them already, so they
+  // go back to the queue only while tries are left; after that they fail rather than repeat
+  const stuck = { status: "SENDING" as const, updatedAt: { lt: new Date(Date.now() - STUCK_MINUTES * 60_000) } };
   await prisma.smsMessage.updateMany({
-    where: { status: "SENDING", updatedAt: { lt: new Date(Date.now() - STUCK_MINUTES * 60_000) } },
-    data: { status: "QUEUED" },
+    where: { ...stuck, attempts: { gte: MAX_ATTEMPTS } },
+    data: { status: "FAILED", error: "The gateway never confirmed this SMS; not sent again in case it already went" },
   });
+  await prisma.smsMessage.updateMany({ where: { ...stuck, attempts: { lt: MAX_ATTEMPTS } }, data: { status: "QUEUED" } });
 
   const batch = await claimBatch();
   if (batch.length === 0) return;
@@ -72,11 +77,13 @@ const deliver = async (sms: Claimed, provider: SmsProvider, senderId: string | n
   } catch (error) {
     const message = (error as Error).message.slice(0, 500);
     const giveUp = sms.attempts >= MAX_ATTEMPTS;
+    const retryAt = new Date(Date.now() + sms.attempts * RETRY_MINUTES * 60_000);
     await prisma.smsMessage.update({
       where: { id: sms.id },
       data: giveUp
         ? { status: "FAILED", provider, error: message }
-        : { status: "QUEUED", provider, error: message, sendAfter: new Date(Date.now() + sms.attempts * RETRY_MINUTES * 60_000) },
+        : // an automatic SMS keeps out of the quiet hours on a retry too; one sent by hand goes when it can
+          { status: "QUEUED", provider, error: message, sendAfter: sms.event ? outsideQuietHours(retryAt) : retryAt },
     });
   }
 };

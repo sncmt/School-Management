@@ -18,6 +18,7 @@ import { ReceiptDialog } from "../finance/collect/ReceiptDialog";
 import { FeesChart } from "./FeesChart";
 import { MiniCalendar } from "./MiniCalendar";
 import { MyDutiesPanel, NoticesPanel, Panel, PanelLink, UpcomingPanel } from "./panels";
+import { SubscriptionPanel } from "./SubscriptionPanel";
 
 /** The school's home: the numbers that matter today, each part shown only to those allowed to see it. */
 export function DashboardPage() {
@@ -38,7 +39,7 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t(`greeting.${greeting}`, { name: me?.user.fullname ?? "" })}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t(`greeting.${greeting}`, { name: me?.user.fullname ?? "" })}</h1>
         <p className="text-sm text-muted-foreground">{format.dateTime(now, { dateStyle: "full", timeZone: "Asia/Dhaka" })}</p>
       </div>
 
@@ -53,6 +54,8 @@ export function DashboardPage() {
             </section>
           )}
           <StaffDashboard data={data} isPending={!me || isPending} error={error} describeError={describeError} />
+          {/* the school's subscription to the platform: its super admin only */}
+          {me?.isSuperAdmin && <SubscriptionPanel />}
         </>
       )}
     </div>

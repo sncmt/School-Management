@@ -25,7 +25,7 @@ router.post(
 );
 router.patch(
   "/:schoolId/activate",
-  validateRequest({ params: SchoolValidation.activateSchoolSchema }),
+  validateRequest({ params: SchoolValidation.activateSchoolSchema, body: SchoolValidation.activateSchoolBodySchema }),
   SchoolController.activateSchool,
 );
 router.get(

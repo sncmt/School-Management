@@ -58,7 +58,7 @@ export function SmsLogTab() {
             setPage(1);
           }}
         >
-          <TabsList className="px-5">
+          <TabsList className="px-5 pt-4">
             <TabsTrigger value={ALL}>{t("all")}</TabsTrigger>
             {FILTERS.map((s) => (
               <TabsTrigger key={s} value={s}>

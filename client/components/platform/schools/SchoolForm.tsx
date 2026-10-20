@@ -117,7 +117,7 @@ export function SchoolForm(props: Props) {
       </Button>
 
       <div>
-        <h1 className="text-2xl font-semibold">{isEdit ? t("editTitle") : t("title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{isEdit ? t("editTitle") : t("title")}</h1>
         <p className="text-sm text-muted-foreground">{isEdit ? t("editDescription") : t("description")}</p>
       </div>
 

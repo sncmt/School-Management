@@ -9,7 +9,7 @@ export default function PlatformDashboardPage() {
 
   return (
     <div className="space-y-2">
-      <h1 className="text-2xl font-semibold">{t("welcome", { name: me?.user.fullname ?? "" })}</h1>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("welcome", { name: me?.user.fullname ?? "" })}</h1>
       <p className="text-muted-foreground">{t("dashboardIntro")}</p>
     </div>
   );

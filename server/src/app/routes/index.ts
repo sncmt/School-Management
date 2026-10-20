@@ -38,6 +38,7 @@ import { admitCardRoutes } from '../modules/admitCard/admitCard.route';
 import { idCardRoutes } from '../modules/idCard/idCard.route';
 import { notificationRoutes } from '../modules/notification/notification.route';
 import { smsRoutes } from '../modules/sms/sms.route';
+import { platformSubscriptionRoutes, schoolSubscriptionRoutes } from '../modules/subscription/subscription.route';
 
 
 const router = express.Router();
@@ -208,6 +209,16 @@ const moduleRoutes = [
         // SMS to guardians: settings, templates per activity, the log, sending by hand
         path: '/sms',
         route: smsRoutes
+    },
+    {
+        // schools' subscription payments, recorded by hand by the platform admin
+        path: '/platform/subscription',
+        route: platformSubscriptionRoutes
+    },
+    {
+        // a school's own subscription, for its super admin to read
+        path: '/subscription',
+        route: schoolSubscriptionRoutes
     },
     {
         // homework: given by subject teachers, ticked in class, seen by families

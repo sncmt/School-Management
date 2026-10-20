@@ -20,7 +20,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
-    // a pale teal band with navy headings (the sidebar's two colours); plain when printed
+    // a pale blue band with navy headings; plain when printed
     <thead
       data-slot="table-header"
       className={cn(
@@ -74,7 +74,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle text-xs font-semibold tracking-wide whitespace-nowrap text-navy uppercase print:text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "h-11 px-2 text-left align-middle text-[11.5px] font-bold tracking-[0.1em] whitespace-nowrap text-navy uppercase print:text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

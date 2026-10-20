@@ -4,7 +4,7 @@ import type { NotificationType, SmsEvent } from "../../../../generated/prisma/en
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { checkPermission } from "../../middlewares/authorize";
-import { dayKey } from "../../shared/scheduleSchemas";
+import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { SmsService, type SmsEventMessage, type SmsFacts } from "../sms/sms.service";
 import { currentMonth, dueFilter } from "../studentFee/studentFee.service";
 import type { NotificationListQuery } from "./notification.validation";
@@ -180,18 +180,31 @@ const syncAttendance = async (schoolId: string, sectionId: string, date: Date) =
   });
 
   if (gone.length > 0) await prisma.notification.deleteMany({ where: { id: { in: gone.map((n) => n.id) } } });
+  // one update per new status (at most three), not one per student
+  const byType = new Map<NotificationType, string[]>();
   for (const n of changed) {
-    await prisma.notification.update({
-      where: { id: n.id },
-      data: { type: wanted.get(n.dedupeKey!)!.type, readAt: null, createdAt: new Date() },
+    const type = wanted.get(n.dedupeKey!)!.type;
+    byType.set(type, [...(byType.get(type) ?? []), n.id]);
+  }
+  for (const [type, ids] of byType) {
+    await prisma.notification.updateMany({
+      where: { id: { in: ids } },
+      data: { type, readAt: null, createdAt: new Date() },
     });
   }
+
+  // Only today's roll call tells families something new. Saving an earlier day (filling it in
+  // late, correcting it) keeps the messages they already have in step but sends no new ones.
+  const isToday = day === dayKey(todayInBangladesh());
   const messages = [...wanted].map(([key, { student, type }]) => ({ schoolId, student, type, dedupeKey: key, data: { date: day } }));
-  await send(
-    messages.filter((m) => !existingKeys.has(m.dedupeKey)),
-    { sms: false },
-  );
-  // every SMS of this roll call not sent yet is written afresh from the latest marks
+  if (isToday) {
+    await send(
+      messages.filter((m) => !existingKeys.has(m.dedupeKey)),
+      { sms: false },
+    );
+  }
+  // every SMS of this roll call not sent yet is written afresh from the latest marks (for an
+  // earlier day, only those still waiting are rewritten: none are added)
   const smsKey = (studentId: string, event: SmsEvent) => `${keyOf(studentId)}:${event}`;
   const sms: SmsEventMessage[] = records.flatMap((r) => {
     const event = r.status in ATTENDANCE_SMS ? ATTENDANCE_SMS[r.status as keyof typeof ATTENDANCE_SMS] : null;
@@ -201,13 +214,16 @@ const syncAttendance = async (schoolId: string, sectionId: string, date: Date) =
     schoolId,
     records.flatMap((r) => Object.values(ATTENDANCE_SMS).map((event) => smsKey(r.student.id, event))),
     sms,
+    { onlyWaiting: !isToday },
   );
 };
 
 /* A class's exam result is out: every student in it. */
 const notifyResultPublished = async (schoolId: string, examClassId: string) => {
+  const isPublished = async () =>
+    (await prisma.examClass.count({ where: { id: examClassId, exam: { schoolId }, status: "PUBLISHED" } })) > 0;
   const examClass = await prisma.examClass.findFirst({
-    where: { id: examClassId, exam: { schoolId } },
+    where: { id: examClassId, exam: { schoolId }, status: "PUBLISHED" },
     select: {
       class: { select: { name: true } },
       exam: { select: { nameEn: true, nameBn: true } },
@@ -215,6 +231,19 @@ const notifyResultPublished = async (schoolId: string, examClassId: string) => {
     },
   });
   if (!examClass) return;
+  // unlocked while these were being written (the withdraw may have run first): take them back
+  const takeBackIfUnlocked = async () => {
+    if (!(await isPublished())) await withdrawResult(schoolId, examClassId);
+  };
+  await sendResult(schoolId, examClassId, examClass);
+  await takeBackIfUnlocked();
+};
+
+const sendResult = async (
+  schoolId: string,
+  examClassId: string,
+  examClass: { class: { name: string }; exam: { nameEn: string | null; nameBn: string | null }; results: { student: StudentRef }[] },
+) => {
   await send(
     examClass.results.map(({ student }) => ({
       schoolId,
@@ -274,6 +303,12 @@ const notifyPromotion = async (schoolId: string, moves: PromotionMove[], ctx: { 
       ];
     }),
   );
+  // a move undone while these were being written (its enrollment active again): take its message back
+  const undone = await prisma.enrollment.findMany({
+    where: { id: { in: moves.map((m) => m.enrollmentId) }, status: "ACTIVE" },
+    select: { id: true },
+  });
+  for (const e of undone) await withdrawPromotion(schoolId, e.id);
 };
 
 /* A promotion undone: its message goes (and its SMS, if not sent yet). */
@@ -340,8 +375,9 @@ const syncAdmitCards = async (schoolId: string, examId: string, released: boolea
     return;
   }
 
+  // only while they are released (hidden again before this ran: nothing to send)
   const exam = await prisma.exam.findFirst({
-    where: { id: examId, schoolId },
+    where: { id: examId, schoolId, admitCardsReleasedAt: { not: null } },
     select: { nameEn: true, nameBn: true, academicYearId: true, classes: { select: { classId: true } } },
   });
   if (!exam) return;
@@ -362,6 +398,9 @@ const syncAdmitCards = async (schoolId: string, examId: string, released: boolea
       data: { exam: { nameEn: exam.nameEn, nameBn: exam.nameBn } },
     })),
   );
+  // hidden again while these were being written (the removal may have run first): take them back
+  const stillReleased = await prisma.exam.count({ where: { id: examId, schoolId, admitCardsReleasedAt: { not: null } } });
+  if (stillReleased === 0) await syncAdmitCards(schoolId, examId, false);
 };
 
 // ------------------------------------------------------------------ settings
@@ -370,6 +409,17 @@ const syncAdmitCards = async (schoolId: string, examId: string, released: boolea
 const SWITCHABLE: Partial<Record<NotificationType, string>> = {
   // a message every school day for every student: some schools find it too many
   STUDENT_PRESENT: "sms:attendance",
+};
+
+/* The school's super admin (or the platform owner working inside the school). */
+const isSchoolSuperAdmin = async (auth: Auth) => {
+  if (auth.isPlatformAdmin) return true;
+  if (!auth.membershipId) return false;
+  const role = await prisma.userRole.findFirst({
+    where: { userId: auth.userId, membershipId: auth.membershipId, role: { scope: "SCHOOL", schoolId: auth.schoolId!, name: "SCHOOL_SUPER_ADMIN", isSystem: true } },
+    select: { id: true },
+  });
+  return role !== null;
 };
 
 const getSettings = async (schoolId: string) => {
@@ -382,7 +432,9 @@ const setTypeEnabled = async (auth: Auth, type: NotificationType, enabled: boole
   const schoolId = auth.schoolId!;
   const permission = SWITCHABLE[type];
   if (!permission) throw new AppError("This message can't be turned off", httpStatus.BAD_REQUEST);
-  if ((await checkPermission(auth, permission)) !== "OK") {
+  // the permission belongs to the SMS module; with that module off nobody would hold it, so the
+  // school super admin may always change in-app messages
+  if ((await checkPermission(auth, permission)) !== "OK" && !(await isSchoolSuperAdmin(auth))) {
     throw new AppError("You don't have permission to change this", httpStatus.FORBIDDEN);
   }
 

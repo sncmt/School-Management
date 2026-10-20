@@ -16,11 +16,13 @@ model School {
   activationDate DateTime?
   monthlyFee     Decimal?     @db.Decimal(10, 2)
   discount       Decimal      @default(0) @db.Decimal(5, 2)
+  // monthly or yearly: chosen when the school is activated; null for schools activated before plans
+  subscriptionPlan SubscriptionPlan?
 
   memberships       SchoolMembership[]
   roles             Role[]
   modules           SchoolModule[]
-  schoolPayments    SchoolPayment[]
+  subscriptionPayments SubscriptionPayment[]
   students          Student[]
   academicYears     AcademicYear[]
   scheduleOverrides ScheduleOverride[]
@@ -70,23 +72,33 @@ model School {
   @@index([status])
 }
 
-model SchoolPayment {
-  id         String              @id @default(cuid())
-  schoolId   String
-  school     School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  monthlyFee Decimal             @db.Decimal(10, 2)
-  discount   Decimal             @default(0) @db.Decimal(5, 2)
-  amount     Decimal
-  month      Int
-  year       Int
-  status     SchoolPaymentStatus @default(UNPAID)
-  remarks    String?
+/*
+ * One paid period of a school's subscription to the platform, recorded by hand by the platform
+ * admin (the school pays outside the app). Monthly: a year and month; yearly: a year. The
+ * school's super admin sees these on their dashboard.
+ */
+model SubscriptionPayment {
+  id       String @id @default(cuid())
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  plan  SubscriptionPlan
+  year  Int
+  month Int? // 1-12 for a monthly payment; null for a yearly one
+  // the period as a key, one record each: "2026-10" (monthly) or "2026" (yearly)
+  period String
 
-  @@unique([schoolId, year, month])
-  @@index([schoolId])
+  amount Decimal? @db.Decimal(10, 2)
+  paidOn DateTime @db.Date
+  note   String?
+
+  // the platform admin who recorded it
+  recordedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([schoolId, period])
+  @@index([schoolId, year])
 }
 
 model Module {

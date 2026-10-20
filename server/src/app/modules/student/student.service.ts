@@ -17,6 +17,7 @@ import type {
   UpdateStudentPayload,
 } from "./student.type";
 import { isUniqueViolation } from "../../utils/prismaError";
+import { DEFAULT_SECTION_NAME } from "../class/class.service";
 import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { processImage } from "../../shared/imageUpload";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
@@ -125,6 +126,36 @@ const assertAdmissionDate = (firstYear: { name: string; endDate: Date }, day: Da
   }
 };
 
+/*
+ * The section to use when none was chosen: a class without sections of its own has its
+ * automatic "whole class" one (made again if it went missing). A class with sections needs
+ * one of them chosen.
+ */
+const wholeClassSection = async (db: Db, schoolId: string, classId: string) => {
+  const schoolClass = await db.schoolClass.findFirst({
+    where: { id: classId, schoolId },
+    select: { name: true, sections: { select: { id: true, isDefault: true } } },
+  });
+  if (!schoolClass) throw new AppError("Class not found for this school", httpStatus.NOT_FOUND);
+
+  if (schoolClass.sections.some((s) => !s.isDefault)) {
+    throw new AppError(`${schoolClass.name} has sections: choose one`, httpStatus.BAD_REQUEST);
+  }
+  const existing = schoolClass.sections[0];
+  if (existing) return existing.id;
+  // two admissions at once may both get here: skipDuplicates lets the second one wait for the
+  // first and then use its section, instead of failing on the unique name
+  await db.section.createMany({
+    data: [{ schoolId, classId, name: DEFAULT_SECTION_NAME, isDefault: true }],
+    skipDuplicates: true,
+  });
+  const section = await db.section.findFirstOrThrow({
+    where: { schoolId, classId, name: DEFAULT_SECTION_NAME },
+    select: { id: true },
+  });
+  return section.id;
+};
+
 /* When the first enrollment starts: the admission day, or the year's first day for an older student. */
 const firstEnrollmentStart = (year: { startDate: Date }, admissionDate: Date) =>
   admissionDate.getTime() < year.startDate.getTime() ? year.startDate : admissionDate;
@@ -219,7 +250,9 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
   try {
     const result = await prisma.$transaction(async (tx) => {
       const academicYear = await resolveAcademicYear(tx, schoolId, enr.academicYearId);
-      await assertPlacement(tx, schoolId, enr);
+      // no section chosen: the class's whole-class section (only for a class without sections)
+      const sectionId = enr.sectionId ?? (await wholeClassSection(tx, schoolId, enr.classId));
+      await assertPlacement(tx, schoolId, { ...enr, sectionId });
       const admissionDate = data.admissionDate ?? todayInBangladesh();
       if (data.admissionDate) assertAdmissionDate(academicYear, data.admissionDate);
 
@@ -227,7 +260,7 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
         const taken = await tx.enrollment.findFirst({
           where: {
             academicYearId: academicYear.id,
-            sectionId: enr.sectionId,
+            sectionId,
             rollNumber: enr.rollNumber,
             status: "ACTIVE",
           },
@@ -274,7 +307,7 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
           studentId: student.id,
           academicYearId: academicYear.id,
           classId: enr.classId,
-          sectionId: enr.sectionId,
+          sectionId,
           groupId: enr.groupId,
           rollNumber: enr.rollNumber,
           admissionType: enr.admissionType,
@@ -309,12 +342,12 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
       // a section's capacity is only a warning: the student is admitted either way
       const warnings: string[] = [];
       const sectionConfig = await tx.sectionYearConfig.findUnique({
-        where: { sectionId_academicYearId: { sectionId: enr.sectionId, academicYearId: academicYear.id } },
+        where: { sectionId_academicYearId: { sectionId, academicYearId: academicYear.id } },
         select: { capacity: true },
       });
       if (sectionConfig?.capacity != null) {
         const activeInSection = await tx.enrollment.count({
-          where: { academicYearId: academicYear.id, sectionId: enr.sectionId, status: "ACTIVE" },
+          where: { academicYearId: academicYear.id, sectionId, status: "ACTIVE" },
         });
         if (activeInSection > sectionConfig.capacity) {
           warnings.push(
@@ -572,8 +605,23 @@ const getStudentById = async (schoolId: string, studentId: string) => {
 };
 
 const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
-  const { search, status, gender, religion, academicYearId, classId, sectionId, groupId, admissionType, hasAccount, sortBy, sortOrder, page, limit } =
-    query;
+  const {
+    search,
+    status,
+    gender,
+    religion,
+    academicYearId,
+    classId,
+    sectionId,
+    groupId,
+    admissionType,
+    hasAccount,
+    withStatusCounts,
+    sortBy,
+    sortOrder,
+    page,
+    limit,
+  } = query;
 
   const yearId =
     academicYearId ??
@@ -587,9 +635,9 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
     );
   }
 
-  const where: Prisma.StudentWhereInput = {
+  // every filter but the status: the status counts are taken over these
+  const filtered: Prisma.StudentWhereInput = {
     schoolId,
-    ...(status ? { status } : {}),
     ...(gender ? { gender } : {}),
     ...(religion ? { religion } : {}),
     ...(hasAccount ? { userId: hasAccount === "true" ? { not: null } : null } : {}),
@@ -619,8 +667,9 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
         }
       : {}),
   };
+  const where: Prisma.StudentWhereInput = { ...filtered, ...(status ? { status } : {}) };
 
-  const [rows, total] = await Promise.all([
+  const [rows, total, byStatus] = await Promise.all([
     prisma.student.findMany({
       where,
       orderBy: [{ [sortBy]: sortOrder } as Prisma.StudentOrderByWithRelationInput, { id: "asc" }],
@@ -637,6 +686,8 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
       },
     }),
     prisma.student.count({ where }),
+    // asked for by the students page: how many each status has under the other filters
+    withStatusCounts === "true" ? prisma.student.groupBy({ by: ["status"], where: filtered, _count: { _all: true } }) : null,
   ]);
 
   const items = await Promise.all(
@@ -647,7 +698,16 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
     })),
   );
 
-  return { items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  const statusCounts = byStatus
+    ? Object.fromEntries(
+        (["ACTIVE", "INACTIVE", "SUSPENDED", "GRADUATED"] as const satisfies readonly StudentStatus[]).map((s) => [
+          s,
+          byStatus.find((g) => g.status === s)?._count._all ?? 0,
+        ]),
+      )
+    : undefined;
+
+  return { items, ...(statusCounts ? { statusCounts } : {}), meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 };
 
 // ------------------------------------------------------------------- photo

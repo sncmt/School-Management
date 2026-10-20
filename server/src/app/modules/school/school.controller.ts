@@ -19,7 +19,8 @@ const createSchool = catchAsync(async (req: Request, res: Response) => {
 
 const activateSchool = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.schoolId as string;
-     const result = await SchoolService.activateSchool(id)
+     // with the plan and the first period's payment, recorded by this platform admin
+     const result = await SchoolService.activateSchool(id, req.body, req.auth!.userId)
 
     sendResponse(res, {statusCode: httpStatus.OK, success: true, message: "School is activated successfully!", data: result})
 });

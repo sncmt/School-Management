@@ -16,9 +16,10 @@ enum Language {
   BN
 }
 
-enum SchoolPaymentStatus {
-  PAID
-  UNPAID
+// how a school pays the platform
+enum SubscriptionPlan {
+  MONTHLY
+  YEARLY
 }
 
 enum ModuleType {

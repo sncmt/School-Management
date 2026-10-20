@@ -3,7 +3,8 @@
 import { Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { topBarIconButton } from "./topBar";
 
 /** Light / dark. Both icons are drawn and CSS shows the right one, so the first paint matches. */
 export function ThemeToggle() {
@@ -11,15 +12,14 @@ export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const dark = resolvedTheme === "dark";
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="size-8 text-muted-foreground hover:text-foreground"
+    <button
+      type="button"
+      className={cn(topBarIconButton, "[&_svg]:size-4")}
       onClick={() => setTheme(dark ? "light" : "dark")}
       aria-label={t(dark ? "lightMode" : "darkMode")}
     >
       <Sun className="hidden dark:block" />
       <Moon className="dark:hidden" />
-    </Button>
+    </button>
   );
 }

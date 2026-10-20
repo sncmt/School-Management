@@ -5,7 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { topBarIconButton } from "@/components/layout/topBar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -15,6 +15,7 @@ import {
   useUnreadCount,
   type AppNotification,
 } from "@/lib/school/notifications";
+import { cn } from "@/lib/utils";
 import { MESSAGE_HREF, MessageItem } from "./shared";
 
 const RECENT = 6;
@@ -39,19 +40,18 @@ export function MessagesMenu() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative size-9 rounded-full text-muted-foreground hover:text-foreground data-[state=open]:bg-muted/60 data-[state=open]:text-foreground"
+        <button
+          type="button"
+          className={cn(topBarIconButton, "relative")}
           aria-label={unread > 0 ? `${t("title")} (${t("unreadCount", { count: unread })})` : t("title")}
         >
-          <MessageSquareText className="size-[19px]" />
+          <MessageSquareText className="size-4.5" />
           {unread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none font-semibold text-white tabular-nums ring-2 ring-background">
+            <span className="absolute -top-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none font-semibold text-white tabular-nums ring-2 ring-background">
               {unread > 99 ? "99+" : format.number(unread)}
             </span>
           )}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" sideOffset={8} className="w-[min(24rem,calc(100vw-2rem))] p-0">

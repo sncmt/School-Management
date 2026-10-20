@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { withFilters } from "../../utils/querySchema";
-import { SchoolStatus } from "../../../../generated/prisma/enums";
+import { SchoolStatus, SubscriptionPlan } from "../../../../generated/prisma/enums";
+import { paymentInput } from "../subscription/subscription.validation";
 import { caseInsensitiveEnum } from "../../utils/caseInsensitiveEnum";
 import { emailSchema } from "../../utils/identity";
 
@@ -32,6 +33,12 @@ export const createSchoolSchema = z.object({
 
 const activateSchoolSchema = z.object({
     schoolId: z.string().min(1, "School id is required!")
+})
+
+// activating: the school's plan, and its first month's or year's payment (paid at activation)
+const activateSchoolBodySchema = z.object({
+    plan: z.enum(SubscriptionPlan, { error: "Choose monthly or yearly" }),
+    payment: paymentInput.omit({ plan: true }),
 })
 
 const createSchoolSuperAdminSchema = z.object({
@@ -88,6 +95,7 @@ const changeSchoolStatusSchema = z.object({
 export const SchoolValidation = {
   createSchoolSchema,
   activateSchoolSchema,
+  activateSchoolBodySchema,
   createSchoolSuperAdminSchema,
   getAllSchoolsQuerySchema,
   publicSiteParamsSchema,

@@ -56,8 +56,9 @@ import { useSchoolLanguage } from "../NameFields";
 import { AdmissionTypeField } from "./AdmissionTypeField";
 import { FamilyCredentialsDialog, type FamilyCredentials } from "./FamilyCredentialsDialog";
 
+// the section is required only for a class that has sections (see `required` below)
 const REQUIRED = new Set<FieldPath<StudentFormInput>>([
-  "nameEn", "nameBn", "gender", "religion", "fatherName", "motherName", "classId", "sectionId", "admissionDate",
+  "nameEn", "nameBn", "gender", "religion", "fatherName", "motherName", "classId", "admissionDate",
 ]);
 
 const NO_GROUP = "none"; // Select can't hold an empty value
@@ -175,6 +176,11 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
     const { academicYearId, classId, sectionId, groupId, rollNumber, admissionType, admissionDate, ...rest } = values;
+    // a class with sections needs one chosen; a class without them uses its whole-class section
+    if (!student && realSections.length > 0 && !sectionId) {
+      form.setError("sectionId", { message: "validation.sectionRequired" }, { shouldFocus: true });
+      return;
+    }
     const profile = { ...rest, gender: rest.gender as Gender, religion: rest.religion as Religion } satisfies StudentProfileBody;
     // when editing, the admission date goes only when it changed (it needs its own permission)
     const dateChange = student && admissionDate !== dayKey(student.admissionDate) ? { admissionDate } : {};
@@ -190,7 +196,15 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
         const result = await admit.mutateAsync({
           ...profile,
           admissionDate,
-          enrollment: { ...(academicYearId ? { academicYearId } : {}), classId, sectionId, groupId, rollNumber, admissionType },
+          enrollment: {
+            ...(academicYearId ? { academicYearId } : {}),
+            classId,
+            // left out for a class without sections: the server uses its whole-class section
+            ...(realSections.length > 0 && sectionId ? { sectionId } : {}),
+            groupId,
+            rollNumber,
+            admissionType,
+          },
         });
         const name = localName(result.student);
         await uploadPhoto(result.student.id, name);
@@ -269,7 +283,7 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
 
   // the rest are optional; a student being edited always keeps an admission number
   const required = (name: FieldPath<StudentFormInput>) =>
-    REQUIRED.has(name) || (isEdit && name === "admissionNo");
+    REQUIRED.has(name) || (isEdit && name === "admissionNo") || (name === "sectionId" && realSections.length > 0);
 
   const backHref = student ? `/students/${student.id}` : "/students";
   const nameOrder = language === "BN" ? (["nameBn", "nameEn"] as const) : (["nameEn", "nameBn"] as const);
@@ -283,7 +297,7 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
       </Button>
 
       <div>
-        <h1 className="text-2xl font-semibold">{isEdit ? t("editTitle") : t("title")}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{isEdit ? t("editTitle") : t("title")}</h1>
         <p className="text-sm text-muted-foreground">{isEdit ? t("editDescription") : t("description")}</p>
       </div>
 
@@ -364,8 +378,9 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
                       realSections.map((s) => ({ value: s.id, label: s.name })),
                     )
                   : (
+                    // nothing to choose: the class has no sections (the whole class is one)
                     <div className="grid gap-2">
-                      <Label required>{t("section")}</Label>
+                      <Label>{t("section")}</Label>
                       <p className="flex h-9 items-center text-sm text-muted-foreground">
                         {chosenClass ? t("wholeClass") : t("chooseClassFirst")}
                       </p>

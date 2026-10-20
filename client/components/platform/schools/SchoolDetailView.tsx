@@ -61,7 +61,7 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold">{school.nameEn}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{school.nameEn}</h1>
             <SchoolStatusBadge status={school.status} />
           </div>
           {school.nameBn && <p className="text-muted-foreground">{school.nameBn}</p>}

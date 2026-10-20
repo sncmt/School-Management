@@ -196,7 +196,7 @@ function Detail({ student }: { student: StudentDetail }) {
           />
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold">{studentName}</h1>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{studentName}</h1>
               <StudentStatusBadge status={student.status} />
             </div>
             <p className="text-muted-foreground">{otherName}</p>

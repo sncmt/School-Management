@@ -298,7 +298,9 @@ const addRoom = async (schoolId: string, examId: string, roomId: string) => {
   const room = await prisma.room.findFirst({ where: { id: roomId, schoolId }, select: { capacity: true, isActive: true, number: true } });
   if (!room) throw new AppError("Room not found!", httpStatus.NOT_FOUND);
   if (!room.isActive) throw new AppError(`Room ${room.number} is not in use`, httpStatus.BAD_REQUEST);
-  await prisma.seatPlanRoom.create({ data: { planId: plan.id, roomId, seats: room.capacity, sortOrder: plan.rooms.length } });
+  // after the last room (not the count: a removed room leaves a gap, and the count would repeat a place)
+  const sortOrder = Math.max(-1, ...plan.rooms.map((r) => r.sortOrder)) + 1;
+  await prisma.seatPlanRoom.create({ data: { planId: plan.id, roomId, seats: room.capacity, sortOrder } });
   return getPlan(schoolId, examId);
 };
 

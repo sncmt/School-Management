@@ -27,7 +27,8 @@ const enrollmentInput = z.object({
   // defaults to the school's current academic year
   academicYearId: opt(z.string().trim().min(1)),
   classId: idSchema("Class"),
-  sectionId: idSchema("Section"),
+  // left out for a class without sections: its whole-class section is used
+  sectionId: opt(z.string().trim().min(1)),
   groupId: opt(z.string().trim().min(1)),
   rollNumber: opt(rollNumber),
   // new to the school this year (admission fee) or an old student (re-admission fee)
@@ -111,6 +112,8 @@ const listStudentsQuery = z.object({
   // new or old in that year
   admissionType: z.enum(AdmissionType).optional(),
   hasAccount: z.enum(["true", "false"]).optional(),
+  // "true": the reply also counts each status under the other filters (the students page's cards)
+  withStatusCounts: z.enum(["true", "false"]).optional(),
   sortBy: z.enum(["admissionNo", "nameEn", "createdAt"]).default("admissionNo"),
   sortOrder: z.enum(["asc", "desc"]).default("asc"),
   page: z.coerce.number().int().min(1).default(1),

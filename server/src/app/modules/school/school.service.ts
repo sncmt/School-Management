@@ -8,7 +8,9 @@ import type {
   GetAllSchoolsQuery,
   UpdateSchoolPayload,
 } from "./school.type";
-import type { SchoolStatus } from "../../../../generated/prisma/enums";
+import type { SchoolStatus, SubscriptionPlan } from "../../../../generated/prisma/enums";
+import { recordPayment } from "../subscription/subscription.service";
+import type { PaymentInput } from "../subscription/subscription.validation";
 import { buildQueryOptions, paginate } from "../../utils/queryBuilder";
 import { Prisma } from "../../../../generated/prisma/client";
 import { PasswordUtils } from "../../utils/password";
@@ -56,7 +58,15 @@ const createSchool = async (data: CreateSchoolPayload) => {
   });
 };
 
-const activateSchool = async (schoolId: string) => {
+/*
+ * Activates a school: its super admin account, free modules, and its subscription (the plan and
+ * the first month's or year's payment, which the school pays at activation), all at once.
+ */
+const activateSchool = async (
+  schoolId: string,
+  subscription: { plan: SubscriptionPlan; payment: Omit<PaymentInput, "plan"> },
+  recordedBy: string,
+) => {
   const school = await prisma.school.findUnique({ where: { id: schoolId } });
 
   if (!school) {
@@ -91,8 +101,11 @@ const activateSchool = async (schoolId: string) => {
   const result = await prisma.$transaction(async (tx) => {
     const updatedSchool = await tx.school.update({
       where: { id: schoolId },
-      data: { status: "ACTIVE", activationDate: new Date() },
+      data: { status: "ACTIVE", activationDate: new Date(), subscriptionPlan: subscription.plan },
     });
+
+    // the first period, paid at activation
+    await recordPayment(tx, schoolId, subscription.plan, subscription.payment, recordedBy);
 
     // 1. Provision free modules
     const freeModules = await tx.module.findMany({

@@ -89,10 +89,14 @@ export type StudentListQuery = {
   admissionType?: AdmissionType;
   sortBy?: "admissionNo" | "nameEn" | "createdAt";
   sortOrder?: "asc" | "desc";
+  // also count each status under the other filters (the students page's status cards)
+  withStatusCounts?: boolean;
 };
 
 export type StudentList = {
   items: StudentListItem[];
+  // with withStatusCounts: how many each status has under the other filters
+  statusCounts?: Record<StudentStatus, number>;
   meta: { page: number; limit: number; total: number; totalPages: number };
 };
 
@@ -119,7 +123,8 @@ export type StudentProfileBody = {
 
 export type AdmitStudentBody = StudentProfileBody & {
   // academicYearId left out = the current year
-  enrollment: { academicYearId?: string; classId: string; sectionId: string; groupId: string; rollNumber: string; admissionType: AdmissionType };
+  // sectionId left out for a class without sections: the server uses its whole-class section
+  enrollment: { academicYearId?: string; classId: string; sectionId?: string; groupId: string; rollNumber: string; admissionType: AdmissionType };
 };
 
 export type FamilyAccount = {
@@ -183,6 +188,17 @@ export const useStudents = (query: StudentListQuery) =>
     queryFn: () => studentsApi.list(query),
     placeholderData: keepPreviousData,
   });
+
+export type StudentFilterQuery = Omit<StudentListQuery, "page" | "limit" | "sortBy" | "sortOrder" | "withStatusCounts">;
+
+/** Every student under these filters, a page of the most the server allows at a time (for an export). */
+export async function listAllStudents(query: StudentFilterQuery) {
+  const limit = 100;
+  const first = await studentsApi.list({ ...query, page: 1, limit });
+  const items = [...first.items];
+  for (let page = 2; page <= first.meta.totalPages; page++) items.push(...(await studentsApi.list({ ...query, page, limit })).items);
+  return items;
+}
 
 export const useStudent = (studentId: string) =>
   useQuery({ queryKey: [...studentsKey, "detail", studentId], queryFn: () => studentsApi.get(studentId) });

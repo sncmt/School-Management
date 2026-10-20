@@ -70,10 +70,12 @@ export const studentFormSchema = z.object({
     .refine((v) => new Date(v).getTime() <= Date.now(), "validation.admissionFuture"),
 });
 
-/** Admitting: the class and section are required. */
+/**
+ * Admitting: the class is required. The section only for a class that has sections; the form
+ * checks that, since it knows the class's sections.
+ */
 export const admitStudentSchema = studentFormSchema.superRefine((v, ctx) => {
   if (!v.classId) ctx.addIssue({ code: "custom", path: ["classId"], message: "validation.classRequired" });
-  else if (!v.sectionId) ctx.addIssue({ code: "custom", path: ["sectionId"], message: "validation.sectionRequired" });
 });
 
 /** Editing: the placement is changed on its own, and the admission number can't be blank. */

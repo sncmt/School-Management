@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { topBarIconButton } from "./topBar";
 
 export type SearchablePage = { href: string; label: string; group: string | null; icon: LucideIcon };
 
@@ -32,12 +33,12 @@ export function PageSearch({ pages }: { pages: SearchablePage[] }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={t("search")}
-        // a round icon on small screens; the full box from lg
-        className="flex size-9 items-center justify-center gap-2 rounded-full text-sm text-muted-foreground ring-1 ring-transparent transition-colors hover:bg-muted/60 hover:text-foreground lg:h-10 lg:w-full lg:justify-start lg:bg-muted lg:px-4 lg:hover:bg-muted lg:hover:text-muted-foreground lg:hover:ring-border"
+        // an icon on small screens; the full box from lg
+        className={cn(topBarIconButton, "lg:w-full lg:justify-start lg:gap-2.5 lg:px-3.5 lg:text-muted-foreground")}
       >
-        <span className="hidden flex-1 text-left lg:block">{t("search")}</span>
-        <kbd className="hidden rounded border bg-background px-1.5 font-mono text-[10px] lg:inline">Ctrl K</kbd>
         <Search className="size-4.5 lg:size-4" />
+        <span className="hidden flex-1 text-left lg:block">{t("search")}</span>
+        <kbd className="hidden rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-[10px] leading-none lg:inline">Ctrl K</kbd>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="top-[10%] translate-y-0 gap-0 overflow-hidden p-0 sm:top-[20%] sm:max-w-lg" showCloseButton={false}>

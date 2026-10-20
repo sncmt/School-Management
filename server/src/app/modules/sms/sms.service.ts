@@ -35,7 +35,7 @@ const QUIET_UNTIL = 8;
 export const ATTENDANCE_DELAY_MINUTES = 10;
 
 /** The time itself, or 8 am (Bangladesh) when it falls in the quiet hours. */
-const outsideQuietHours = (at: Date) => {
+export const outsideQuietHours = (at: Date) => {
   const bd = new Date(at.getTime() + BD_OFFSET);
   const hour = bd.getUTCHours();
   if (hour >= QUIET_UNTIL && hour < QUIET_FROM) return at;
@@ -148,12 +148,26 @@ const enqueueEvents = async (messages: SmsEventMessage[], options: { delayMinute
 /*
  * A roll call saved (again): SMS of these keys not sent yet are dropped and written afresh
  * from the latest marks, waiting the correction window again. Ones already sent stay.
+ * With onlyWaiting (an earlier day's roll call), only students who still had an SMS waiting
+ * get one again: an old day never starts new SMS.
+ *
+ * Keys are "<student and day>:<event>", so a student's waiting SMS is found whatever its status.
  */
-const replaceQueued = async (schoolId: string, keys: string[], messages: SmsEventMessage[]) => {
+const replaceQueued = async (schoolId: string, keys: string[], messages: SmsEventMessage[], options: { onlyWaiting?: boolean } = {}) => {
+  const base = (key: string) => key.slice(0, key.lastIndexOf(":"));
+  let waiting = new Set<string>();
   if (keys.length > 0) {
+    if (options.onlyWaiting) {
+      const rows = await prisma.smsMessage.findMany({
+        where: { schoolId, status: "QUEUED", dedupeKey: { in: keys } },
+        select: { dedupeKey: true },
+      });
+      waiting = new Set(rows.map((r) => base(r.dedupeKey!)));
+    }
     await prisma.smsMessage.deleteMany({ where: { schoolId, status: "QUEUED", dedupeKey: { in: keys } } });
   }
-  await enqueueEvents(messages, { delayMinutes: ATTENDANCE_DELAY_MINUTES });
+  const toSend = options.onlyWaiting ? messages.filter((m) => waiting.has(base(m.dedupeKey))) : messages;
+  await enqueueEvents(toSend, { delayMinutes: ATTENDANCE_DELAY_MINUTES });
 };
 
 /* Something undone (a result unlocked, admit cards hidden, a promotion taken back): its SMS not yet sent are dropped. */

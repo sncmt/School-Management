@@ -218,6 +218,7 @@
     "schools": "Schools",
     "subjects": "NCTB subjects",
     "holidays": "National holidays",
+    "subscriptions": "Subscriptions",
     "academicYears": "Academic years",
     "classes": "Classes",
     "sections": "Sections",
@@ -276,7 +277,9 @@
         "confirm": "Activate",
         "activating": "Activating…",
         "doneTitle": "School activated",
-        "doneDescription": "Give these login details to the school. The password is shown only once."
+        "doneDescription": "Give these login details to the school. The password is shown only once.",
+        "subscription": "Subscription",
+        "subscriptionHint": "The school's plan, and the first month or year it pays now. Recorded with the activation."
       },
       "view": "View details",
       "edit": "Edit"
@@ -473,6 +476,66 @@
         "confirm": "Delete",
         "deleting": "Deleting…",
         "deleted": "{name} deleted."
+      }
+    },
+    "subscriptions": {
+      "title": "Subscriptions",
+      "description": "Each school's plan and the payments it has made, recorded by hand.",
+      "search": "Search a school",
+      "empty": "No schools found.",
+      "nothingPaid": "Nothing recorded",
+      "paymentsCount": "{count, plural, one {# payment} other {# payments}}",
+      "back": "All subscriptions",
+      "activatedOn": "Activated {date}",
+      "plan": "Plan",
+      "planChangeHint": "Changing the plan affects payments from now on; those already recorded stay as they are.",
+      "planChanged": "Plan changed",
+      "record": "Record payment",
+      "recordHint": "The period the school has paid for. Each month (or year) can be recorded once.",
+      "recordHintNoPlan": "This school has no plan yet: choose it, then the period it has paid for.",
+      "recorded": "Payment recorded",
+      "removeTitle": "Remove the {period} payment?",
+      "removeText": "Only for a payment recorded by mistake. The school's dashboard will no longer show it.",
+      "removed": "Payment removed",
+      "cancel": "Cancel",
+      "save": "Save",
+      "plans": {
+        "MONTHLY": "Monthly",
+        "YEARLY": "Yearly"
+      },
+      "planHints": {
+        "MONTHLY": "Pays month by month",
+        "YEARLY": "Pays for a whole year"
+      },
+      "standing": {
+        "paid": "Paid",
+        "due": "Due",
+        "noPlan": "No plan"
+      },
+      "columns": {
+        "school": "School",
+        "plan": "Plan",
+        "paidThrough": "Last paid",
+        "current": "This period",
+        "status": "School status"
+      },
+      "payments": {
+        "period": "Period",
+        "plan": "Plan",
+        "amount": "Amount",
+        "paidOn": "Paid on",
+        "note": "Note",
+        "remove": "Remove",
+        "empty": "No payments recorded yet."
+      },
+      "payment": {
+        "year": "Year",
+        "month": "Month",
+        "wholeYear": "Covers the whole year.",
+        "amount": "Amount",
+        "paidOn": "Paid on",
+        "note": "Note",
+        "notePlaceholder": "e.g. bKash TrxID, or who paid"
       }
     },
     "holidays": {
@@ -1319,7 +1382,10 @@
           "NEW": "New to the school this year: pays the admission fee",
           "OLD": "Was here before: pays the re-admission fee"
         }
-      }
+      },
+      "export": "Export",
+      "exporting": "Exporting…",
+      "exportFailed": "Couldn't export the students."
     },
     "calendar": {
       "title": "Calendar",
@@ -3512,6 +3578,17 @@
         "new": "new"
       },
       "yourChildren": "Your children",
+      "subscription": {
+        "title": "Subscription",
+        "plan": "Plan",
+        "paidThrough": "Last paid",
+        "paidOn": "Paid on {date}",
+        "none": "No payments recorded yet.",
+        "showAll": "Show all {count}",
+        "showFewer": "Show fewer",
+        "loadFailed": "Couldn't load the subscription.",
+        "hint": "Payments are recorded by the platform. Only you (the super admin) see this."
+      },
       "duties": {
         "title": "My invigilation duties",
         "room": "Room {number}",
@@ -4007,7 +4084,10 @@
     "lightMode": "Light mode",
     "welcome": "Welcome to <b>{name}</b>",
     "appTagline": "· School Management System",
-    "home": "Home"
+    "home": "Home",
+    "workspace": "Workspace",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "publicNotices": {
     "subtitle": "Notice board",

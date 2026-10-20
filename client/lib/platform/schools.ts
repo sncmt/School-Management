@@ -4,6 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
 import { uploadFile } from "@/lib/api/upload";
+import type { PaymentBody, SubscriptionPlan } from "./subscriptions";
 
 // ------------------------------------------------------------------- types
 
@@ -30,6 +31,8 @@ export type School = {
   activationDate: string | null;
   monthlyFee: string | null; // Prisma Decimal arrives as a string
   discount: string;
+  // monthly or yearly, set at activation; null for schools activated before plans
+  subscriptionPlan: SubscriptionPlan | null;
   createdAt: string;
 };
 
@@ -137,8 +140,9 @@ export const schoolsApi = {
   create: async (body: CreateSchoolBody) =>
     (await httpClient.post<ApiResponse<School>>("/school/create", body)).data.data,
 
-  activate: async (schoolId: string) =>
-    (await httpClient.patch<ApiResponse<ActivateSchoolResult>>(`/school/${schoolId}/activate`)).data.data,
+  // with the plan and the first month's or year's payment (paid at activation)
+  activate: async ({ schoolId, plan, payment }: { schoolId: string; plan: SubscriptionPlan; payment: Omit<PaymentBody, "plan"> }) =>
+    (await httpClient.patch<ApiResponse<ActivateSchoolResult>>(`/school/${schoolId}/activate`, { plan, payment })).data.data,
 
   get: async (schoolId: string) =>
     (await httpClient.get<ApiResponse<SchoolDetail>>(`/school/${schoolId}`)).data.data,

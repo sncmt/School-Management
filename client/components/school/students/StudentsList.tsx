@@ -1,9 +1,10 @@
 "use client";
 
-import { Eye, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, Users, X } from "lucide-react";
+import { Download, Eye, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, Users, X } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { TablePagination } from "@/components/data/TablePagination";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,10 +25,13 @@ import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useAcademicYears } from "@/lib/school/academicYears";
 import { useClasses } from "@/lib/school/classes";
 import { useGroups } from "@/lib/school/groups";
+import { downloadCsv } from "@/lib/csv";
 import {
+  listAllStudents,
   localPhone,
   RELIGIONS,
   useStudents,
+  type StudentFilterQuery,
   type StudentListItem,
   type AdmissionType,
   type Religion,
@@ -98,11 +102,13 @@ export function StudentsList() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(PAGE_SIZES[0]);
 
+  // one request: this page of students and, for the cards, how many each status has
   const { data, isPending, isError, error, isFetching, refetch } = useStudents({
     page,
     limit,
     search: search || undefined,
     ...filters,
+    withStatusCounts: true,
   });
 
   const currentYear = years.data?.find((y) => y.isCurrent);
@@ -212,9 +218,9 @@ export function StudentsList() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
             {data && (
-              <span className="rounded-full bg-navy-soft px-2.5 py-0.5 text-sm font-semibold text-navy tabular-nums">
+              <span className="rounded-full bg-navy px-2.5 py-0.5 text-sm font-bold text-navy-foreground tabular-nums">
                 {format.number(data.meta.total)}
               </span>
             )}
@@ -223,21 +229,30 @@ export function StudentsList() {
             {shownYear ? t("descriptionYear", { year: shownYear.name }) : t("description")}
           </p>
         </div>
-        {can("student:create") && (
-          <Button asChild>
-            <Link href="/students/new">
-              <Plus /> {t("add")}
-            </Link>
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <ExportButton query={{ search: search || undefined, ...filters }} />
+          {can("student:create") && (
+            <Button asChild className="h-10 rounded-xl px-5 shadow-sm">
+              <Link href="/students/new">
+                <Plus /> {t("add")}
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
+
+      <StatusCards
+        counts={data?.statusCounts}
+        selected={filters.status}
+        onSelect={(status) => setFilter({ status })}
+      />
 
       <section className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
         <Tabs
           value={filters.status ?? ALL}
           onValueChange={(v) => setFilter({ status: v === ALL ? undefined : (v as StudentStatus) })}
         >
-          <TabsList className="px-5" aria-label={t("columns.status")}>
+          <TabsList className="px-5 pt-5" aria-label={t("columns.status")}>
             {STATUS_TABS.map((s) => (
               <TabsTrigger key={s} value={s}>
                 {tStatus(s)}
@@ -247,9 +262,9 @@ export function StudentsList() {
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-wrap items-center gap-2 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-2 px-5 py-4 sm:gap-3">
           <div className="relative min-w-0 flex-1 sm:max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchInput}
               onChange={(e) => {
@@ -258,14 +273,14 @@ export function StudentsList() {
               }}
               placeholder={t("searchPlaceholder")}
               aria-label={tCommon("search")}
-              className="pl-9"
+              className="h-10 rounded-xl bg-muted/40 pl-10 shadow-none"
             />
           </div>
           <Button
             variant="outline"
             onClick={() => setPanelOpen((open) => !open)}
             aria-expanded={panelOpen}
-            className={cn(panelOpen && "border-navy/30 bg-navy-soft text-navy hover:bg-navy-soft hover:text-navy")}
+            className={cn("h-10 rounded-xl px-4", panelOpen && "border-navy/30 bg-navy-soft text-navy hover:bg-navy-soft hover:text-navy")}
           >
             <SlidersHorizontal /> {t("filters.button")}
             {chips.length > 0 && (
@@ -338,8 +353,8 @@ export function StudentsList() {
                 </MessageRow>
               ) : students.length === 0 ? (
                 <MessageRow>
-                  <span className="mb-1 flex size-12 items-center justify-center rounded-full bg-navy-soft text-navy">
-                    <Users className="size-5" />
+                  <span className="mb-2 flex size-16 items-center justify-center rounded-2xl border border-navy/10 bg-navy-soft text-navy">
+                    <Users className="size-6" />
                   </span>
                   <p className="font-medium text-foreground">{filtering ? t("emptyFiltered") : t("empty")}</p>
                   {filtering && canClear && (
@@ -516,5 +531,108 @@ function StudentRow({ student, canUpdate }: { student: StudentListItem; canUpdat
         </DropdownMenu>
       </TableCell>
     </TableRow>
+  );
+}
+
+// the dot beside each status count
+const STATUS_DOTS: Record<StudentStatus, string> = {
+  ACTIVE: "bg-emerald-500",
+  SUSPENDED: "bg-amber-500",
+  INACTIVE: "bg-slate-400",
+  GRADUATED: "bg-cyan-500",
+};
+
+/** A card per status with its count under the other filters (from the list's own reply); a click shows that status. */
+function StatusCards({
+  counts,
+  selected,
+  onSelect,
+}: {
+  counts: Record<StudentStatus, number> | undefined;
+  selected: StudentStatus | undefined;
+  onSelect: (status: StudentStatus) => void;
+}) {
+  const tStatus = useTranslations("studentStatuses");
+  const format = useFormatter();
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      {STATUS_TABS.map((status) => (
+        <button
+          key={status}
+          type="button"
+          onClick={() => onSelect(status)}
+          aria-pressed={selected === status}
+          className={cn(
+            "rounded-xl border bg-card px-4 py-3.5 text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-colors hover:border-navy/25 sm:px-5 sm:py-4",
+            selected === status && "border-navy/30 ring-1 ring-navy/20",
+          )}
+        >
+          <span className="block truncate text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{tStatus(status)}</span>
+          <span className="mt-1.5 flex items-center gap-2">
+            {counts === undefined ? (
+              <Skeleton className="h-7 w-10" />
+            ) : (
+              <span className="text-2xl font-bold tabular-nums">{format.number(counts[status])}</span>
+            )}
+            <span className={cn("size-2 rounded-full", STATUS_DOTS[status])} />
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Saves the students under the current filters and tab as a CSV file. */
+function ExportButton({ query }: { query: StudentFilterQuery }) {
+  const t = useTranslations("school.students");
+  const tStatus = useTranslations("studentStatuses");
+  const name = useLocalizedName();
+  const describeError = useErrorMessage();
+  const [busy, setBusy] = useState(false);
+
+  const run = async () => {
+    setBusy(true);
+    try {
+      const students = await listAllStudents(query);
+      downloadCsv(`students-${new Date().toISOString().slice(0, 10)}.csv`, [
+        [
+          t("form.admissionNo"),
+          t("form.nameEn"),
+          t("form.nameBn"),
+          t("form.class"),
+          t("form.section"),
+          t("form.group"),
+          t("form.rollNumber"),
+          t("form.fatherName"),
+          t("columns.family"),
+          t("columns.status"),
+        ],
+        ...students.map((s) => {
+          const e = s.enrollment;
+          return [
+            s.admissionNo,
+            s.nameEn,
+            s.nameBn,
+            e?.class.name,
+            e && !e.section.isDefault ? e.section.name : "",
+            e?.group ? name(e.group) : "",
+            e?.rollNumber,
+            s.fatherName,
+            s.phone ? localPhone(s.phone) : "",
+            tStatus(s.status),
+          ];
+        }),
+      ]);
+    } catch (error) {
+      toast.error(t("exportFailed"), { description: describeError(error) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Button variant="outline" onClick={run} disabled={busy} className="h-10 rounded-xl px-5 shadow-sm">
+      <Download /> {busy ? t("exporting") : t("export")}
+    </Button>
   );
 }

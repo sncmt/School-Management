@@ -44,8 +44,9 @@ const reachOf = async (auth: Auth) => {
       where: { schoolId: auth.schoolId!, teacher: { membershipId: auth.membershipId, status: { in: WORKING_STATUSES } } },
       select: { classSubjectId: true, sectionId: true },
     }),
+    // class teacher this year only: last year's class teacher no longer sees that section
     prisma.sectionYearConfig.findMany({
-      where: { classTeacherMembershipId: auth.membershipId, section: { schoolId: auth.schoolId! } },
+      where: { classTeacherMembershipId: auth.membershipId, section: { schoolId: auth.schoolId! }, academicYear: { isCurrent: true } },
       select: { sectionId: true },
     }),
   ]);
@@ -497,12 +498,16 @@ const addAttachment = async (auth: Auth, homeworkId: string, file: Express.Multe
   assertMayManage(reach, hw.classSubjectId, hw.sections.map((s) => s.section.id));
   if (hw.attachments.length >= MAX_ATTACHMENTS) throw new AppError(`Homework can have at most ${MAX_ATTACHMENTS} files`, httpStatus.BAD_REQUEST);
 
+  // after the last file (a removed one leaves a gap, so the count could repeat a place)
+  const last = await prisma.homeworkAttachment.aggregate({ where: { homeworkId }, _max: { sortOrder: true } });
+  const sortOrder = (last._max.sortOrder ?? -1) + 1;
+
   const prepared = await prepareAttachment(file.buffer, file.originalname);
   const key = fileKey(`schools/${schoolId}/homework/${homeworkId}`, "file", prepared.extension);
   await putFile(key, prepared.body, prepared.contentType);
   try {
     await prisma.homeworkAttachment.create({
-      data: { homeworkId, key, name: prepared.name, contentType: prepared.contentType, size: prepared.body.length, sortOrder: hw.attachments.length },
+      data: { homeworkId, key, name: prepared.name, contentType: prepared.contentType, size: prepared.body.length, sortOrder },
     });
   } catch (error) {
     await deleteFile(key);

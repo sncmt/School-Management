@@ -423,8 +423,10 @@ const addAttachment = async (auth: Auth, noticeId: string, file: Express.Multer.
   const notice = await findNotice(schoolId, noticeId);
   await assertMayChange(auth, notice);
 
-  const count = await prisma.noticeAttachment.count({ where: { noticeId } });
-  if (count >= MAX_ATTACHMENTS) throw new AppError(`A notice can have at most ${MAX_ATTACHMENTS} files`, httpStatus.BAD_REQUEST);
+  const { _count, _max } = await prisma.noticeAttachment.aggregate({ where: { noticeId }, _count: { _all: true }, _max: { sortOrder: true } });
+  if (_count._all >= MAX_ATTACHMENTS) throw new AppError(`A notice can have at most ${MAX_ATTACHMENTS} files`, httpStatus.BAD_REQUEST);
+  // after the last file (a removed one leaves a gap, so the count could repeat a place)
+  const sortOrder = (_max.sortOrder ?? -1) + 1;
 
   const prepared = await prepareAttachment(file.buffer, file.originalname);
   const key = fileKey(`schools/${schoolId}/notices/${noticeId}`, "file", prepared.extension);
@@ -432,7 +434,7 @@ const addAttachment = async (auth: Auth, noticeId: string, file: Express.Multer.
 
   try {
     await prisma.noticeAttachment.create({
-      data: { noticeId, key, name: prepared.name, contentType: prepared.contentType, size: prepared.body.length, sortOrder: count },
+      data: { noticeId, key, name: prepared.name, contentType: prepared.contentType, size: prepared.body.length, sortOrder },
     });
   } catch (error) {
     await deleteFile(key);
