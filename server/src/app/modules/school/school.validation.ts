@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { withFilters } from "../../utils/querySchema";
 import { SchoolStatus, SubscriptionPlan } from "../../../../generated/prisma/enums";
-import { paymentInput } from "../subscription/subscription.validation";
 import { caseInsensitiveEnum } from "../../utils/caseInsensitiveEnum";
 import { emailSchema } from "../../utils/identity";
 
@@ -22,11 +21,16 @@ export const createSchoolSchema = z.object({
       .regex(/^[a-z0-9-]+$/, "Subdomain must be lowercase letters, numbers, hyphens only")
       .refine((v) => !RESERVED_SUBDOMAINS.has(v), "This subdomain is reserved"),
     email: emailSchema,
+    // shown on the public homepage (the email above is the super admin's login)
+    publicEmail: emailSchema.optional(),
     phone: z.string().min(10).max(15).optional(),
     website: z.string().url().optional(),
     address: z.string().optional(),
     language: z.enum(["EN", "BN"]).optional(),
+    // monthly or yearly; activation records the first period in this plan
+    subscriptionPlan: z.enum(SubscriptionPlan).optional(),
     monthlyFee: z.number().nonnegative().optional(),
+    yearlyFee: z.number().nonnegative().optional(),
     discount: z.number().min(0).max(100).optional(),
 });
 
@@ -34,13 +38,6 @@ export const createSchoolSchema = z.object({
 const activateSchoolSchema = z.object({
     schoolId: z.string().min(1, "School id is required!")
 })
-
-// activating: the school's plan, and its first month's or year's payment (paid at activation)
-const activateSchoolBodySchema = z.object({
-    plan: z.enum(SubscriptionPlan, { error: "Choose monthly or yearly" }),
-    payment: paymentInput.omit({ plan: true }),
-})
-
 const createSchoolSuperAdminSchema = z.object({
   fullname: z.string().min(2).max(120),
   email: emailSchema,
@@ -77,11 +74,15 @@ const updateSchoolSchema = z
     nameEn: z.string().trim().min(2).max(200).optional(),
     nameBn: z.string().trim().min(2).max(200).optional(), // required, so it can change but not be cleared
     email: emailSchema.optional(),
+    publicEmail: emailSchema.nullable().optional(),
     phone: z.string().trim().min(10).max(15).nullable().optional(),
     website: z.string().url().nullable().optional(),
     address: z.string().trim().max(500).nullable().optional(),
     language: z.enum(["EN", "BN"]).optional(),
+    // can change, not be cleared (payments already recorded keep their own plan)
+    subscriptionPlan: z.enum(SubscriptionPlan).optional(),
     monthlyFee: z.number().nonnegative().nullable().optional(),
+    yearlyFee: z.number().nonnegative().nullable().optional(),
     discount: z.number().min(0).max(100).optional(),
   })
   .strict()
@@ -95,7 +96,6 @@ const changeSchoolStatusSchema = z.object({
 export const SchoolValidation = {
   createSchoolSchema,
   activateSchoolSchema,
-  activateSchoolBodySchema,
   createSchoolSuperAdminSchema,
   getAllSchoolsQuerySchema,
   publicSiteParamsSchema,

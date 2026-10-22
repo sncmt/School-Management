@@ -18,7 +18,8 @@ export function LoginCredentials({ loginUrl, idLabel, id, password }: Props) {
   const t = useTranslations("common");
 
   return (
-    <dl className="space-y-3 text-sm">
+    // typed exactly as shown (a family's password is its phone number): ASCII digits, even in Bangla
+    <dl className="space-y-3 text-sm" data-ascii-digits>
       <CopyRow label={t("loginPage")} value={loginUrl} />
       <CopyRow label={idLabel} value={id} />
       <CopyRow label={t("password")} value={password} mono />

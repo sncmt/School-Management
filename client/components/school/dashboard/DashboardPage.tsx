@@ -47,15 +47,15 @@ export function DashboardPage() {
         <FamilyHome />
       ) : (
         <>
+          {/* the school's subscription and its payment history: the super admin only, first thing they see */}
+          {me?.isSuperAdmin && <SubscriptionPanel />}
           {family.data && family.data.children.length > 0 && (
             <section className="space-y-3">
               <h2 className="font-semibold">{t("yourChildren")}</h2>
-              <ChildrenGrid items={family.data.children} mainYearId={family.data.academicYear?.id} />
+              <ChildrenGrid items={family.data.children} mainYearId={family.data.academicYear?.id} canPayOnline={family.data.onlinePayment.enabled} />
             </section>
           )}
           <StaffDashboard data={data} isPending={!me || isPending} error={error} describeError={describeError} />
-          {/* the school's subscription to the platform: its super admin only */}
-          {me?.isSuperAdmin && <SubscriptionPanel />}
         </>
       )}
     </div>

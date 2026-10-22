@@ -46,6 +46,8 @@ export type SchoolSubscription = Standing & {
     status: SchoolStatus;
     activationDate: string | null;
     monthlyFee: string | null;
+    yearlyFee: string | null;
+    discount: string;
     subscriptionPlan: SubscriptionPlan | null;
   };
   plan: SubscriptionPlan | null;
@@ -96,6 +98,23 @@ const useSubscriptionMutation = <TArgs, TResult>(mutationFn: (args: TArgs) => Pr
 export const useAddSubscriptionPayment = () => useSubscriptionMutation(subscriptionsApi.addPayment);
 export const useRemoveSubscriptionPayment = () => useSubscriptionMutation(subscriptionsApi.removePayment);
 export const useSetSubscriptionPlan = () => useSubscriptionMutation(subscriptionsApi.setPlan);
+
+/* What a payment needs to know about its school: its plan, fees and discount. */
+export type PayingSchool = {
+  id: string;
+  subscriptionPlan: SubscriptionPlan | null;
+  monthlyFee: string | null;
+  yearlyFee: string | null;
+  discount: string;
+};
+
+/** What the school pays for one period of a plan, after its discount ("2250"), or "" when no fee is set. */
+export const planFee = (school: Pick<PayingSchool, "monthlyFee" | "yearlyFee" | "discount">, plan: SubscriptionPlan) => {
+  const fee = plan === "MONTHLY" ? school.monthlyFee : school.yearlyFee;
+  if (fee == null) return "";
+  const amount = Number(fee) * (1 - Number(school.discount || 0) / 100);
+  return String(Math.round(amount * 100) / 100);
+};
 
 /** `period(p)` -> "October 2026" for a month, "2026" for a year, in the current language. */
 export const usePeriodLabel = () => {

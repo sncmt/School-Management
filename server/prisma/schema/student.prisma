@@ -39,6 +39,8 @@ model Student {
   notifications Notification[]
   smsMessages   SmsMessage[]
   homeworkChecks HomeworkCheck[]
+  devicePerson   DevicePerson?
+  onlinePayments OnlinePayment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

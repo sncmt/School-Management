@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useReceipt } from "@/lib/school/collection";
+import { useFamilyReceipt } from "@/lib/school/family";
 import { ReceiptView } from "./ReceiptView";
 
 /**
@@ -15,11 +16,14 @@ import { ReceiptView } from "./ReceiptView";
  * copy on one A4 sheet. The printed copy sits directly under <body>, outside the dialog,
  * so the print layout isn't moved by the dialog's positioning.
  */
-export function ReceiptDialog({ paymentId, onClose }: { paymentId: string | null; onClose: () => void }) {
+export function ReceiptDialog({ paymentId, onClose, family = false }: { paymentId: string | null; onClose: () => void; family?: boolean }) {
   const t = useTranslations("school.finance.receipt");
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
-  const { data, isPending, error } = useReceipt(paymentId);
+  // the family login reads its own children's receipts (it has no finance permission)
+  const office = useReceipt(family ? null : paymentId);
+  const own = useFamilyReceipt(family ? paymentId : null);
+  const { data, isPending, error } = family ? own : office;
 
   return (
     <Dialog open={!!paymentId} onOpenChange={(open) => !open && onClose()}>

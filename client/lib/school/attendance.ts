@@ -30,6 +30,8 @@ export type SheetEntry = {
   note: string | null;
   saved: boolean;
   source: "MANUAL" | "DEVICE" | null;
+  // the first punch that day, when a device marked it
+  checkInAt: string | null;
 };
 
 export type StudentSheet = {

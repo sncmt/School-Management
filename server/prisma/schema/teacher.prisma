@@ -43,6 +43,7 @@ model TeacherProfile {
   routineEntries     RoutineEntry[]
   substitutions      RoutineSubstitution[]
   invigilations      InvigilatorDuty[]
+  devicePerson       DevicePerson?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

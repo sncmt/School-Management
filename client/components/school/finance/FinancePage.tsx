@@ -10,6 +10,7 @@ import { PaymentsTab } from "./collect/PaymentsTab";
 import { FeeStructuresTab } from "./FeeStructuresTab";
 import { FeeTypesTab } from "./FeeTypesTab";
 import { FinanceSettingsTab } from "./FinanceSettingsTab";
+import { OnlinePaymentTab } from "./OnlinePaymentTab";
 import { FundsTab } from "./FundsTab";
 import { ExpensesTab } from "./money/ExpensesTab";
 import { LedgerTab } from "./money/LedgerTab";
@@ -34,6 +35,7 @@ export function FinancePage() {
     can("fee_type:view") && "feeTypes",
     can("fund:view") && "funds",
     can("fee_structure:view") && "settings",
+    can("online_payment:manage") && "online",
   ].filter(Boolean) as string[];
   const [tab, setTab] = useState<string | undefined>();
 
@@ -89,6 +91,9 @@ export function FinancePage() {
         </TabsContent>
         <TabsContent value="settings">
           <FinanceSettingsTab canManage={can("fee_structure:update")} />
+        </TabsContent>
+        <TabsContent value="online">
+          <OnlinePaymentTab />
         </TabsContent>
       </Tabs>
     </div>

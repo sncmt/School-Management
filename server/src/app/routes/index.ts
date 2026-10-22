@@ -36,9 +36,12 @@ import { roomRoutes } from '../modules/room/room.route';
 import { seatPlanRoutes } from '../modules/seatPlan/seatPlan.route';
 import { admitCardRoutes } from '../modules/admitCard/admitCard.route';
 import { idCardRoutes } from '../modules/idCard/idCard.route';
+import { attendanceDeviceRoutes } from '../modules/attendanceDevice/device.route';
+import { onlinePaymentRoutes } from '../modules/onlinePayment/onlinePayment.route';
 import { notificationRoutes } from '../modules/notification/notification.route';
 import { smsRoutes } from '../modules/sms/sms.route';
 import { platformSubscriptionRoutes, schoolSubscriptionRoutes } from '../modules/subscription/subscription.route';
+import { schoolSettingsRoutes } from '../modules/schoolSettings/schoolSettings.route';
 
 
 const router = express.Router();
@@ -221,6 +224,11 @@ const moduleRoutes = [
         route: schoolSubscriptionRoutes
     },
     {
+        // a school's own settings (its accent colour), for its super admin
+        path: '/school-settings',
+        route: schoolSettingsRoutes
+    },
+    {
         // homework: given by subject teachers, ticked in class, seen by families
         path: '/homework',
         route: homeworkRoutes
@@ -244,6 +252,16 @@ const moduleRoutes = [
         // student ID cards: the school's design and printing
         path: '/id-card',
         route: idCardRoutes
+    },
+    {
+        // fingerprint / RFID terminals (the devices themselves talk to /iclock)
+        path: '/attendance-device',
+        route: attendanceDeviceRoutes
+    },
+    {
+        // guardians paying fees through the school's own SSLCommerz store
+        path: '/online-payment',
+        route: onlinePaymentRoutes
     }
 ];
 

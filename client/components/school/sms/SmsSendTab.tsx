@@ -167,7 +167,7 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
 
       <aside className="h-fit space-y-3 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
         <div className="flex items-center gap-2 font-semibold">
-          <Users className="size-4 text-brand dark:text-sidebar-primary" /> {t("summary")}
+          <Users className="size-4 text-brand" /> {t("summary")}
         </div>
         {student ? (
           <dl className="space-y-2 text-sm">

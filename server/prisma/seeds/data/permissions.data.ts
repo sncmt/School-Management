@@ -65,6 +65,8 @@ export const permissionsData: PermissionSeed[] = [
   { code: 'attendance:edit_past', name: 'Change Attendance Older Than 7 Days', moduleCode: 'attendance' },
   { code: 'teacher_attendance:mark', name: 'Mark Teacher Attendance', moduleCode: 'attendance' },
   { code: 'teacher_attendance:view', name: 'View Teacher Attendance', moduleCode: 'attendance' },
+  // fingerprint / RFID terminals: registering them, the people on them and their rules
+  { code: 'attendance:devices', name: 'Manage Attendance Devices', moduleCode: 'attendance' },
 
   // exam
   { code: 'exam:create',         name: 'Create and Manage Exams, Routines and Optional Subjects', moduleCode: 'exam' },
@@ -111,6 +113,8 @@ export const permissionsData: PermissionSeed[] = [
   { code: 'payment:create', name: 'Receive Payment', moduleCode: 'finance' },
   { code: 'payment:view',   name: 'View Payments',   moduleCode: 'finance' },
   { code: 'payment:cancel', name: 'Cancel Payment',  moduleCode: 'finance' },
+  // guardians paying fees online through the school's own SSLCommerz store
+  { code: 'online_payment:manage', name: 'Manage Online Payment', moduleCode: 'finance' },
 
   // finance: expenses and reports
   { code: 'expense:create',      name: 'Record Expense',       moduleCode: 'finance' },

@@ -368,6 +368,13 @@ const cancelPayment = async (
       },
     });
 
+    if (payment.method === "ONLINE") {
+      await tx.onlinePayment.updateMany({
+        where: { paymentId, schoolId },
+        data: { refundAmount: { increment: payment.amount }, refundedAt: null, refundNote: null },
+      });
+    }
+
     for (const a of payment.allocations) {
       const fee = feeMap.get(a.studentFeeId)!;
       const newPaid = fee.paidAmount.minus(a.amount);
@@ -493,6 +500,9 @@ const listPayments = async (schoolId: string, query: ListPaymentsQuery) => {
     summary: { collected: byStatus.SUCCESS?.amount ?? "0.00", byStatus },
   };
 };
+
+// for payments recorded elsewhere (online, through SSLCommerz): the same receipts and labels
+export const PaymentParts = { feeLabel, amountsOf, nextReceiptNo, getPaymentDetail };
 
 export const PaymentService = {
   getPayableFees,

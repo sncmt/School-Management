@@ -95,12 +95,13 @@
   /* a quiet off-white with a breath of the accent */
   --sidebar: oklch(0.982 0.004 185);
   --sidebar-foreground: oklch(0.32 0.01 220);
-  --sidebar-primary: oklch(0.56 0.1 185);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  /* the light set is a fallback only: the sidebar always draws with the dark one below */
+  --sidebar-primary: oklch(0.7 0.14 78);
+  --sidebar-primary-foreground: oklch(0.27 0.08 258);
   --sidebar-accent: oklch(0.955 0.008 185);
   --sidebar-accent-foreground: oklch(0.2 0.01 220);
   --sidebar-border: oklch(0.92 0.005 185);
-  --sidebar-ring: oklch(0.56 0.1 185);
+  --sidebar-ring: oklch(0.7 0.14 78);
 }
 
 .dark {
@@ -139,13 +140,13 @@
   /* the navy sidebar (it always uses these dark values) */
   --sidebar: oklch(0.285 0.11 263);
   --sidebar-foreground: oklch(0.95 0.01 250);
-  /* the menu's icons and current-page bar: a brighter teal, so it shows on the navy */
-  --sidebar-primary: oklch(0.78 0.11 185);
+  /* the menu's icons and current-page bar: the academic gold on the navy (option A) */
+  --sidebar-primary: oklch(0.82 0.14 82);
   --sidebar-primary-foreground: oklch(0.27 0.08 258);
   --sidebar-accent: oklch(1 0 0 / 10%);
   --sidebar-accent-foreground: oklch(0.99 0 0);
   --sidebar-border: oklch(1 0 0 / 14%);
-  --sidebar-ring: oklch(0.74 0.11 185);
+  --sidebar-ring: oklch(0.82 0.14 82);
 }
 
 @layer base {

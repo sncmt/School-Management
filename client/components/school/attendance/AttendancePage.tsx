@@ -7,6 +7,7 @@ import { useCan } from "@/lib/auth/hooks";
 import { todayKey } from "@/lib/school/calendar";
 import type { SectionChoice } from "../SectionPicker";
 import { AbsentList } from "./AbsentList";
+import { DevicesTab } from "./devices/DevicesTab";
 import { MonthlyRegister } from "./MonthlyRegister";
 import { RollCall } from "./RollCall";
 import { TeacherAttendance } from "./TeacherAttendance";
@@ -22,6 +23,7 @@ export function AttendancePage() {
     can("attendance:view") && "absent",
     can("attendance:view") && "register",
     can("teacher_attendance:mark") && "teachers",
+    can("attendance:devices") && "devices",
   ].filter(Boolean) as string[];
 
   const [tab, setTab] = useState<string | undefined>();
@@ -66,6 +68,9 @@ export function AttendancePage() {
         </TabsContent>
         <TabsContent value="teachers">
           <TeacherAttendance date={date} onDate={setDate} />
+        </TabsContent>
+        <TabsContent value="devices">
+          <DevicesTab />
         </TabsContent>
       </Tabs>
     </div>

@@ -13,6 +13,13 @@ export type SchoolSite = {
   language: "EN" | "BN";
   logo: string | null;
   favicon: string | null;
+  // the school's accent (lib/theme/accents.ts); null = the default
+  accentColor: string | null;
+  // for the public homepage's contact section (the school's public email, not its login)
+  publicEmail: string | null;
+  phone: string | null;
+  address: string | null;
+  website: string | null;
 };
 
 const API_URL = process.env.API_URL ?? "http://localhost:5000";

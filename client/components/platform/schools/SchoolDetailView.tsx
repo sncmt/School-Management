@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   Ban,
+  CreditCard,
   ExternalLink,
   KeyRound,
   MoreHorizontal,
@@ -35,6 +36,7 @@ import { SchoolStatusDialog, type StatusAction } from "./SchoolStatusDialog";
 export function SchoolDetailView({ school }: { school: SchoolDetail }) {
   const t = useTranslations("platform.schoolDetail");
   const tLanguage = useTranslations("languages");
+  const tPlans = useTranslations("platform.subscriptions.plans");
   const format = useFormatter();
   const actions = schoolActions(school);
 
@@ -71,6 +73,14 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
           {actions.activate && (
             <Button onClick={() => setActivating(true)}>
               <Power /> {t("actions.activate")}
+            </Button>
+          )}
+          {/* its subscription payments are recorded on the Subscriptions page */}
+          {school.activationDate && (
+            <Button variant="outline" asChild>
+              <Link href={`/subscriptions/${school.id}`}>
+                <CreditCard /> {t("actions.subscription")}
+              </Link>
             </Button>
           )}
           <Button variant="outline" asChild>
@@ -143,6 +153,7 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
 
         <InfoCard title={t("sections.contact")}>
           <Field label={t("fields.email")}>{school.email}</Field>
+          <Field label={t("fields.publicEmail")}>{school.publicEmail ?? notSet}</Field>
           <Field label={t("fields.phone")}>{school.phone ?? notSet}</Field>
           <Field label={t("fields.website")}>
             {school.website ? (
@@ -179,10 +190,22 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
         <SchoolBrandingCard school={school} />
 
         <InfoCard title={t("sections.billing")}>
+          <Field label={t("fields.subscriptionPlan")}>
+            {school.subscriptionPlan ? (
+              <Link href={`/subscriptions/${school.id}`} className="hover:underline">
+                {tPlans(school.subscriptionPlan)}
+              </Link>
+            ) : (
+              notSet
+            )}
+          </Field>
           <Field label={t("fields.monthlyFee")}>
             {school.monthlyFee != null
               ? format.number(Number(school.monthlyFee), { style: "currency", currency: "BDT" })
               : notSet}
+          </Field>
+          <Field label={t("fields.yearlyFee")}>
+            {school.yearlyFee != null ? format.number(Number(school.yearlyFee), { style: "currency", currency: "BDT" }) : notSet}
           </Field>
           <Field label={t("fields.discount")}>
             {format.number(Number(school.discount) / 100, { style: "percent", maximumFractionDigits: 2 })}
@@ -210,8 +233,7 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
         </InfoCard>
       </div>
 
-      <ActivateSchoolDialog school={activating ? school : null} onClose={() => setActivating(false)} />
-      <SchoolStatusDialog school={school} action={statusAction} onClose={() => setStatusAction(null)} />
+      <ActivateSchoolDialog school={activating ? school : null} onClose={() => setActivating(false)} />      <SchoolStatusDialog school={school} action={statusAction} onClose={() => setStatusAction(null)} />
       <ResetSuperAdminPasswordDialog school={school} open={resetting} onClose={() => setResetting(false)} />
     </div>
   );

@@ -13,7 +13,8 @@ const allocation = z.object({
 const recordPayment = z
   .object({
     studentId: idSchema("Student"),
-    method: z.enum(PaymentMethod).default("CASH"),
+    // ONLINE comes only from SSLCommerz, never from the office form
+    method: z.enum([PaymentMethod.CASH, PaymentMethod.MOBILE_BANKING]).default("CASH"),
     transactionRef: z.string().trim().min(3).max(100).optional(),
     paidAt: z.coerce
       .date({ error: "Valid payment date is required" })

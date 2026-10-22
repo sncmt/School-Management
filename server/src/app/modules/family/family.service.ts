@@ -7,6 +7,7 @@ import { GUARDIAN_ROLE } from "../../shared/schoolAccounts";
 import { fileUrl } from "../../shared/storage";
 import { upcomingHolidays } from "../dashboard/dashboard.service";
 import { releasedForEnrollment } from "../admitCard/admitCard.service";
+import { storeOf } from "../onlinePayment/onlinePayment.service";
 import { homeworkDueSoon } from "../homework/homework.service";
 import { currentMonth } from "../studentFee/studentFee.service";
 
@@ -153,6 +154,8 @@ const getHome = async (auth: Auth) => {
     academicYear: year ? { id: year.id, name: year.name } : null,
     children,
     upcoming: await upcomingHolidays(schoolId),
+    // "Pay fees" shows only when the school takes payments online
+    onlinePayment: await storeOf(schoolId).then((s) => ({ enabled: !!s?.enabled, chargePercent: s?.chargePercent ?? "0.00" })),
   };
 };
 

@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function SchoolFinancePage() {
   return (
-    <RequirePermission permission={["payment:create", "payment:view", "student_fee:view", "fee_structure:view", "fee_type:view", "fund:view", "fund:ledger", "expense:view", "finance_report:view"]} any>
+    <RequirePermission permission={["payment:create", "payment:view", "student_fee:view", "fee_structure:view", "fee_type:view", "fund:view", "fund:ledger", "expense:view", "finance_report:view", "online_payment:manage"]} any>
       {/* the page reads ?student= */}
       <Suspense>
         <FinancePage />

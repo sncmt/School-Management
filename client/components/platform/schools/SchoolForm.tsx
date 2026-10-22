@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { applyServerErrors } from "@/lib/auth/formErrors";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useCreateSchool, useUpdateSchool, type SchoolDetail } from "@/lib/platform/schools";
+import { SUBSCRIPTION_PLANS } from "@/lib/platform/subscriptions";
 import { ROOT_DOMAIN } from "@/lib/tenant";
 import {
   createSchoolSchema,
@@ -41,7 +42,7 @@ type Props = { mode: "create" } | { mode: "edit"; school: SchoolDetail };
 type SchoolFormValues = CreateSchoolValues | UpdateSchoolValues;
 
 const FIELDS: FieldPath<SchoolFormInput>[] = [
-  "nameEn", "nameBn", "subdomain", "email", "phone", "website", "address", "language", "monthlyFee", "discount",
+  "nameEn", "nameBn", "subdomain", "email", "publicEmail", "phone", "website", "address", "language", "subscriptionPlan", "monthlyFee", "yearlyFee", "discount",
 ];
 
 // the form edits text; the server's Decimal values arrive as strings like "2500.00"
@@ -52,11 +53,15 @@ const initialValues = (school?: SchoolDetail): SchoolFormInput => ({
   nameBn: school?.nameBn ?? "",
   subdomain: school?.subdomain ?? "",
   email: school?.email ?? "",
+  publicEmail: school?.publicEmail ?? "",
   phone: school?.phone ?? "",
   website: school?.website ?? "",
   address: school?.address ?? "",
   language: school?.language ?? "BN",
+  // a new school starts on monthly; one activated before plans has none ("")
+  subscriptionPlan: school ? (school.subscriptionPlan ?? "") : "MONTHLY",
   monthlyFee: decimalText(school?.monthlyFee ?? null),
+  yearlyFee: decimalText(school?.yearlyFee ?? null),
   discount: school ? decimalText(school.discount) : "",
 });
 
@@ -67,6 +72,7 @@ export function SchoolForm(props: Props) {
   const t = useTranslations("platform.schoolForm");
   const tCommon = useTranslations("common");
   const tLanguage = useTranslations("languages");
+  const tPlans = useTranslations("platform.subscriptions.plans");
   const describeError = useErrorMessage();
   const router = useRouter();
   const createSchool = useCreateSchool();
@@ -89,6 +95,8 @@ export function SchoolForm(props: Props) {
   });
 
   const subdomain = form.watch("subdomain").trim().toLowerCase() || "yourschool";
+  // the billing section shows the fee of this plan
+  const plan = form.watch("subscriptionPlan");
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
@@ -217,6 +225,21 @@ export function SchoolForm(props: Props) {
                 </FormItem>
               )}
             />
+            {/* a separate address for the public homepage: the email above is a login */}
+            <FormField
+              control={form.control}
+              name="publicEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("publicEmail")}</FormLabel>
+                  <FormControl>
+                    <Input type="email" autoCapitalize="none" placeholder="office@school.edu.bd" {...field} />
+                  </FormControl>
+                  <FormDescription>{t("publicEmailHint")}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -264,17 +287,49 @@ export function SchoolForm(props: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
-                name="monthlyFee"
+                name="subscriptionPlan"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("monthlyFee")}</FormLabel>
-                    <FormControl>
-                      <Input inputMode="decimal" {...field} />
-                    </FormControl>
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel required={!isEdit}>{t("subscriptionPlan")}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full sm:w-64">
+                          <SelectValue placeholder={t("choosePlan")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SUBSCRIPTION_PLANS.map((plan) => (
+                          <SelectItem key={plan} value={plan}>
+                            {tPlans(plan)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>{t("subscriptionPlanHint")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              {/* the fee of the chosen plan (both while a school has no plan yet) */}
+              {(["monthlyFee", "yearlyFee"] as const)
+                .filter((name) => !plan || (plan === "YEARLY") === (name === "yearlyFee"))
+                .map((name) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t(name)}</FormLabel>
+                        <FormControl>
+                          <Input inputMode="decimal" {...field} />
+                        </FormControl>
+                        <FormDescription>{t(`${name}Hint`)}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
               <FormField
                 control={form.control}
                 name="discount"

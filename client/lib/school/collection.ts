@@ -12,7 +12,8 @@ type NameRef = { id: string; nameEn: string | null; nameBn: string | null };
 type StudentRef = { id: string; nameEn: string; nameBn: string; admissionNo: string };
 
 export type FeeStatus = "UNPAID" | "PARTIAL" | "PAID" | "WAIVED";
-export type PaymentMethod = "CASH" | "MOBILE_BANKING";
+// ONLINE: a guardian paid through SSLCommerz (never taken at the office)
+export type PaymentMethod = "CASH" | "MOBILE_BANKING" | "ONLINE";
 
 // ---------------------------------------------------------------- student fees
 

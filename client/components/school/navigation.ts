@@ -1,4 +1,5 @@
 import {
+  Settings,
   Banknote,
   BookOpen,
   BookOpenCheck,
@@ -13,6 +14,7 @@ import {
   Layers,
   ListOrdered,
   Megaphone,
+  ReceiptText,
   Rows3,
   Shapes,
   ShieldCheck,
@@ -55,7 +57,7 @@ export const schoolMenu: MenuGroup[] = [
   },
   {
     items: [
-      { href: "/attendance", label: "attendance", icon: ClipboardCheck, permission: ["attendance:view", "attendance:mark", "teacher_attendance:mark"], anyPermission: true },
+      { href: "/attendance", label: "attendance", icon: ClipboardCheck, permission: ["attendance:view", "attendance:mark", "teacher_attendance:mark", "attendance:devices"], anyPermission: true },
       // teachers (their own subjects), staff with homework permissions and families
       { href: "/homework", label: "homework", icon: BookOpenCheck },
     ],
@@ -73,9 +75,11 @@ export const schoolMenu: MenuGroup[] = [
         href: "/finance",
         label: "finance",
         icon: Banknote,
-        permission: ["payment:create", "payment:view", "student_fee:view", "fee_structure:view", "fee_type:view", "fund:view", "fund:ledger", "expense:view", "finance_report:view"],
+        permission: ["payment:create", "payment:view", "student_fee:view", "fee_structure:view", "fee_type:view", "fund:view", "fund:ledger", "expense:view", "finance_report:view", "online_payment:manage"],
         anyPermission: true,
       },
+      // a family's own receipts
+      { href: "/fees", label: "feePayments", icon: ReceiptText, familyOnly: true },
     ],
   },
   {
@@ -92,6 +96,10 @@ export const schoolMenu: MenuGroup[] = [
   {
     label: "administration",
     icon: ShieldCheck,
-    items: [{ href: "/roles", label: "roles", icon: ShieldCheck, superAdminOnly: true }],
+    items: [
+      { href: "/roles", label: "roles", icon: ShieldCheck, superAdminOnly: true },
+      // the school's own look (its accent colour)
+      { href: "/settings", label: "schoolSettings", icon: Settings, superAdminOnly: true },
+    ],
   },
 ];

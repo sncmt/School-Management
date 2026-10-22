@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 import { goToLogin } from "@/lib/auth/session";
+import { toAsciiDigits } from "@/lib/i18n/digits";
 import { currentSessionType } from "@/lib/tenant";
 import { getErrorStatus } from "./errors";
 
@@ -12,6 +13,20 @@ export const httpClient = axios.create({
   baseURL: "/api/v1",
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
+});
+
+/*
+ * Text on screen shows Bangla digits in Bangla (see components/i18n/BanglaDigits), so a number
+ * copied from the page, or typed in Bangla, arrives in a search box as "২০২৭০০০১". The server
+ * stores ASCII digits: query values go out with ASCII digits, so those searches still match.
+ */
+httpClient.interceptors.request.use((config) => {
+  if (config.params && typeof config.params === "object") {
+    config.params = Object.fromEntries(
+      Object.entries(config.params as Record<string, unknown>).map(([key, value]) => [key, typeof value === "string" ? toAsciiDigits(value) : value]),
+    );
+  }
+  return config;
 });
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean };

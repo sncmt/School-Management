@@ -1,7 +1,6 @@
 "use client";
 
 import { School } from "lucide-react";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { SidebarShell } from "@/components/layout/SidebarShell";
 import { useSchoolMe } from "@/lib/auth/hooks";
@@ -13,7 +12,6 @@ import { schoolMenu } from "./navigation";
 export function SchoolShell({ children }: { children: ReactNode }) {
   const me = useSchoolMe();
   const name = useLocalizedName();
-  const t = useTranslations("shell");
 
   const icon = me?.school.logo ? (
     // eslint-disable-next-line @next/next/no-img-element -- school logos can be on any host
@@ -28,8 +26,10 @@ export function SchoolShell({ children }: { children: ReactNode }) {
       brand={{
         icon,
         title: me ? name(me.school) : "",
+        // the narrow sidebar shows the school's short address: DEMO for demo.<domain>
+        sidebarTitle: me ? me.school.subdomain.toUpperCase() : "",
         // everyone sees the year they are working in
-        subtitle: me?.academicYear ? t("academicYear", { year: me.academicYear.name }) : undefined,
+        subtitle: me?.academicYear?.name,
         home: "/dashboard",
       }}
       menu={schoolMenu}

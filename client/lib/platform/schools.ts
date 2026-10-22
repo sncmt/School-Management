@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
 import { uploadFile } from "@/lib/api/upload";
-import type { PaymentBody, SubscriptionPlan } from "./subscriptions";
+import type { SubscriptionPlan } from "./subscriptions";
 
 // ------------------------------------------------------------------- types
 
@@ -20,6 +20,8 @@ export type School = {
   nameBn: string;
   subdomain: string;
   email: string;
+  // shown on the public homepage (email is the super admin's login)
+  publicEmail: string | null;
   phone: string | null;
   website: string | null;
   address: string | null;
@@ -30,6 +32,7 @@ export type School = {
   status: SchoolStatus;
   activationDate: string | null;
   monthlyFee: string | null; // Prisma Decimal arrives as a string
+  yearlyFee: string | null;
   discount: string;
   // monthly or yearly, set at activation; null for schools activated before plans
   subscriptionPlan: SubscriptionPlan | null;
@@ -61,11 +64,14 @@ export type CreateSchoolBody = {
   nameBn: string;
   subdomain: string;
   email: string;
+  publicEmail?: string;
   phone?: string;
   website?: string;
   address?: string;
   language: SchoolLanguage;
+  subscriptionPlan: SubscriptionPlan;
   monthlyFee?: number;
+  yearlyFee?: number;
   discount?: number;
 };
 
@@ -92,11 +98,14 @@ export type UpdateSchoolBody = Partial<{
   nameEn: string;
   nameBn: string;
   email: string;
+  publicEmail: string | null;
   phone: string | null;
   website: string | null;
   address: string | null;
   language: SchoolLanguage;
+  subscriptionPlan: SubscriptionPlan;
   monthlyFee: number | null;
+  yearlyFee: number | null;
   discount: number;
 }>;
 
@@ -140,9 +149,9 @@ export const schoolsApi = {
   create: async (body: CreateSchoolBody) =>
     (await httpClient.post<ApiResponse<School>>("/school/create", body)).data.data,
 
-  // with the plan and the first month's or year's payment (paid at activation)
-  activate: async ({ schoolId, plan, payment }: { schoolId: string; plan: SubscriptionPlan; payment: Omit<PaymentBody, "plan"> }) =>
-    (await httpClient.patch<ApiResponse<ActivateSchoolResult>>(`/school/${schoolId}/activate`, { plan, payment })).data.data,
+  // subscription payments are recorded afterwards (Subscriptions)
+  activate: async (schoolId: string) =>
+    (await httpClient.patch<ApiResponse<ActivateSchoolResult>>(`/school/${schoolId}/activate`)).data.data,
 
   get: async (schoolId: string) =>
     (await httpClient.get<ApiResponse<SchoolDetail>>(`/school/${schoolId}`)).data.data,

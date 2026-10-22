@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, IdCard, Users } from "lucide-react";
+import { CircleCheck, CreditCard, IdCard, Users } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,7 +14,9 @@ import { NoticesPanel, UpcomingPanel } from "../dashboard/panels";
 import { useFeeLabel } from "../finance/shared";
 import { CheckBadge, DueLabel } from "../homework/shared";
 import { StudentAvatar } from "../students/StudentAvatar";
+import { Button } from "@/components/ui/button";
 import { FamilyAdmitCardDialog } from "./FamilyAdmitCardDialog";
+import { PayFeesDialog } from "./PayFeesDialog";
 
 /** The family login's home: each child at a glance, then notices and holidays. */
 export function FamilyHome() {
@@ -31,7 +33,7 @@ export function FamilyHome() {
       ) : error ? (
         <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>
       ) : (
-        <ChildrenGrid items={data.children} mainYearId={data.academicYear?.id} />
+        <ChildrenGrid items={data.children} mainYearId={data.academicYear?.id} canPayOnline={data.onlinePayment.enabled} />
       )}
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -43,7 +45,7 @@ export function FamilyHome() {
 }
 
 /** The children on this account; also shown on the staff dashboard of a teacher who is a parent here. */
-export function ChildrenGrid({ items, mainYearId }: { items: FamilyChild[]; mainYearId?: string }) {
+export function ChildrenGrid({ items, mainYearId, canPayOnline = false }: { items: FamilyChild[]; mainYearId?: string; canPayOnline?: boolean }) {
   const t = useTranslations("school.family");
   if (items.length === 0) {
     return (
@@ -56,7 +58,7 @@ export function ChildrenGrid({ items, mainYearId }: { items: FamilyChild[]; main
   return (
     <div className={cn("grid gap-5", items.length > 1 && "lg:grid-cols-2")}>
       {items.map((child) => (
-        <ChildCard key={child.id} child={child} mainYearId={mainYearId} />
+        <ChildCard key={child.id} child={child} mainYearId={mainYearId} canPayOnline={canPayOnline} />
       ))}
     </div>
   );
@@ -72,7 +74,7 @@ const MARKS: { key: keyof FamilyChild["attendance"]["month"]; mark: AttendanceMa
 
 const MAX_FEES = 4;
 
-function ChildCard({ child, mainYearId }: { child: FamilyChild; mainYearId?: string }) {
+function ChildCard({ child, mainYearId, canPayOnline }: { child: FamilyChild; mainYearId?: string; canPayOnline: boolean }) {
   const t = useTranslations("school.family");
   const format = useFormatter();
   const name = useLocalizedName();
@@ -84,6 +86,7 @@ function ChildCard({ child, mainYearId }: { child: FamilyChild; mainYearId?: str
   const days = month.present + month.late + month.absent + month.leave;
   const owed = Number(child.dues.total) > 0;
   const [admitExam, setAdmitExam] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
 
   const placement = e
     ? [
@@ -157,7 +160,12 @@ function ChildCard({ child, mainYearId }: { child: FamilyChild; mainYearId?: str
 
         {/* fees */}
         <div className="p-5">
-          <div className="text-xs font-medium text-muted-foreground">{t("feesDue")}</div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs font-medium text-muted-foreground">{t("feesDue")}</div>
+            <Link href="/fees" className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline">
+              {t("allPayments")}
+            </Link>
+          </div>
           {owed ? (
             <>
               <div className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">{money(child.dues.total)}</div>
@@ -172,7 +180,13 @@ function ChildCard({ child, mainYearId }: { child: FamilyChild; mainYearId?: str
               {child.dues.fees.length > MAX_FEES && (
                 <p className="mt-1.5 text-xs text-muted-foreground">{t("moreFees", { count: child.dues.fees.length - MAX_FEES })}</p>
               )}
-              <p className="mt-3 text-xs text-muted-foreground">{t("payAtSchool")}</p>
+              {canPayOnline ? (
+                <Button size="sm" className="mt-3" onClick={() => setPaying(true)}>
+                  <CreditCard /> {t("pay.button")}
+                </Button>
+              ) : (
+                <p className="mt-3 text-xs text-muted-foreground">{t("payAtSchool")}</p>
+              )}
             </>
           ) : (
             <div className="mt-2 flex items-center gap-2 text-sm font-medium text-[#0a850a] dark:text-[#3cc73c]">
@@ -229,6 +243,7 @@ function ChildCard({ child, mainYearId }: { child: FamilyChild; mainYearId?: str
           )}
         </div>
       )}
+      <PayFeesDialog student={paying ? { id: child.id, name: name(child) } : null} onClose={() => setPaying(false)} />
     </section>
   );
 }

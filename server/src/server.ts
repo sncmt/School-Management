@@ -4,17 +4,24 @@ import { redis } from "./app/config/redis";
 import { prisma } from "../lib/prisma";
 import { startNotificationJobs } from "./app/modules/notification/notification.jobs";
 import { startSmsWorker } from "./app/modules/sms/sms.worker";
+import { startDeviceJobs } from "./app/modules/attendanceDevice/device.jobs";
+import { startOnlinePaymentJobs } from "./app/modules/onlinePayment/onlinePayment.jobs";
 
 const port = Number(config.port ?? 5000);
 
 const server = app.listen(port);
 
-// the monthly fee reminder, and the SMS sender
+// the monthly fee reminder, the SMS sender, the attendance devices' punches and absent marks,
+// and online payments left waiting
 const stopNotificationJobs = startNotificationJobs();
 const stopSmsWorker = startSmsWorker();
+const stopDeviceJobs = startDeviceJobs();
+const stopOnlinePaymentJobs = startOnlinePaymentJobs();
 const stopJobs = () => {
   stopNotificationJobs();
   stopSmsWorker();
+  stopDeviceJobs();
+  stopOnlinePaymentJobs();
 };
 
 let stopping = false;

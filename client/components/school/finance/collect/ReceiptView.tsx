@@ -98,7 +98,11 @@ export function ReceiptView({ receipt, copy }: { receipt: Receipt; copy?: "stude
           {cancelled && receipt.cancelReason && <div className="text-rose-700">{t("cancelReason", { reason: receipt.cancelReason })}</div>}
         </div>
         <div className="w-48 border-t border-neutral-500 pt-1 text-center">
-          {receipt.receivedByName && <div className="font-medium">{receipt.receivedByName}</div>}
+          {receipt.receivedByName ? (
+            <div className="font-medium">{receipt.receivedByName}</div>
+          ) : (
+            receipt.method === "ONLINE" && <div className="font-medium">{t("receivedOnline")}</div>
+          )}
           <div className="text-neutral-600">{t("receivedBy")}</div>
         </div>
       </div>

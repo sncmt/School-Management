@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 // each kind of message: its icon and colour (the words carry the meaning, the colour only helps)
 const KINDS: Record<NotificationType, { icon: LucideIcon; tone: string }> = {
   STUDENT_ADMITTED: { icon: UserPlus, tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" },
-  PAYMENT_RECEIVED: { icon: Banknote, tone: "bg-brand-soft text-brand dark:text-sidebar-primary" },
+  PAYMENT_RECEIVED: { icon: Banknote, tone: "bg-brand-soft text-brand" },
   PAYMENT_CANCELLED: { icon: CircleX, tone: "bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400" },
   STUDENT_PRESENT: { icon: UserCheck, tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400" },
   STUDENT_ABSENT: { icon: UserX, tone: "bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400" },

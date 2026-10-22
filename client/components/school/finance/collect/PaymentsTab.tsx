@@ -69,6 +69,7 @@ export function PaymentsTab() {
             <SelectItem value={ALL}>{t("allMethods")}</SelectItem>
             <SelectItem value="CASH">{t("methods.CASH")}</SelectItem>
             <SelectItem value="MOBILE_BANKING">{t("methods.MOBILE_BANKING")}</SelectItem>
+            <SelectItem value="ONLINE">{t("methods.ONLINE")}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={(v) => reset(setStatus)(v as "SUCCESS")}>

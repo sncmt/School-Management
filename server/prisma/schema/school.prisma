@@ -5,7 +5,12 @@ model School {
   nameBn     String
 
   subdomain      String       @unique
+  // also the super admin's login: never shown publicly
   email          String       @unique
+  // the address the public homepage shows (e.g. office@school.edu.bd); not a login
+  publicEmail    String?
+  // the school's own accent, one of the app's tested colours (BLUE, MAROON...); null = the default
+  accentColor    String?
   phone          String?      @unique
   website        String?
   address        String?
@@ -15,11 +20,14 @@ model School {
   status         SchoolStatus @default(PENDING)
   activationDate DateTime?
   monthlyFee     Decimal?     @db.Decimal(10, 2)
+  // what a school on the yearly plan pays for a year
+  yearlyFee      Decimal?     @db.Decimal(10, 2)
+  // a percentage off either fee
   discount       Decimal      @default(0) @db.Decimal(5, 2)
   // monthly or yearly: chosen when the school is activated; null for schools activated before plans
   subscriptionPlan SubscriptionPlan?
 
-  memberships       SchoolMembership[]
+  memberships       SchoolMembership[] 
   roles             Role[]
   modules           SchoolModule[]
   subscriptionPayments SubscriptionPayment[]
@@ -41,6 +49,12 @@ model School {
   rooms             Room[]
   admitCardSetting  AdmitCardSetting?
   idCardSetting     IdCardSetting?
+  attendanceDevices AttendanceDevice[]
+  devicePunches     DevicePunch[]
+  devicePeople      DevicePerson[]
+  deviceAttendanceSetting DeviceAttendanceSetting?
+  onlinePaymentSetting    OnlinePaymentSetting?
+  onlinePayments          OnlinePayment[]
   subjectTeachers   SubjectTeacher[]
   weeklyHolidayRules        WeeklyHolidayRule[]
   attendanceSessions        AttendanceSession[]

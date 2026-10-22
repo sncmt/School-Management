@@ -78,7 +78,7 @@ export function SmsActivitiesTab({ settings, onOpenSettings }: { settings: SmsSe
           return (
             <section key={activity} className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
               <header className="flex items-center gap-3 border-b px-5 py-3.5">
-                <span className="flex size-8 items-center justify-center rounded-full bg-brand-soft text-brand dark:text-sidebar-primary">
+                <span className="flex size-8 items-center justify-center rounded-full bg-brand-soft text-brand">
                   <Icon className="size-4" />
                 </span>
                 <h2 className="flex-1 font-semibold">{t(`activities.names.${activity}`)}</h2>
@@ -130,7 +130,7 @@ function InAppPresentRow({ mayToggle }: { mayToggle: boolean }) {
 
   return (
     <li className="flex items-start gap-3 bg-brand-soft/30 px-5 py-4">
-      <MessageSquareText className="mt-0.5 size-4 shrink-0 text-brand dark:text-sidebar-primary" />
+      <MessageSquareText className="mt-0.5 size-4 shrink-0 text-brand" />
       <div className="min-w-0 flex-1">
         <label htmlFor="inapp-present" className="font-medium">
           {t("title")}

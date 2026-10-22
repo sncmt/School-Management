@@ -1,10 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
 import type { UpcomingHoliday } from "@/components/school/dashboard/panels";
 import { useSchoolMe } from "@/lib/auth/hooks";
+import type { PaymentMethod, Receipt } from "./collection";
 import type { FamilyHomeworkItem } from "./homework";
 
 // Mirrors server/src/app/modules/family: the family login's own children. Money is "1234.50".
@@ -58,6 +59,8 @@ export type FamilyHome = {
   academicYear: { id: string; name: string } | null;
   children: FamilyChild[];
   upcoming: UpcomingHoliday[];
+  // "Pay fees" shows only when the school takes payments online
+  onlinePayment: { enabled: boolean; chargePercent: string };
 };
 
 // the family login's role (a built-in role: schools can't make one with this name)
@@ -80,4 +83,53 @@ export const useFamilyHome = (enabled = true) =>
     queryFn: async () => (await httpClient.get<ApiResponse<FamilyHome>>("/family")).data.data,
     enabled,
     refetchInterval: 5 * 60_000,
+  });
+
+// ----------------------------------------------- the children's fee payments
+
+export type FamilyPaymentItem = {
+  id: string;
+  receiptNo: string;
+  studentId: string;
+  amount: string;
+  method: PaymentMethod;
+  transactionRef: string | null;
+  status: "SUCCESS" | "CANCELLED";
+  paidAt: string;
+  // paid online: the charge, and money the school is to give back (or gave back)
+  online: { charge: string; refundAmount: string; refundedAt: string | null } | null;
+};
+
+// an online payment that is not a receipt: still being checked, failed lately, or paid when nothing was owed
+export type FamilyPaymentAttempt = {
+  tranId: string;
+  studentId: string;
+  status: "PENDING" | "PAID" | "FAILED" | "CANCELLED";
+  total: string;
+  refundAmount: string;
+  refundedAt: string | null;
+  createdAt: string;
+  paidAt: string | null;
+};
+
+export type FamilyPayments = {
+  children: { id: string; nameEn: string; nameBn: string; admissionNo: string }[];
+  items: FamilyPaymentItem[];
+  meta: { page: number; limit: number; total: number; totalPages: number };
+  attempts: FamilyPaymentAttempt[];
+};
+
+export const useFamilyPayments = (query: { studentId?: string; page: number; limit: number }, enabled = true) =>
+  useQuery({
+    queryKey: ["school", "family", "payments", query],
+    queryFn: async () => (await httpClient.get<ApiResponse<FamilyPayments>>("/family/payments", { params: query })).data.data,
+    enabled,
+    placeholderData: keepPreviousData,
+  });
+
+export const useFamilyReceipt = (paymentId: string | null) =>
+  useQuery({
+    queryKey: ["school", "family", "receipt", paymentId],
+    queryFn: async () => (await httpClient.get<ApiResponse<Receipt>>(`/family/payments/${paymentId}/receipt`)).data.data,
+    enabled: !!paymentId,
   });

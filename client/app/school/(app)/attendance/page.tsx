@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function SchoolAttendancePage() {
   return (
     // a class teacher may only take the roll call; the office may only view
-    <RequirePermission permission={["attendance:view", "attendance:mark", "teacher_attendance:mark"]} any>
+    <RequirePermission permission={["attendance:view", "attendance:mark", "teacher_attendance:mark", "attendance:devices"]} any>
       <AttendancePage />
     </RequirePermission>
   );

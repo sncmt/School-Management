@@ -40,6 +40,8 @@ export type MenuItem = {
   anyPermission?: boolean;
   // school only: shown to the school super admin alone (roles and staff)
   superAdminOnly?: boolean;
+  // school only: shown to family logins alone (their children's pages)
+  familyOnly?: boolean;
 };
 
 /*
@@ -56,20 +58,22 @@ const isActive = (href: string, pathname: string) =>
 type Props = {
   session: SessionType;
   // the logo block: logo, site name, and a line under it (the academic year)
-  brand: { icon: ReactNode; title: string; subtitle?: ReactNode; home: string };
+  // title: the full name, in the top bar; sidebarTitle: a short one for the narrow sidebar (the
+  // title when left out)
+  brand: { icon: ReactNode; title: string; sidebarTitle?: string; subtitle?: ReactNode; home: string };
   menu: MenuGroup[];
   // the site's own buttons in the top bar, before the language menu (the school's messages)
   topBarItems?: ReactNode;
   children: ReactNode;
 };
 
-// a menu row: a rounded box with a white icon; the current page a lighter box with a white bar on the menu's edge
+// a menu row: a rounded box with a gold icon; the current page a lighter box with a gold bar on the menu's edge
 const rowClass = (active: boolean) =>
   cn(
     "relative flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left text-[14.5px] transition-colors",
     "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
     active
-      ? "bg-sidebar-accent font-semibold text-white ring-1 ring-white/15 ring-inset before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-white"
+      ? "bg-sidebar-accent font-semibold text-white ring-1 ring-white/15 ring-inset before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-sidebar-primary"
       : "text-sidebar-foreground/85 hover:bg-white/5 hover:text-white",
   );
 
@@ -79,12 +83,14 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
   const tGroups = useTranslations("navGroups");
   const tShell = useTranslations("shell");
   const can = useCan();
-  const isSuperAdmin = !!useSchoolMe()?.isSuperAdmin;
+  const me = useSchoolMe();
+  const isSuperAdmin = !!me?.isSuperAdmin;
+  const isFamily = !!me?.roles.some((r) => r.name === "GUARDIAN");
   // each site is served from its app folder; compare public paths only
   const pathname = usePathname().replace(/^\/(platform|school)(?=\/|$)/, "") || "/";
 
   const visible = (item: MenuItem) =>
-    (!item.superAdminOnly || isSuperAdmin) && (!item.permission || can(item.permission, { any: item.anyPermission }));
+    (!item.superAdminOnly || isSuperAdmin) && (!item.familyOnly || isFamily) && (!item.permission || can(item.permission, { any: item.anyPermission }));
   const groups = menu.map((g) => ({ ...g, items: g.items.filter(visible) })).filter((g) => g.items.length > 0);
 
   // where we are: "Home / People / Students"
@@ -92,7 +98,7 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
   const pages = groups.flatMap((g) => g.items.map((item) => ({ href: item.href, label: t(item.label), group: g.label ? tGroups(g.label) : null, icon: item.icon })));
 
   return (
-    <SidebarProvider style={{ "--sidebar-width": "16.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
+    <SidebarProvider style={{ "--sidebar-width": "14.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
       <Sidebar collapsible="icon" className="dark border-r-0">
         {/* the logo block on the same navy as the menu, as tall as the top bar; its text is white */}
         <SidebarHeader className="h-[72px] flex-row items-center gap-0 px-5 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
@@ -101,7 +107,9 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
               {brand.icon}
             </span>
             <span className="grid min-w-0 gap-0.5 leading-tight text-white">
-              <span className="truncate text-[15px] font-bold tracking-tight">{brand.title}</span>
+              <span className="truncate text-[15px] font-bold tracking-tight" title={brand.title}>
+                {brand.sidebarTitle ?? brand.title}
+              </span>
               {brand.subtitle && <span className="truncate font-mono text-[11px] text-white/70">{brand.subtitle}</span>}
             </span>
           </Link>
@@ -121,10 +129,8 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
         <header className="no-print sticky top-0 z-20 flex h-[72px] shrink-0 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur lg:px-8">
           {/* on a phone the menu is hidden: its button lives here */}
           <MobileMenuButton />
-          <p className="min-w-0 truncate text-[15px] tracking-tight text-muted-foreground sm:text-base">
-            {tShell.rich("welcome", { name: brand.title, b: (chunks) => <b className="font-bold text-foreground">{chunks}</b> })}
-            <span className="hidden xl:inline"> {tShell("appTagline")}</span>
-          </p>
+          {/* the school's full name (the sidebar shows the short one) */}
+          <p className="min-w-0 truncate text-[15px] font-bold tracking-tight text-foreground sm:text-base">{brand.title}</p>
           <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
             {/* an icon below lg, the search box from lg */}
             <div className="lg:w-72">
@@ -210,7 +216,8 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
     const active = isActive(item.href, pathname);
     const row = (
       <Link href={item.href} onClick={close} className={rowClass(active)} aria-current={active ? "page" : undefined}>
-        <item.icon className="size-[18px] shrink-0 text-white" />
+        {/* the academic gold of the menu (option A) */}
+        <item.icon className="size-[18px] shrink-0 text-sidebar-primary" />
         <span className="truncate group-data-[collapsible=icon]:hidden">{t(item.label)}</span>
       </Link>
     );
@@ -240,7 +247,7 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
               aria-expanded={open}
               className={cn(rowClass(false), open && "bg-white/5 text-white")}
             >
-              <Icon className="size-[18px] shrink-0 text-white" />
+              <Icon className="size-[18px] shrink-0 text-sidebar-primary" />
               <span className="flex-1 truncate">{tGroups(group.label)}</span>
               {open ? <ChevronDown className="size-4 text-white/60" /> : <ChevronRight className="size-4 text-white/50" />}
             </button>
@@ -258,7 +265,7 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
                         className={cn(
                           "flex h-9 items-center rounded-lg px-3 text-[13.5px] transition-colors",
                           active
-                            ? "bg-sidebar-accent font-semibold text-white ring-1 ring-white/15 ring-inset"
+                            ? "bg-sidebar-accent font-semibold text-sidebar-primary ring-1 ring-white/15 ring-inset"
                             : "text-sidebar-foreground/75 hover:bg-white/5 hover:text-white",
                         )}
                       >

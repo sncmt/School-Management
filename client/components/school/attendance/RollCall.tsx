@@ -185,6 +185,7 @@ function SheetEditor({ sheet }: { sheet: StudentSheet }) {
                   {item.source === "DEVICE" && (
                     <Badge variant="outline" className="ml-2">
                       {t("fromDevice")}
+                      {item.checkInAt && ` · ${format.dateTime(new Date(item.checkInAt), { hour: "numeric", minute: "2-digit", timeZone: "Asia/Dhaka" })}`}
                     </Badge>
                   )}
                 </div>

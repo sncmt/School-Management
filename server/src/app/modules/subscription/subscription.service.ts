@@ -97,7 +97,19 @@ export const recordPayment = async (db: Db, schoolId: string, plan: Subscription
 const findSchool = async (schoolId: string) => {
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    select: { id: true, nameEn: true, nameBn: true, subdomain: true, status: true, activationDate: true, monthlyFee: true, subscriptionPlan: true },
+    // the fees and discount fill in a new payment's amount
+    select: {
+      id: true,
+      nameEn: true,
+      nameBn: true,
+      subdomain: true,
+      status: true,
+      activationDate: true,
+      monthlyFee: true,
+      yearlyFee: true,
+      discount: true,
+      subscriptionPlan: true,
+    },
   });
   if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
   return school;

@@ -108,6 +108,8 @@ enum MidYearFeeRule {
 enum PaymentMethod {
   CASH
   MOBILE_BANKING
+  // paid by the guardian through the school's SSLCommerz store
+  ONLINE
 }
 
 enum PaymentStatus {

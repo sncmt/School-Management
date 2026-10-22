@@ -94,7 +94,7 @@ export function MessagesPage() {
             </div>
           ) : data.items.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-5 py-16 text-center text-sm text-muted-foreground">
-              <span className="mb-1 flex size-12 items-center justify-center rounded-full bg-brand-soft text-brand dark:text-sidebar-primary">
+              <span className="mb-1 flex size-12 items-center justify-center rounded-full bg-brand-soft text-brand">
                 <Inbox className="size-5" />
               </span>
               <p className="font-medium text-foreground">{show === "unread" ? t("emptyUnread") : t("empty")}</p>

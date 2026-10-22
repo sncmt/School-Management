@@ -40,6 +40,8 @@ const discountRule = z
   .number("validation.numberInvalid")
   .min(0, "validation.discountRange")
   .max(100, "validation.discountRange");
+// monthly or yearly subscription (a select, so text); required for a new school
+const planRule = z.enum(["MONTHLY", "YEARLY"], "validation.planRequired");
 
 export const createSchoolSchema = z.object({
   nameEn,
@@ -52,11 +54,15 @@ export const createSchoolSchema = z.object({
     .regex(/^[a-z0-9-]{2,63}$/, "validation.subdomainFormat")
     .refine((v) => !RESERVED_SUBDOMAINS.has(v), "validation.subdomainReserved"),
   email,
+  // shown on the public homepage; optional
+  publicEmail: optionalText(z.email("validation.emailInvalid")),
   phone: text.transform((v) => (v === "" ? undefined : asPhone(v))).pipe(phoneRule.optional()),
   website: optionalText(z.url("validation.websiteInvalid")),
   address: optionalText(z.string().max(500)),
   language,
+  subscriptionPlan: z.string().pipe(planRule),
   monthlyFee: optionalNumber(feeRule),
+  yearlyFee: optionalNumber(feeRule),
   discount: optionalNumber(discountRule),
 });
 
@@ -67,11 +73,18 @@ export const updateSchoolSchema = z.object({
   nameEn,
   nameBn,
   email,
+  publicEmail: clearableText(z.email("validation.emailInvalid")),
   phone: text.transform((v) => (v === "" ? null : asPhone(v))).pipe(phoneRule.nullable()),
   website: clearableText(z.url("validation.websiteInvalid")),
   address: clearableText(z.string().max(500)),
   language,
+  // a school activated before plans has none: left empty, it isn't sent (it stays as it is)
+  subscriptionPlan: z
+    .string()
+    .transform((v) => (v === "" ? undefined : v))
+    .pipe(planRule.optional()),
   monthlyFee: clearableNumber(feeRule),
+  yearlyFee: clearableNumber(feeRule),
   discount: text.transform((v) => (v === "" ? 0 : asNumber(v))).pipe(discountRule),
 });
 

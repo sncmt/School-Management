@@ -16,22 +16,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import {
-  useAddSubscriptionPayment,
   usePeriodLabel,
   useRemoveSubscriptionPayment,
   useSchoolSubscription,
   useSetSubscriptionPlan,
-  type SchoolSubscription,
   type SubscriptionPayment,
   type SubscriptionPlan,
 } from "@/lib/platform/subscriptions";
-import { newPaymentDraft, PaymentFields, paymentBody, PlanPicker, type PaymentDraft } from "./PaymentFields";
+import { PlanPicker } from "./PaymentFields";
+import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { StandingBadge } from "./StandingBadge";
 
 /** One school's plan, where it stands, and every payment recorded (record more, or remove a mistake). */
@@ -138,7 +136,7 @@ export function SchoolSubscriptionView({ schoolId }: { schoolId: string }) {
         </section>
       </div>
 
-      <RecordPaymentDialog open={recording} subscription={data} onClose={() => setRecording(false)} />
+      <RecordPaymentDialog open={recording} school={{ ...data.school, subscriptionPlan: data.plan }} onClose={() => setRecording(false)} />
 
       <AlertDialog open={!!removing} onOpenChange={(open) => !open && !remove.isPending && setRemoving(null)}>
         <AlertDialogContent>
@@ -172,57 +170,3 @@ export function SchoolSubscriptionView({ schoolId }: { schoolId: string }) {
   );
 }
 
-/* Records one paid period; the plan is the school's (chosen here when it has none yet). */
-function RecordPaymentDialog({ open, subscription, onClose }: { open: boolean; subscription: SchoolSubscription; onClose: () => void }) {
-  const t = useTranslations("platform.subscriptions");
-  const describeError = useErrorMessage();
-  const add = useAddSubscriptionPayment();
-  const [plan, setPlan] = useState<SubscriptionPlan>(subscription.plan ?? "MONTHLY");
-  const [draft, setDraft] = useState<PaymentDraft>(() => newPaymentDraft(subscription.school.monthlyFee));
-  const [wasOpen, setWasOpen] = useState(false);
-  // a fresh form each time it opens
-  if (open !== wasOpen) {
-    setWasOpen(open);
-    if (open) {
-      setPlan(subscription.plan ?? "MONTHLY");
-      setDraft(newPaymentDraft(subscription.plan === "YEARLY" ? null : subscription.school.monthlyFee));
-    }
-  }
-  const body = paymentBody(plan, draft);
-
-  const save = () =>
-    body &&
-    add.mutate(
-      { schoolId: subscription.school.id, body: { ...body, ...(subscription.plan ? {} : { plan }) } },
-      {
-        onSuccess: () => {
-          toast.success(t("recorded"));
-          onClose();
-        },
-        onError: (e) => toast.error(describeError(e)),
-      },
-    );
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && !add.isPending && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("record")}</DialogTitle>
-          <DialogDescription>{t(subscription.plan ? "recordHint" : "recordHintNoPlan")}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          {!subscription.plan && <PlanPicker value={plan} onChange={setPlan} disabled={add.isPending} />}
-          <PaymentFields plan={plan} draft={draft} onChange={setDraft} />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={add.isPending}>
-            {t("cancel")}
-          </Button>
-          <Button onClick={save} disabled={!body || add.isPending}>
-            {t("save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}

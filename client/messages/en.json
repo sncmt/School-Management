@@ -55,6 +55,7 @@
     "numberInvalid": "Enter a number",
     "feeNonNegative": "Fee can't be negative",
     "discountRange": "Discount must be between 0 and 100",
+    "planRequired": "Choose monthly or yearly",
     "subjectNameEnRequired": "English name is required",
     "subjectNameBnRequired": "Bangla name is required",
     "max100": "At most 100 characters",
@@ -235,10 +236,12 @@
     "finance": "Finance",
     "promotion": "Promotion",
     "roles": "Roles and staff",
+    "schoolSettings": "School settings",
     "notices": "Notices",
     "sms": "SMS",
     "homework": "Homework",
-    "idCards": "ID cards"
+    "idCards": "ID cards",
+    "feePayments": "Fee payments"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -278,8 +281,8 @@
         "activating": "Activating…",
         "doneTitle": "School activated",
         "doneDescription": "Give these login details to the school. The password is shown only once.",
-        "subscription": "Subscription",
-        "subscriptionHint": "The school's plan, and the first month or year it pays now. Recorded with the activation."
+        "subscriptionNote": "Subscription: {plan}. No payment is taken here; record the school's payments on the Subscriptions page.",
+        "subscriptionNoteNoPlan": "This school has no subscription type yet. Set it when you record its first payment on the Subscriptions page."
       },
       "view": "View details",
       "edit": "Edit"
@@ -299,12 +302,20 @@
       "subdomainHint": "The school's address: {url}",
       "email": "School email",
       "emailHint": "Also the super admin's login. It can't belong to another account.",
+      "publicEmail": "Public email",
+      "publicEmailHint": "Shown on the school's public homepage for visitors to write to. Not a login; leave empty to show none.",
       "phone": "Phone",
       "website": "Website",
       "address": "Address",
       "language": "Default language",
       "languageHint": "The language the school's site opens in.",
       "monthlyFee": "Monthly fee (৳)",
+      "monthlyFeeHint": "What the school pays each month (before the discount).",
+      "yearlyFee": "Yearly fee (৳)",
+      "yearlyFeeHint": "What the school pays for a year (before the discount).",
+      "subscriptionPlan": "Subscription type",
+      "choosePlan": "Choose monthly or yearly",
+      "subscriptionPlanHint": "How the school pays the platform. The first month or year is recorded when the school is activated.",
       "discount": "Discount (%)",
       "submit": "Create school",
       "submitting": "Creating…",
@@ -339,10 +350,13 @@
         "created": "Created",
         "activated": "Activated",
         "email": "Email",
+        "publicEmail": "Public email",
         "phone": "Phone",
         "website": "Website",
         "address": "Address",
         "monthlyFee": "Monthly fee",
+        "subscriptionPlan": "Subscription type",
+        "yearlyFee": "Yearly fee",
         "discount": "Discount",
         "name": "Name",
         "account": "Account"
@@ -365,6 +379,8 @@
       },
       "actions": {
         "activate": "Activate",
+        "recordPayment": "Record payment",
+        "subscription": "Subscription and payments",
         "reactivate": "Reactivate",
         "suspend": "Suspend",
         "deactivate": "Deactivate",
@@ -1733,7 +1749,8 @@
         "rollCall": "Roll call",
         "absent": "Absent",
         "register": "Monthly register",
-        "teachers": "Teachers"
+        "teachers": "Teachers",
+        "devices": "Devices"
       },
       "statuses": {
         "PRESENT": "Present",
@@ -1821,6 +1838,171 @@
         "taken": "Saved for this day.",
         "saved": "Teacher attendance saved.",
         "onLeave": "on leave"
+      },
+      "devices": {
+        "title": "Attendance devices",
+        "add": "Add device",
+        "empty": "No devices yet. Add a fingerprint / RFID terminal by its serial number.",
+        "serial": "SN {sn}",
+        "state": {
+          "online": "Online",
+          "offline": "Offline",
+          "stopped": "Not in use"
+        },
+        "lastSeen": "seen {when}",
+        "neverSeen": "not connected yet",
+        "today": "{count, plural, =0 {no punches today} one {# punch today} other {# punches today}}",
+        "edit": "Edit",
+        "stop": "Stop using",
+        "start": "Use again",
+        "delete": "Delete",
+        "stopped": "{name} is no longer used: its punches are refused",
+        "started": "{name} is in use again",
+        "setup": {
+          "title": "Connecting a device",
+          "address": "Server address",
+          "port": "Port",
+          "notReady": "The server address appears here once the system is put online; until then devices can only be tested with the simulator.",
+          "step1": "On the device open Menu → Comm. (Communication) → Cloud Server Setting (ADMS).",
+          "step2": "Enter the server address and port above; turn HTTPS and proxy off.",
+          "step3": "Add the device here with the serial number from Menu → System Info → Device Info.",
+          "step4": "Within a minute it shows as online; every fingerprint or card punch then arrives here."
+        },
+        "punches": {
+          "title": "Latest punches",
+          "hint": "As the devices send them: who it was and what it counted as. Refreshed every few seconds.",
+          "none": "No punches yet.",
+          "time": "Time",
+          "device": "Device",
+          "person": "Person no.",
+          "by": "By",
+          "verify": {
+            "password": "Password",
+            "finger": "Fingerprint",
+            "card": "Card",
+            "face": "Face",
+            "palm": "Palm",
+            "other": "Other"
+          },
+          "result": "Counted as",
+          "today": {
+            "studentsIn": "Students in today",
+            "studentsLate": "Late",
+            "studentsAbsent": "Absent",
+            "teachersIn": "Teachers in"
+          },
+          "outcomes": {
+            "in": "Arrived",
+            "late": "Arrived late",
+            "out": "Left",
+            "repeat": "Tapped again",
+            "unknown": "Unknown number",
+            "notOnRoll": "Not on roll",
+            "dayOff": "Day off",
+            "noYear": "No academic year",
+            "error": "Could not be read",
+            "waiting": "Waiting…"
+          }
+        },
+        "form": {
+          "addTitle": "Add a device",
+          "editTitle": "Edit device",
+          "description": "A device is known by its serial number; only devices added here can send punches.",
+          "serial": "Serial number",
+          "serialHint": "As shown on the device: Menu → System Info → Device Info.",
+          "serialInvalid": "Use the serial number as shown on the device: letters and digits only",
+          "name": "Name",
+          "namePlaceholder": "e.g. Main gate",
+          "nameRequired": "Give the device a name",
+          "location": "Place (optional)",
+          "locationPlaceholder": "e.g. Ground floor, near the office",
+          "cancel": "Cancel",
+          "saving": "Saving…",
+          "save": "Save",
+          "add": "Add device",
+          "added": "{name} added. Set it to send to this server.",
+          "saved": "Device saved"
+        },
+        "deleteDialog": {
+          "title": "Delete {name}?",
+          "description": "Only a device that has never sent a punch can be deleted. Otherwise stop using it.",
+          "confirm": "Delete",
+          "working": "Deleting…",
+          "done": "{name} deleted"
+        },
+        "tabs": {
+          "devices": "Devices",
+          "people": "People",
+          "rules": "Rules"
+        },
+        "pending": "{count, plural, one {sending # change…} other {sending # changes…}}",
+        "sync": "Send everyone again",
+        "syncing": "Sending {count, plural, one {# change} other {# changes}} to {name}; it takes them as it checks in",
+        "people": {
+          "assignTitle": "Device numbers",
+          "assignHint": "Each student and teacher needs a number to use the devices. New admissions and teachers get theirs here.",
+          "assign": "Give numbers to everyone without one",
+          "assigning": "Giving numbers…",
+          "assigned": "{count, plural, one {# person got a number} other {# people got numbers}}; the devices are getting them",
+          "allHaveNumbers": "Everyone already has a number",
+          "kinds": {
+            "student": "Students",
+            "teacher": "Teachers"
+          },
+          "class": "Class",
+          "allClasses": "All classes",
+          "section": "Section",
+          "allSections": "All sections",
+          "search": "Name or admission no.",
+          "numbered": "{numbered} of {total} have a number",
+          "chooseClass": "Choose a class, or search for a name.",
+          "none": "Nobody here.",
+          "noNumber": "no number yet",
+          "addCard": "add card",
+          "columns": {
+            "name": "Name",
+            "class": "Class",
+            "post": "Post",
+            "number": "Device no.",
+            "card": "RFID card",
+            "fingers": "Fingers"
+          },
+          "fingerHint": "Fingerprints are taken on a device itself (User Mgt → the person's number → Fingerprint). It sends them here and every other device of the school gets them too.",
+          "cardDialog": {
+            "title": "RFID card",
+            "label": "Card number",
+            "hint": "As the card reader shows it (or tap the card on a device when enrolling the person there).",
+            "invalid": "Use the card number as the reader shows it: digits (and letters) only",
+            "remove": "Remove card",
+            "cancel": "Cancel",
+            "saving": "Saving…",
+            "save": "Save",
+            "saved": "Card saved; the devices are getting it",
+            "removed": "Card removed"
+          }
+        },
+        "rules": {
+          "students": "Students",
+          "teachers": "Teachers",
+          "leaving": "Leaving",
+          "lateAfter": "Late after",
+          "lateAfterHint": "Minutes after the section's start time (from its class hours that day). A section without hours has no late.",
+          "teacherLateHint": "Minutes after the teachers' start time.",
+          "studentAbsent": "Mark absent at",
+          "studentAbsentHint": "Students on roll who have not punched by then are marked absent. Only sections where somebody punched that day, so a device that is offline never marks a class absent. Teachers can still change any mark.",
+          "teacherStart": "Teachers' start time",
+          "teacherAbsent": "Mark teachers absent at",
+          "teacherAbsentHint": "Only on days a teacher punched; a teacher on leave is marked on leave.",
+          "gap": "A punch counts as leaving",
+          "gapHint": "When it comes at least this long after arriving; a closer one is a double tap.",
+          "minutes": "minutes",
+          "off": "Off",
+          "smsNote": "Messages to families for present, late and absent are the same as for a roll call taken by hand: switch them on or off in <link>SMS</link>.",
+          "save": "Save rules",
+          "saving": "Saving…",
+          "undo": "Undo changes",
+          "saved": "Rules saved"
+        }
       }
     },
     "exams": {
@@ -2636,7 +2818,8 @@
         "payments": "Payments",
         "expenses": "Expenses",
         "ledger": "Ledger",
-        "reports": "Reports"
+        "reports": "Reports",
+        "online": "Online payment"
       },
       "funds": {
         "description": "Funds hold the school's money, such as a general fund and a development fund. Each fee type pays into one fund; balances come from every payment, expense and transfer.",
@@ -2853,7 +3036,8 @@
           "method": "Paid by",
           "methods": {
             "CASH": "Cash",
-            "MOBILE_BANKING": "Mobile banking"
+            "MOBILE_BANKING": "Mobile banking",
+            "ONLINE": "Online (SSLCommerz)"
           },
           "transactionRef": "Transaction ID",
           "refPlaceholder": "e.g. bKash TrxID",
@@ -2937,7 +3121,8 @@
         "allMethods": "All methods",
         "methods": {
           "CASH": "Cash",
-          "MOBILE_BANKING": "Mobile banking"
+          "MOBILE_BANKING": "Mobile banking",
+          "ONLINE": "Online (SSLCommerz)"
         },
         "status": "Status",
         "allStatuses": "All payments",
@@ -2989,14 +3174,16 @@
         "paidBy": "Paid by",
         "methods": {
           "CASH": "Cash",
-          "MOBILE_BANKING": "Mobile banking"
+          "MOBILE_BANKING": "Mobile banking",
+          "ONLINE": "Online (SSLCommerz)"
         },
         "ref": "Trx ID {ref}",
         "cancelReason": "Cancelled: {reason}",
         "receivedBy": "Received by",
         "cancelledStamp": "CANCELLED",
         "print": "Print",
-        "printHint": "Prints a student copy and an office copy on one A4 page."
+        "printHint": "Prints a student copy and an office copy on one A4 page.",
+        "receivedOnline": "Paid online"
       },
       "range": {
         "from": "From",
@@ -3169,6 +3356,107 @@
           "previousHint": "Still unpaid from before, by the students of this year",
           "classPrevious": "Of this, {amount} is from earlier years."
         }
+      },
+      "online": {
+        "title": "Online fee payment (SSLCommerz)",
+        "description": "Guardians pay their children's fees from the family login with bKash, Nagad, cards or internet banking. The money goes into the school's own SSLCommerz account.",
+        "enabled": "Let guardians pay online",
+        "enabledHint": "Guardians see \"Pay fees\" on their child's card. Needs the Store ID and password.",
+        "mode": "SSLCommerz system",
+        "sandbox": "Sandbox (testing)",
+        "sandboxHint": "No real money: for trying it out with a test store.",
+        "live": "Live",
+        "liveHint": "Real payments into the school's account.",
+        "storeId": "Store ID",
+        "storePassword": "Store password",
+        "passwordSaved": "Saved (hidden)",
+        "passwordKeep": "Leave empty to keep the saved password.",
+        "passwordHint": "As SSLCommerz gave it with the Store ID. It is kept encrypted.",
+        "needStore": "Enter the Store ID and password to switch online payment on",
+        "charge": "Convenience charge for guardians",
+        "chargeExample": "A ৳1,000 payment costs the guardian ৳{charge} more (it covers SSLCommerz's charge).",
+        "chargeNone": "0: the school pays SSLCommerz's charge; guardians pay exactly the fees.",
+        "chargeInvalid": "Enter a charge from 0 to 5 (at most 2 decimals)",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Online payment settings saved",
+        "test": "Test connection",
+        "testing": "Testing…",
+        "saveBeforeTest": "Save the changes before testing them.",
+        "connected": "Connected to SSLCommerz",
+        "notConnected": "Not connected: {reason}",
+        "help": {
+          "title": "Getting a store",
+          "sandbox": "To try it: open a free sandbox account at developer.sslcommerz.com and use its test Store ID and password with Sandbox.",
+          "live": "For real payments the school opens a merchant account with SSLCommerz (trade licence, bank details); they give a live Store ID and password.",
+          "money": "Payments settle into the school's bank account from SSLCommerz. They appear here as receipts and in the fee funds like any payment.",
+          "server": "Live payments need this system online with its web address (HTTPS), so SSLCommerz can confirm each payment to it."
+        },
+        "list": {
+          "refundsOwed": "{count, plural, one {# payment} other {# payments}} to refund · {amount}",
+          "pending": "{count, plural, one {# payment} other {# payments}} waiting for SSLCommerz",
+          "search": "Student, receipt or reference",
+          "from": "From",
+          "to": "To",
+          "status": "Status",
+          "allStatuses": "All statuses",
+          "statuses": {
+            "PAID": "Paid",
+            "PENDING": "Waiting",
+            "FAILED": "Failed",
+            "CANCELLED": "Cancelled"
+          },
+          "refund": "Refund",
+          "allRefunds": "Any refund",
+          "refunds": {
+            "OWED": "To refund",
+            "DONE": "Refunded"
+          },
+          "received": "Received online ({count})",
+          "ofWhichCharge": "of which charge {amount}",
+          "empty": "No online payments yet.",
+          "columns": {
+            "date": "Started",
+            "student": "Student",
+            "amount": "Amount",
+            "status": "Status",
+            "sslcommerz": "SSLCommerz",
+            "receipt": "Receipt"
+          },
+          "paidAt": "Paid {time}",
+          "by": "by {name}",
+          "feesAndCharge": "{fees} + {charge} charge",
+          "test": "Test",
+          "toRefund": "{amount} to refund",
+          "refunded": "{amount} refunded",
+          "bankRef": "Bank: {ref}",
+          "receiptCancelled": "Cancelled",
+          "actions": "Actions",
+          "check": "Check with SSLCommerz",
+          "receipt": "Receipt",
+          "markRefunded": "Mark as refunded",
+          "undoRefund": "Undo refunded",
+          "stillWaiting": "SSLCommerz has no payment for it yet. It is checked again every few minutes.",
+          "checked": {
+            "PAID": "Paid: the receipt is recorded",
+            "FAILED": "SSLCommerz says it failed",
+            "CANCELLED": "SSLCommerz says it was cancelled"
+          },
+          "refundUndone": "Marked as not refunded",
+          "refundDialog": {
+            "title": "Refund {amount}",
+            "description": "Refund it in your SSLCommerz merchant panel first (transaction {tranId}), then mark it here. This app does not move any money.",
+            "note": "Note",
+            "notePlaceholder": "e.g. Refunded on 22 Oct, SSLCommerz ref …",
+            "confirm": "Mark refunded",
+            "working": "Saving…",
+            "done": "Marked as refunded"
+          }
+        },
+        "views": {
+          "payments": "Payments",
+          "settings": "Settings"
+        }
       }
     },
     "promotion": {
@@ -3227,6 +3515,34 @@
       "doneTitle": "Already moved",
       "undo": "Undo",
       "undone": "{name}'s move undone."
+    },
+    "settings": {
+      "title": "School settings",
+      "description": "How your school's site looks.",
+      "superAdminOnly": "Only the school's super admin can change the school settings.",
+      "appearance": {
+        "title": "Accent colour",
+        "hint": "Used on your dashboard and public homepage: buttons, tabs, table headers and highlights.",
+        "default": "Default",
+        "preview": "Preview",
+        "previewTable": "Students",
+        "previewRow": "Karim Uddin",
+        "previewBadge": "New",
+        "previewButton": "Save",
+        "previewLink": "View details",
+        "note": "Present, absent and late always keep their own green, red and amber, whatever the accent. The menu stays navy.",
+        "undo": "Undo",
+        "save": "Save colour",
+        "saved": "Accent colour saved. Everyone sees it on their next page load.",
+        "colors": {
+          "BLUE": "Royal blue",
+          "INDIGO": "Indigo",
+          "VIOLET": "Violet",
+          "MAROON": "Maroon",
+          "TEAL": "Teal",
+          "SLATE": "Slate"
+        }
+      }
     },
     "roles": {
       "title": "Roles and staff",
@@ -3349,7 +3665,8 @@
           "finance_report": "Finance reports",
           "notice": "Notices",
           "homework": "Homework",
-          "sms": "SMS"
+          "sms": "SMS",
+          "online_payment": "Online payment"
         },
         "perms": {
           "student": {
@@ -3421,7 +3738,8 @@
             "mark": "Take student attendance",
             "view": "See student attendance",
             "export": "Export attendance",
-            "edit_past": "Change attendance older than 7 days"
+            "edit_past": "Change attendance older than 7 days",
+            "devices": "Manage fingerprint / RFID devices"
           },
           "teacher_attendance": {
             "mark": "Take teacher attendance",
@@ -3504,6 +3822,9 @@
             "send": "Send SMS by hand",
             "log": "See every SMS sent",
             "gateway": "Set up the SMS gateway, sender ID and language"
+          },
+          "online_payment": {
+            "manage": "Manage online payment (SSLCommerz)"
           }
         }
       }
@@ -3582,11 +3903,16 @@
         "title": "Subscription",
         "plan": "Plan",
         "paidThrough": "Last paid",
-        "paidOn": "Paid on {date}",
+        "count": "Payments",
+        "history": "Payment history",
         "none": "No payments recorded yet.",
-        "showAll": "Show all {count}",
-        "showFewer": "Show fewer",
         "loadFailed": "Couldn't load the subscription.",
+        "columns": {
+          "period": "Period",
+          "plan": "Plan",
+          "amount": "Amount",
+          "paidOn": "Paid on"
+        },
         "hint": "Payments are recorded by the platform. Only you (the super admin) see this."
       },
       "duties": {
@@ -3762,7 +4088,65 @@
       "allHomework": "All homework",
       "noHomework": "No homework due",
       "moreHomework": "{count, plural, one {and # more} other {and # more}}",
-      "admitCards": "Admit card"
+      "admitCards": "Admit card",
+      "pay": {
+        "button": "Pay fees",
+        "title": "Pay fees online",
+        "off": "The school does not take payments online right now.",
+        "nothing": "Nothing is owed now.",
+        "fees": "Fees",
+        "charge": "Convenience charge ({percent}%)",
+        "total": "To pay",
+        "secure": "You pay on SSLCommerz's secure page (bKash, Nagad, card, internet banking). The school gets the payment and you get a receipt here.",
+        "starting": "Opening SSLCommerz…",
+        "pay": "Pay {amount}"
+      },
+      "payResult": {
+        "pageTitle": "Fee payment",
+        "title": {
+          "PAID": "Payment successful",
+          "PENDING": "Checking the payment…",
+          "FAILED": "Payment not completed",
+          "CANCELLED": "Payment cancelled"
+        },
+        "hint": {
+          "PAID": "Thank you. The fees are marked paid and the receipt is ready.",
+          "PENDING": "SSLCommerz has not confirmed it yet. This page checks again by itself; nothing will be charged twice.",
+          "FAILED": "Nothing was taken from you. You can try again from the home page.",
+          "CANCELLED": "You left the payment page. Nothing was taken from you."
+        },
+        "student": "Student",
+        "amount": "Amount",
+        "ofWhichCharge": "of which convenience charge",
+        "receipt": "Receipt no.",
+        "paidAt": "Paid on",
+        "reference": "Reference",
+        "refund": "Some of these fees had already been paid at the school, so {amount} of this payment will be refunded to you. The school office will contact you.",
+        "home": "Back to home",
+        "viewReceipt": "View receipt",
+        "allPayments": "All payments"
+      },
+      "allPayments": "Payments",
+      "payments": {
+        "title": "Fee payments",
+        "familyOnly": "This page is for students and guardians.",
+        "child": "Child",
+        "allChildren": "All",
+        "receipts": "Receipts",
+        "empty": "No payments yet.",
+        "cancelled": "Cancelled",
+        "receipt": "Receipt",
+        "toRefund": "{amount} to be refunded",
+        "refunded": "{amount} refunded",
+        "online": "Online payments",
+        "attempt": {
+          "PENDING": "Being checked with SSLCommerz",
+          "PAID": "Paid, nothing was owed any more",
+          "FAILED": "Not completed",
+          "CANCELLED": "Cancelled"
+        },
+        "details": "Details"
+      }
     },
     "homework": {
       "title": "Homework",
@@ -4088,6 +4472,21 @@
     "workspace": "Workspace",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
+  },
+  "schoolHome": {
+    "tagline": "Welcome to our school. See the latest notices, or log in to follow attendance, homework, results and fees.",
+    "noticeBoard": "Notice board",
+    "logIn": "Log in",
+    "openApp": "Open the app",
+    "contact": {
+      "title": "Contact us",
+      "subtitle": "Visit, call or write to the school office.",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "website": "Website",
+      "none": "The school hasn't added its contact details yet."
+    }
   },
   "publicNotices": {
     "subtitle": "Notice board",

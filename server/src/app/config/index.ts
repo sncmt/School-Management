@@ -37,6 +37,15 @@ export default {
     // the sender shown to the reader; defaults to SMTP_USER
     from: process.env.MAIL_FROM || process.env.SMTP_USER,
   },
+  // a school's own web address, for links others follow back to it (SSLCommerz returns the
+  // payer there): "{subdomain}" is replaced, e.g. https://{subdomain}.sncmt.com
+  publicSchoolUrl: process.env.PUBLIC_SCHOOL_URL || "http://{subdomain}.localhost:3000",
+  // where attendance devices send their punches (the "cloud server" set on the device):
+  // shown to schools on the Devices page; empty until the server is deployed
+  deviceServer: {
+    host: process.env.DEVICE_SERVER_HOST || null,
+    port: Number(process.env.DEVICE_SERVER_PORT) || null,
+  },
   cloudinary: {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,

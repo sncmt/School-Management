@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 
+import { BanglaDigits } from "@/components/i18n/BanglaDigits";
 import QueryProviders from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -46,6 +47,8 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>
+          {/* Bangla digits everywhere on screen when the language is Bangla */}
+          <BanglaDigits />
           <ThemeProvider>
             <QueryProviders>
               <TooltipProvider>{children}</TooltipProvider>

@@ -19,8 +19,9 @@ export const authRoutes = {
   },
 } as const satisfies Record<SessionType, Record<string, string>>;
 
-// a school's pages for everyone (no login): app/school/notice-board
+// a school's pages for everyone (no login): its homepage (app/school/page) and app/school/notice-board
 export const publicSchoolRoutes = {
+  home: "/",
   noticeBoard: "/notice-board",
 } as const;
 

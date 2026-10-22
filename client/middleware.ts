@@ -43,8 +43,8 @@ const appSite = (req: NextRequest, type: SessionType) => {
 
   if (isAppFolderPath(pathname)) return notFound(req);
 
-  if (type === "SCHOOL" && PUBLIC_SCHOOL_PATHS.some((path) => isUnder(pathname, path))) {
-    // no session check
+  if (type === "SCHOOL" && (pathname === publicSchoolRoutes.home || PUBLIC_SCHOOL_PATHS.some((path) => isUnder(pathname, path)))) {
+    // no session check: the school's public homepage and notice board (logged in or not)
   } else if (pathname === login) {
     if (hasSession) return redirect(req, home);
   } else if (!hasSession) {

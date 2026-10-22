@@ -9,12 +9,15 @@ export type CreateSchoolPayload = {
   nameBn: string;
   subdomain: string;
   email: string;
+  publicEmail?: string;
   phone?: string;
   website?: string;
   address?: string;
   monthlyFee?: string;
+  yearlyFee?: string;
   discount: number;
   language?: "EN" | "BN";
+  subscriptionPlan?: "MONTHLY" | "YEARLY";
   logo?: string;
   favicon?: string;
 };
