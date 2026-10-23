@@ -368,11 +368,24 @@ const cancelPayment = async (
       },
     });
 
+    // a cancelled online receipt: its money is with the school's SSLCommerz account, to give
+    // back. A refund already given stays given: only this receipt's amount is to refund, and
+    // the earlier refund is kept in the note.
     if (payment.method === "ONLINE") {
-      await tx.onlinePayment.updateMany({
-        where: { paymentId, schoolId },
-        data: { refundAmount: { increment: payment.amount }, refundedAt: null, refundNote: null },
-      });
+      const online = await tx.onlinePayment.findFirst({ where: { paymentId, schoolId } });
+      if (online) {
+        const day = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dhaka", dateStyle: "medium" }).format(d);
+        await tx.onlinePayment.update({
+          where: { id: online.id },
+          data: online.refundedAt
+            ? {
+                refundAmount: payment.amount,
+                refundedAt: null,
+                refundNote: `${online.refundAmount.toFixed(2)} already refunded on ${day(online.refundedAt)}${online.refundNote ? `: ${online.refundNote}` : ""}`.slice(0, 300),
+              }
+            : { refundAmount: online.refundAmount.plus(payment.amount) },
+        });
+      }
     }
 
     for (const a of payment.allocations) {

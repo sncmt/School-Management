@@ -329,20 +329,28 @@ const getMe = async (auth: AuthContext) => {
     permissions: permissions.sort(),
     modules: enabledModules.map((m) => m.module.code).sort(),
     academicYear: currentYear,
+    // with the current password: guardians only (see mayChangeOwnPassword)
+    canChangeOwnPassword: await mayChangeOwnPassword(auth),
   };
 };
 
 /*
- * In a school only a guardian (the family login) changes their own password; everyone
- * else asks the school super admin, who changes it with a code sent to their email.
+ * In a school only a guardian (the family login) changes their own password (with the
+ * current one); teachers and staff never do: the school super admin changes theirs, with a
+ * code sent to their email.
  */
-const assertMayChangeOwnPassword = async (auth: AuthContext) => {
-  if (auth.sessionType === "PLATFORM") return;
+const mayChangeOwnPassword = async (auth: AuthContext) => {
+  if (auth.sessionType === "PLATFORM") return true;
+  if (!auth.membershipId) return false;
   const guardian = await prisma.userRole.findFirst({
-    where: { userId: auth.userId, membershipId: auth.membershipId, role: { name: GUARDIAN_ROLE.name, scope: "SCHOOL" } },
+    where: { userId: auth.userId, membershipId: auth.membershipId, role: { name: GUARDIAN_ROLE.name, scope: "SCHOOL", isSystem: true } },
     select: { id: true },
   });
-  if (!guardian) {
+  return !!guardian;
+};
+
+const assertMayChangeOwnPassword = async (auth: AuthContext) => {
+  if (!(await mayChangeOwnPassword(auth))) {
     throw new AppError("Ask your school's super admin to change your password", httpStatus.FORBIDDEN);
   }
 };

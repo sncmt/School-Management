@@ -24,6 +24,7 @@ import {
   Users,
 } from "lucide-react";
 import type { MenuGroup } from "@/components/layout/SidebarShell";
+import { FEES_PERMISSIONS, FINANCE_PERMISSIONS } from "@/lib/school/moneyPermissions";
 import { SMS_PERMISSIONS } from "@/lib/school/smsKinds";
 
 // The school's modules, in sidebar order: the most used first (dashboard, students, teachers,
@@ -68,18 +69,11 @@ export const schoolMenu: MenuGroup[] = [
     items: [{ href: "/exams", label: "exams", icon: FileText, permission: ["exam:view", "grading:view"], anyPermission: true }],
   },
   {
-    label: "money",
-    icon: Banknote,
     items: [
-      {
-        href: "/finance",
-        label: "finance",
-        icon: Banknote,
-        permission: ["payment:create", "payment:view", "student_fee:view", "fee_structure:view", "fee_type:view", "fund:view", "fund:ledger", "expense:view", "finance_report:view", "online_payment:manage"],
-        anyPermission: true,
-      },
-      // a family's own receipts
-      { href: "/fees", label: "feePayments", icon: ReceiptText, familyOnly: true },
+      // fee work; family logins see their children's payments there
+      { href: "/fees", label: "fees", icon: ReceiptText, permission: FEES_PERMISSIONS, anyPermission: true, family: true },
+      // the school's funds, expenses and ledger
+      { href: "/finance", label: "finance", icon: Banknote, permission: FINANCE_PERMISSIONS, anyPermission: true },
     ],
   },
   {

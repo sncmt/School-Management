@@ -6,7 +6,6 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCan } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useAcademicYears } from "@/lib/school/academicYears";
@@ -19,24 +18,8 @@ import { ListState } from "../shared";
 import { DayRange, thisMonth } from "./DayRange";
 import { Tile } from "./LedgerTab";
 
-/** Finance reports: money collected and spent over some days, and what is owed now. */
-export function ReportsTab({ onCollect }: { onCollect: (studentId: string) => void }) {
-  const t = useTranslations("school.finance.reports");
-  return (
-    <Tabs defaultValue="collection">
-      <TabsList variant="chip" className="no-print">
-        <TabsTrigger value="collection">{t("tabs.collection")}</TabsTrigger>
-        <TabsTrigger value="dues">{t("tabs.dues")}</TabsTrigger>
-      </TabsList>
-      <TabsContent value="collection">
-        <CollectionReport />
-      </TabsContent>
-      <TabsContent value="dues">
-        <DuesReport onCollect={onCollect} />
-      </TabsContent>
-    </Tabs>
-  );
-}
+// Finance reports: money collected and spent over some days (the Finance page), and what is
+// owed now (the Fees page).
 
 function PrintButton() {
   const t = useTranslations("school.finance.reports");
@@ -82,7 +65,7 @@ function AmountTable({ title, rows, total }: { title: string; rows: { key: strin
 
 // ---------------------------------------------------------------- collection
 
-function CollectionReport() {
+export function CollectionReport() {
   const t = useTranslations("school.finance.reports.collection");
   const tMethod = useTranslations("school.finance.payments.methods");
   const format = useFormatter();
@@ -136,7 +119,7 @@ function CollectionReport() {
 
 // ---------------------------------------------------------------------- dues
 
-function DuesReport({ onCollect }: { onCollect: (studentId: string) => void }) {
+export function DuesReport({ onCollect }: { onCollect: (studentId: string) => void }) {
   const [classId, setClassId] = useState<string | null>(null);
   const years = useAcademicYears();
   const [yearId, setYearId] = useState<string | undefined>();

@@ -241,6 +241,7 @@ function OnlineTable({
                           {row.refundedAt ? t("refunded", { amount: money(row.refundAmount) }) : t("toRefund", { amount: money(row.refundAmount) })}
                         </div>
                       )}
+                      {row.refundNote && <div className="mt-0.5 max-w-56 text-xs text-muted-foreground">{row.refundNote}</div>}
                     </TableCell>
                     <TableCell className="text-xs">
                       <div className="font-mono">{row.tranId}</div>

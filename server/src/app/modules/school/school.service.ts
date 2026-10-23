@@ -265,6 +265,7 @@ const getPublicSite = async (subdomain: string) => {
       favicon: true,
       // its accent colour, for every page of its site (null = the default)
       accentColor: true,
+      sidebarColor: true,
       // the contact section of its public homepage (the public email, never the login email)
       publicEmail: true,
       phone: true,

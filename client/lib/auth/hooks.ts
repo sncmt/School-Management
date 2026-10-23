@@ -76,14 +76,14 @@ export const useSetUserPassword = () => {
 /**
  * How this user changes their own password: with the current one (platform admins and,
  * in a school, guardians), with a code emailed to them (the school super admin), or not
- * at all (everyone else asks the super admin).
+ * at all (teachers and staff ask the super admin).
  */
 export const useOwnPasswordMode = (): "CURRENT" | "EMAIL_CODE" | null => {
   const { data: me } = useMe();
   if (!me) return null;
   if (me.sessionType === "PLATFORM") return "CURRENT";
   if (me.isSuperAdmin) return "EMAIL_CODE";
-  return me.roles.some((r) => r.name === "GUARDIAN") ? "CURRENT" : null;
+  return me.canChangeOwnPassword ? "CURRENT" : null;
 };
 
 /**

@@ -62,7 +62,8 @@ export default async function SchoolHomePage() {
 
       <main className="flex-1">
         {/* hero: the school's logo and name, on the navy of the app's sidebar */}
-        <section className="relative overflow-hidden bg-navy text-navy-foreground">
+        {/* the school's sidebar colour (navy unless it chose another), the same in light and dark mode */}
+        <section className="relative overflow-hidden bg-school-sidebar text-white">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]"

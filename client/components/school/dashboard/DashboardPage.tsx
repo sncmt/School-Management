@@ -119,7 +119,7 @@ function Dashboard({ data }: { data: DashboardSummary }) {
     );
   if (data.money)
     cards.push(
-      <StatCard key="m" icon={Banknote} tone="violet" label={t("stats.collected")} value={money(data.money.thisMonth.collected)} sub={t("stats.today", { amount: money(data.money.today.collected) })} href="/finance" />,
+      <StatCard key="m" icon={Banknote} tone="violet" label={t("stats.collected")} value={money(data.money.thisMonth.collected)} sub={t("stats.today", { amount: money(data.money.today.collected) })} href="/fees" />,
     );
 
   return (
@@ -260,7 +260,7 @@ function PaymentsPanel({ items }: { items: NonNullable<DashboardSummary["recentP
   const now = useNow({ updateInterval: 60_000 });
   const [receipt, setReceipt] = useState<string | null>(null);
   return (
-    <Panel title={t("title")} action={<PanelLink href="/finance">{t("open")}</PanelLink>}>
+    <Panel title={t("title")} action={<PanelLink href="/fees">{t("open")}</PanelLink>}>
       {items.length === 0 ? (
         <div className="flex min-h-48 flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
           <Banknote className="size-8 text-muted-foreground/50" />

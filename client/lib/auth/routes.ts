@@ -44,11 +44,22 @@ export const sessionFlagCookie = {
  */
 export const safeNextPath = (next: string | null | undefined, type: SessionType): string => {
   const { home, login } = authRoutes[type];
+  if (!next || !next.startsWith("/")) return home;
 
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return home;
-  if (next === login || next.startsWith(`${login}?`)) return home;
+  // read it as the browser will: it drops tabs and newlines and treats "\" as "/", so
+  // "/\t/evil.com" is "//evil.com". Only an address on this same site is kept.
+  const base = "http://same.invalid";
+  let url: URL;
+  try {
+    url = new URL(next, base);
+  } catch {
+    return home;
+  }
+  if (url.origin !== base) return home;
 
-  return next;
+  const path = url.pathname + url.search + url.hash;
+  if (url.pathname === login) return home;
+  return path;
 };
 
 /** Where a successful login goes. */

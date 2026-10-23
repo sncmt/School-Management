@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertAccountOnlyInSchool } from "../../shared/schoolAccounts";
 import { Mailer } from "../../utils/mailer";
 import { AuthService } from "./auth.service";
 import type { ClientMeta } from "./refreshToken.service";
@@ -46,11 +47,13 @@ const findSuperAdmin = async (auth: Auth) => {
 };
 
 /*
- * The account whose password changes: anyone in this school, even when the same login is
- * also used at another school (the new password works there too). A platform admin's
- * account is never changed from a school.
+ * The account whose password changes: someone in this school whose login is used here
+ * alone. A login also used at another school can't be changed from a school: otherwise a
+ * school could add someone's number and take over their login there. A platform admin's
+ * account is never changed from a school. The super admin's own account is always theirs
+ * to change.
  */
-const findTarget = async (schoolId: string, userId: string) => {
+const findTarget = async (schoolId: string, userId: string, adminId: string) => {
   const user = await prisma.user.findFirst({
     where: { id: userId, memberships: { some: { schoolId } } },
     select: { id: true, fullname: true, phone: true, email: true, userRoles: { where: { membershipId: null }, select: { id: true } } },
@@ -59,6 +62,7 @@ const findTarget = async (schoolId: string, userId: string) => {
   if (user.userRoles.length > 0) {
     throw new AppError("This account is a platform administrator's; only the platform can change its password", httpStatus.FORBIDDEN);
   }
+  if (user.id !== adminId) await assertAccountOnlyInSchool(prisma, schoolId, user.id);
   return { id: user.id, fullname: user.fullname, phone: user.phone, email: user.email };
 };
 
@@ -66,7 +70,7 @@ const findTarget = async (schoolId: string, userId: string) => {
 const sendCode = async (auth: Auth, targetUserId: string) => {
   const schoolId = auth.schoolId!;
   const admin = await findSuperAdmin(auth);
-  const target = await findTarget(schoolId, targetUserId);
+  const target = await findTarget(schoolId, targetUserId, admin.id);
 
   const last = await prisma.passwordChangeCode.findFirst({
     where: { requestedById: admin.id },
@@ -117,7 +121,7 @@ const sendCode = async (auth: Auth, targetUserId: string) => {
  */
 const changeWithCode = async (auth: Auth, targetUserId: string, body: { newPassword: string; code: string }, meta: ClientMeta) => {
   const admin = await findSuperAdmin(auth);
-  const target = await findTarget(auth.schoolId!, targetUserId);
+  const target = await findTarget(auth.schoolId!, targetUserId, admin.id);
 
   const row = await prisma.passwordChangeCode.findFirst({
     where: { requestedById: admin.id, schoolId: auth.schoolId!, targetUserId: target.id },

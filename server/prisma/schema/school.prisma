@@ -11,6 +11,8 @@ model School {
   publicEmail    String?
   // the school's own accent, one of the app's tested colours (BLUE, MAROON...); null = the default
   accentColor    String?
+  // the school's sidebar colour, one of the app's dark colours (NAVY, MAROON...); null = navy
+  sidebarColor   String?
   phone          String?      @unique
   website        String?
   address        String?

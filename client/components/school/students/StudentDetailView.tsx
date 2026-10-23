@@ -210,7 +210,7 @@ function Detail({ student }: { student: StudentDetail }) {
         <div className="flex gap-2">
           {(can("payment:create") || can("student_fee:view")) && (
             <Button variant="outline" asChild>
-              <Link href={`/finance?student=${student.id}`}>
+              <Link href={`/fees?student=${student.id}`}>
                 <Banknote /> {t("actions.fees")}
               </Link>
             </Button>

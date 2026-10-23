@@ -40,7 +40,7 @@ router.post("/success", async (req, res) => {
 router.post("/fail", async (req, res) => {
   const tranId = field(req, "tran_id");
   try {
-    await CheckoutService.markUnpaid(tranId, "FAILED", field(req, "error") || field(req, "failedreason") || null);
+    await CheckoutService.markUnpaid(tranId);
   } catch (error) {
     console.error("[sslcommerz] fail failed:", (error as Error).message);
   }
@@ -50,7 +50,7 @@ router.post("/fail", async (req, res) => {
 router.post("/cancel", async (req, res) => {
   const tranId = field(req, "tran_id");
   try {
-    await CheckoutService.markUnpaid(tranId, "CANCELLED", null);
+    await CheckoutService.markUnpaid(tranId);
   } catch (error) {
     console.error("[sslcommerz] cancel failed:", (error as Error).message);
   }
@@ -63,7 +63,7 @@ router.post("/ipn", async (req, res) => {
   const valId = field(req, "val_id");
   try {
     if (tranId && valId && (field(req, "status") === "VALID" || field(req, "status") === "VALIDATED")) await CheckoutService.confirmByValId(tranId, valId);
-    else if (tranId && field(req, "status")) await CheckoutService.markUnpaid(tranId, field(req, "status") === "CANCELLED" ? "CANCELLED" : "FAILED", field(req, "status"));
+    else if (tranId && field(req, "status")) await CheckoutService.markUnpaid(tranId);
     res.type("text/plain").send("OK");
   } catch (error) {
     console.error("[sslcommerz] ipn failed:", (error as Error).message);

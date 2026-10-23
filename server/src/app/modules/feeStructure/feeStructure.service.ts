@@ -7,6 +7,7 @@ import {
   expandMonthRange,
   feeAppliesTo,
   generateStudentFees,
+  lockStudentFees,
   round2,
 } from "../studentFee/studentFee.service";
 import type { CreateFeeStructurePayload, ListFeeStructuresQuery } from "./feeStructure.type";
@@ -44,8 +45,12 @@ async function syncStructureFees(tx: TxClient, schoolId: string, feeStructureId:
     return scheduled.size > 0 ? scheduled.get(month) : Number(structure.amount);
   };
 
+  // locked first (as payments and discounts do), then read: a payment taken at this moment
+  // waits, or is seen, so a fee just paid is never re-priced as unpaid
+  const feeIds = (await tx.studentFee.findMany({ where: { schoolId, feeStructureId }, select: { id: true } })).map((f) => f.id);
+  await lockStudentFees(tx, feeIds);
   const fees = await tx.studentFee.findMany({
-    where: { schoolId, feeStructureId },
+    where: { id: { in: feeIds } },
     select: {
       id: true,
       studentId: true,

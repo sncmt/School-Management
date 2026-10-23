@@ -245,12 +245,18 @@ const confirmByValId = async (tranId: string, valId: string) => {
   return online.tranId;
 };
 
-/* The payer came back without paying (failed / cancelled): noted only while still waiting. */
-const markUnpaid = async (tranId: string, status: "FAILED" | "CANCELLED", reason: string | null) => {
+/*
+ * The payer came back without paying (failed / cancelled), or the IPN said so. Never believed
+ * on its own (anyone with the transaction id could send it): SSLCommerz is asked what became
+ * of the payment, and records it when paid or marks it failed / cancelled when it says so.
+ * While SSLCommerz has no answer (or can't be reached) the payment keeps waiting, for the
+ * background check.
+ */
+const markUnpaid = async (tranId: string) => {
   const online = await prisma.onlinePayment.findUnique({ where: { tranId }, select: { id: true, status: true } });
   if (!online) return null;
   if (online.status === "PENDING") {
-    await prisma.onlinePayment.update({ where: { id: online.id }, data: { status, failReason: reason?.slice(0, 300) ?? null } });
+    await settle(online.id).catch((error) => console.error("[sslcommerz] check failed:", (error as Error).message));
   }
   return tranId;
 };

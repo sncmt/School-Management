@@ -241,7 +241,7 @@
     "sms": "SMS",
     "homework": "Homework",
     "idCards": "ID cards",
-    "feePayments": "Fee payments"
+    "fees": "Fees"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -2808,18 +2808,12 @@
     },
     "finance": {
       "title": "Finance",
-      "description": "Collect fees, see payments, and set what each class pays and where the money goes.",
+      "description": "The school's funds, expenses, ledger and reports.",
       "tabs": {
-        "structures": "Class fees",
-        "feeTypes": "Fee types",
         "funds": "Funds",
-        "settings": "Settings",
-        "collect": "Collect",
-        "payments": "Payments",
         "expenses": "Expenses",
         "ledger": "Ledger",
-        "reports": "Reports",
-        "online": "Online payment"
+        "reports": "Reports"
       },
       "funds": {
         "description": "Funds hold the school's money, such as a general fund and a development fund. Each fee type pays into one fund; balances come from every payment, expense and transfer.",
@@ -3305,10 +3299,6 @@
         }
       },
       "reports": {
-        "tabs": {
-          "collection": "Collection",
-          "dues": "Dues"
-        },
         "print": "Print",
         "nothing": "Nothing in these days.",
         "total": "Total",
@@ -3521,27 +3511,51 @@
       "description": "How your school's site looks.",
       "superAdminOnly": "Only the school's super admin can change the school settings.",
       "appearance": {
-        "title": "Accent colour",
-        "hint": "Used on your dashboard and public homepage: buttons, tabs, table headers and highlights.",
+        "cardTitle": "Colours",
+        "cardHint": "Your dashboard's and public homepage's colours. Click to try one; nothing changes for others until you save.",
         "default": "Default",
+        "sidebar": {
+          "title": "Sidebar colour",
+          "hint": "The menu on the left (and the top of your public homepage). All are dark, so the white menu text stays easy to read.",
+          "colors": {
+            "NAVY": "Navy",
+            "MAROON": "Maroon",
+            "FOREST": "Forest green",
+            "TEAL": "Deep teal",
+            "OCEAN": "Ocean teal",
+            "PURPLE": "Deep purple",
+            "CHARCOAL": "Charcoal"
+          }
+        },
+        "accent": {
+          "title": "Accent colour",
+          "hint": "Buttons, tabs, table headers and highlights.",
+          "colors": {
+            "BLUE": "Royal blue",
+            "INDIGO": "Indigo",
+            "VIOLET": "Violet",
+            "MAROON": "Maroon",
+            "TEAL": "Teal",
+            "SLATE": "Slate"
+          }
+        },
+        "suggestion": "{accent} goes well with a {sidebar} sidebar.",
+        "useSuggestion": "Use it",
         "preview": "Preview",
+        "previewMenu": "Menu",
+        "previewActive": "Students",
+        "previewOther": "Teachers",
+        "previewOther2": "Attendance",
         "previewTable": "Students",
         "previewRow": "Karim Uddin",
         "previewBadge": "New",
         "previewButton": "Save",
+        "previewTab": "Today",
         "previewLink": "View details",
-        "note": "Present, absent and late always keep their own green, red and amber, whatever the accent. The menu stays navy.",
+        "note": "Present, absent and late always keep their own green, red and amber, whatever colours you choose.",
         "undo": "Undo",
-        "save": "Save colour",
-        "saved": "Accent colour saved. Everyone sees it on their next page load.",
-        "colors": {
-          "BLUE": "Royal blue",
-          "INDIGO": "Indigo",
-          "VIOLET": "Violet",
-          "MAROON": "Maroon",
-          "TEAL": "Teal",
-          "SLATE": "Slate"
-        }
+        "save": "Save colours",
+        "saved": "Colours saved. Everyone sees them on their next page load."
       }
     },
     "roles": {
@@ -4341,6 +4355,22 @@
         "title": "ID card",
         "description": "This student's card in the school's design.",
         "notOnRoll": "This student is not on roll, so there is no ID card to print."
+      }
+    },
+    "fees": {
+      "title": "Fees",
+      "description": "Collecting fees, payments, dues, what each class pays and online payment.",
+      "familyTitle": "Fee payments",
+      "familyDescription": "Your children's receipts, to view and print.",
+      "tabs": {
+        "collect": "Collect",
+        "payments": "Payments",
+        "dues": "Dues",
+        "structures": "Class fees",
+        "feeTypes": "Fee types",
+        "online": "Online payment",
+        "settings": "Settings",
+        "children": "My children"
       }
     }
   },

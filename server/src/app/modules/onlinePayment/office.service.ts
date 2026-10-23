@@ -116,13 +116,16 @@ const check = async (schoolId: string, id: string) => {
   return (await shape([await oneOf(schoolId, id)])())[0];
 };
 
-/* Marks money to refund as given back (refunded in SSLCommerz's panel), or undoes that. */
+/* Marks money to refund as given back (refunded in SSLCommerz's panel), or undoes that (the note stays). */
 const markRefund = async (schoolId: string, id: string, data: MarkRefundPayload) => {
   const row = await oneOf(schoolId, id);
   if (row.refundAmount.lte(0)) throw new AppError("Nothing of this payment is to be refunded", httpStatus.BAD_REQUEST);
   await prisma.onlinePayment.update({
     where: { id: row.id },
-    data: data.refunded ? { refundedAt: new Date(), refundNote: data.note || null } : { refundedAt: null, refundNote: null },
+    // a note already there (an earlier refund) is kept, the new one added after it
+    data: data.refunded
+      ? { refundedAt: new Date(), refundNote: [row.refundNote, data.note].filter(Boolean).join(" · ").slice(0, 600) || null }
+      : { refundedAt: null },
   });
   return (await shape([await oneOf(schoolId, id)])())[0];
 };

@@ -36,6 +36,8 @@ export type SchoolMe = {
   modules: string[];
   // the school's current academic year (null until one is set)
   academicYear: { id: string; name: string } | null;
+  // changes their own password with the current one (guardians only; teachers and staff ask the super admin)
+  canChangeOwnPassword: boolean;
 };
 
 export type Me = PlatformMe | SchoolMe;

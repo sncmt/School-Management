@@ -18,6 +18,8 @@
   --color-navy: var(--navy);
   --color-navy-foreground: var(--navy-foreground);
   --color-navy-soft: var(--navy-soft);
+  /* the school's sidebar colour (navy unless it chose another): the menu and its homepage's hero */
+  --color-school-sidebar: var(--school-sidebar);
   /* the light-grey page behind the white cards */
   --color-canvas: var(--canvas);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -86,6 +88,8 @@
   --brand-soft: oklch(0.952 0.022 262);
   /* the blue is dark: text on it is white */
   --brand-foreground: oklch(0.985 0 0);
+  /* the sidebar's colour in both modes; a school's own choice replaces it (lib/theme/accents.ts) */
+  --school-sidebar: oklch(0.285 0.11 263);
   --canvas: oklch(0.972 0.006 260);
   /* the faint squared-paper lines on the canvas */
   --canvas-line: oklch(0.5 0.03 260 / 0.055);
@@ -137,8 +141,8 @@
   --navy: oklch(0.82 0.07 258);
   --navy-foreground: oklch(0.2 0.05 258);
   --navy-soft: oklch(0.27 0.05 258);
-  /* the navy sidebar (it always uses these dark values) */
-  --sidebar: oklch(0.285 0.11 263);
+  /* the sidebar (it always uses these dark values): navy, or the school's own dark colour */
+  --sidebar: var(--school-sidebar);
   --sidebar-foreground: oklch(0.95 0.01 250);
   /* the menu's icons and current-page bar: the academic gold on the navy (option A) */
   --sidebar-primary: oklch(0.82 0.14 82);

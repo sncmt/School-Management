@@ -40,8 +40,8 @@ export type MenuItem = {
   anyPermission?: boolean;
   // school only: shown to the school super admin alone (roles and staff)
   superAdminOnly?: boolean;
-  // school only: shown to family logins alone (their children's pages)
-  familyOnly?: boolean;
+  // school only: shown to family logins too, whatever their permissions (their children's pages)
+  family?: boolean;
 };
 
 /*
@@ -67,10 +67,11 @@ type Props = {
   children: ReactNode;
 };
 
-// a menu row: a rounded box with a gold icon; the current page a lighter box with a gold bar on the menu's edge
+// a menu row: a rounded box with a white icon; the current page a lighter box with a gold bar on the menu's edge
 const rowClass = (active: boolean) =>
   cn(
-    "relative flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left text-[14.5px] transition-colors",
+    // a little more room before the icon (20 px) than after the text
+    "relative flex h-10 w-full items-center gap-3 rounded-lg pr-3 pl-5 text-left text-[14.5px] transition-colors",
     "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
     active
       ? "bg-sidebar-accent font-semibold text-white ring-1 ring-white/15 ring-inset before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-sidebar-primary"
@@ -90,7 +91,7 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
   const pathname = usePathname().replace(/^\/(platform|school)(?=\/|$)/, "") || "/";
 
   const visible = (item: MenuItem) =>
-    (!item.superAdminOnly || isSuperAdmin) && (!item.familyOnly || isFamily) && (!item.permission || can(item.permission, { any: item.anyPermission }));
+    (!item.superAdminOnly || isSuperAdmin) && ((item.family && isFamily) || !item.permission || can(item.permission, { any: item.anyPermission }));
   const groups = menu.map((g) => ({ ...g, items: g.items.filter(visible) })).filter((g) => g.items.length > 0);
 
   // where we are: "Home / People / Students"
@@ -117,7 +118,7 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
         </SidebarHeader>
 
         <SidebarContent className="sidebar-scroll gap-0 px-3 pt-3 pb-6">
-          <p className="px-3 pb-2 text-[11px] font-semibold tracking-[0.14em] text-white/50 uppercase group-data-[collapsible=icon]:hidden">
+          <p className="pr-3 pl-5 pb-2 text-[11px] font-semibold tracking-[0.14em] text-white/50 uppercase group-data-[collapsible=icon]:hidden">
             {tShell("workspace")}
           </p>
           <Menu groups={groups} pathname={pathname} />
@@ -216,8 +217,7 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
     const active = isActive(item.href, pathname);
     const row = (
       <Link href={item.href} onClick={close} className={rowClass(active)} aria-current={active ? "page" : undefined}>
-        {/* the academic gold of the menu (option A) */}
-        <item.icon className="size-[18px] shrink-0 text-sidebar-primary" />
+        <item.icon className="size-[18px] shrink-0 text-white" />
         <span className="truncate group-data-[collapsible=icon]:hidden">{t(item.label)}</span>
       </Link>
     );
@@ -247,13 +247,13 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
               aria-expanded={open}
               className={cn(rowClass(false), open && "bg-white/5 text-white")}
             >
-              <Icon className="size-[18px] shrink-0 text-sidebar-primary" />
+              <Icon className="size-[18px] shrink-0 text-white" />
               <span className="flex-1 truncate">{tGroups(group.label)}</span>
               {open ? <ChevronDown className="size-4 text-white/60" /> : <ChevronRight className="size-4 text-white/50" />}
             </button>
             {open && (
               // its pages, on a thin line under the group's icon
-              <ul className="ml-[21px] grid gap-0.5 border-l border-sidebar-border py-1 pl-3">
+              <ul className="ml-[29px] grid gap-0.5 border-l border-sidebar-border py-1 pl-3">
                 {group.items.map((item) => {
                   const active = isActive(item.href, pathname);
                   return (

@@ -13,8 +13,9 @@ export type SchoolSite = {
   language: "EN" | "BN";
   logo: string | null;
   favicon: string | null;
-  // the school's accent (lib/theme/accents.ts); null = the default
+  // the school's accent and sidebar colours (lib/theme/accents.ts); null = the defaults
   accentColor: string | null;
+  sidebarColor: string | null;
   // for the public homepage's contact section (the school's public email, not its login)
   publicEmail: string | null;
   phone: string | null;
