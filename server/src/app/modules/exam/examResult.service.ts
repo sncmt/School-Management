@@ -190,6 +190,9 @@ const publishResult = async (auth: Auth, data: ExamClassPayload) => {
 
   // ------------------------------------------------------------ calculate
   const marks = await prisma.examMark.findMany({ where: { examSubject: { examClassId: examClass.id } } });
+  // what the result is worked out from; checked again once the exam class is held
+  const marksStamp = (rows: { updatedAt: Date | null }[], count: number) => `${count}:${Math.max(0, ...rows.map((r) => r.updatedAt?.getTime() ?? 0))}`;
+  const readStamp = marksStamp(marks, marks.length);
   const marksOf = new Map<string, Map<string, MarkInput>>();
   for (const m of marks) {
     const map = marksOf.get(m.enrollmentId) ?? new Map<string, MarkInput>();
@@ -232,6 +235,14 @@ const publishResult = async (auth: Auth, data: ExamClassPayload) => {
   // ----------------------------------------------------------------- save
   await prisma.$transaction(
     async (tx) => {
+      // held until the result is saved: marks saved meanwhile wait, then are refused
+      const [held] = await tx.$queryRaw<{ status: string }[]>`SELECT "status" FROM "ExamClass" WHERE "id" = ${examClass.id} FOR UPDATE`;
+      if (held?.status === "PUBLISHED") throw new AppError("The result is already published", httpStatus.CONFLICT);
+      const now = await tx.examMark.aggregate({ where: { examSubject: { examClassId: examClass.id } }, _count: { _all: true }, _max: { updatedAt: true } });
+      if (marksStamp([{ updatedAt: now._max.updatedAt }], now._count._all) !== readStamp) {
+        throw new AppError("Marks changed while publishing; publish again", httpStatus.CONFLICT);
+      }
+
       await tx.examResult.deleteMany({ where: { examClassId: examClass.id } });
 
       for (const r of results) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, HandCoins, Printer } from "lucide-react";
+import { ArrowLeft, Banknote, CircleX, HandCoins, History, Printer, Receipt, Scale, Users, Wallet } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -92,10 +92,10 @@ export function CollectionReport() {
               </p>
             </div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <Tile label={t("collected")} value={money(d.collected.total)} sub={t("payments", { count: d.collected.count })} />
-              <Tile label={t("spent")} value={money(d.expenses.total)} />
-              <Tile label={t("net")} value={money(d.net)} sub={t("netHint")} />
-              <Tile label={t("cancelled")} value={money(d.cancelled.total)} sub={t("payments", { count: d.cancelled.count })} />
+              <Tile icon={Banknote} label={t("collected")} value={money(d.collected.total)} sub={t("payments", { count: d.collected.count })} />
+              <Tile icon={Receipt} label={t("spent")} value={money(d.expenses.total)} />
+              <Tile icon={Scale} label={t("net")} value={money(d.net)} sub={t("netHint")} />
+              <Tile icon={CircleX} label={t("cancelled")} value={money(d.cancelled.total)} sub={t("payments", { count: d.cancelled.count })} />
             </div>
             <div className="grid gap-3 md:grid-cols-3">
               <AmountTable title={t("byMethod")} rows={d.byMethod.map((m) => ({ key: m.method, label: tMethod(m.method), amount: m.amount }))} />
@@ -168,9 +168,9 @@ function AllClassDues({ yearId, yearSelect, onClass }: { yearId?: string; yearSe
           <div className="print-area space-y-3">
             <h3 className="text-lg font-semibold">{t("title", { year: d.academicYear.name })}</h3>
             <div className="grid gap-2 sm:grid-cols-3">
-              <Tile label={t("totalDue")} value={money(d.total)} sub={t("thisYearOnly", { year: d.academicYear.name })} />
-              <Tile label={t("previousDue")} value={money(d.previousTotal)} sub={t("previousHint")} />
-              <Tile label={t("studentsWithDues")} value={format.number(d.studentsWithDues)} />
+              <Tile icon={Wallet} label={t("totalDue")} value={money(d.total)} sub={t("thisYearOnly", { year: d.academicYear.name })} />
+              <Tile icon={History} label={t("previousDue")} value={money(d.previousTotal)} sub={t("previousHint")} />
+              <Tile icon={Users} label={t("studentsWithDues")} value={format.number(d.studentsWithDues)} />
             </div>
             <div className="rounded-md border">
               <Table>

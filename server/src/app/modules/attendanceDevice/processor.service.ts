@@ -67,6 +67,9 @@ export const toMinutes = (hhmm: string) => {
 type Punch = { id: string; schoolId: string; pin: string; punchedAt: Date };
 type Outcome = string;
 
+// how far ahead of the server's clock a punch may be (devices drift a little)
+const FUTURE_GRACE_MS = 10 * 60_000;
+
 /* Claims a batch of a school's waiting punches (and ones left half done), oldest first. */
 const claim = async (schoolId: string): Promise<Punch[]> => {
   const stale = new Date(Date.now() - STALE_MS);
@@ -247,7 +250,10 @@ export const processSchool = async (schoolId: string) => {
       let outcome: Outcome;
       try {
         const person = personOf.get(punch.pin);
-        outcome = !person
+        // a device clock set ahead: kept, but never attendance for a day that hasn't come
+        outcome = punch.punchedAt.getTime() > Date.now() + FUTURE_GRACE_MS
+          ? "FUTURE_TIME"
+          : !person
           ? "UNKNOWN_PERSON"
           : person.studentId
             ? await handleStudent(punch, person.studentId, rules, cache, touched)

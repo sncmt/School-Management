@@ -156,12 +156,13 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
           <Field label={t("fields.publicEmail")}>{school.publicEmail ?? notSet}</Field>
           <Field label={t("fields.phone")}>{school.phone ?? notSet}</Field>
           <Field label={t("fields.website")}>
-            {school.website ? (
+            {/* a link only to a web page (never javascript: or the like) */}
+            {school.website && /^https?:\/\//i.test(school.website) ? (
               <a href={school.website} target="_blank" rel="noreferrer" className="hover:underline">
                 {school.website}
               </a>
             ) : (
-              notSet
+              (school.website ?? notSet)
             )}
           </Field>
           <Field label={t("fields.address")}>

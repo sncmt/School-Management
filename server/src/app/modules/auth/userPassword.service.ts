@@ -2,7 +2,6 @@ import httpStatus from "http-status";
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
-import { assertAccountOnlyInSchool } from "../../shared/schoolAccounts";
 import { Mailer } from "../../utils/mailer";
 import { AuthService } from "./auth.service";
 import type { ClientMeta } from "./refreshToken.service";
@@ -47,22 +46,32 @@ const findSuperAdmin = async (auth: Auth) => {
 };
 
 /*
- * The account whose password changes: someone in this school whose login is used here
- * alone. A login also used at another school can't be changed from a school: otherwise a
- * school could add someone's number and take over their login there. A platform admin's
- * account is never changed from a school. The super admin's own account is always theirs
- * to change.
+ * The account whose password changes: anyone in this school, even when the same login is
+ * also used at another school (the new password works there too). Never a platform admin's
+ * account, nor another school's super admin (that would hand over the other school). The
+ * super admin's own account is always theirs to change.
  */
 const findTarget = async (schoolId: string, userId: string, adminId: string) => {
   const user = await prisma.user.findFirst({
     where: { id: userId, memberships: { some: { schoolId } } },
-    select: { id: true, fullname: true, phone: true, email: true, userRoles: { where: { membershipId: null }, select: { id: true } } },
+    select: {
+      id: true,
+      fullname: true,
+      phone: true,
+      email: true,
+      userRoles: {
+        where: { OR: [{ membershipId: null }, { role: { name: "SCHOOL_SUPER_ADMIN", isSystem: true, schoolId: { not: schoolId } } }] },
+        select: { membershipId: true },
+      },
+    },
   });
   if (!user) throw new AppError("This account is not part of your school", httpStatus.NOT_FOUND);
-  if (user.userRoles.length > 0) {
+  if (user.userRoles.some((r) => r.membershipId === null)) {
     throw new AppError("This account is a platform administrator's; only the platform can change its password", httpStatus.FORBIDDEN);
   }
-  if (user.id !== adminId) await assertAccountOnlyInSchool(prisma, schoolId, user.id);
+  if (user.id !== adminId && user.userRoles.length > 0) {
+    throw new AppError("This account is another school's super admin; only they can change its password", httpStatus.FORBIDDEN);
+  }
   return { id: user.id, fullname: user.fullname, phone: user.phone, email: user.email };
 };
 

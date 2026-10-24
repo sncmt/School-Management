@@ -28,6 +28,8 @@ import { usePromote, usePromotionPreview, useUndoPromotion, type PromotionAction
 import { cn } from "@/lib/utils";
 
 type Row = PromotionPreview["students"][number];
+
+const hasLeft = (s: Row) => s.student.status === "INACTIVE" || s.student.status === "GRADUATED";
 // a student's choice: what happens, the section next year, and whether they are in this batch
 type Choice = { action?: PromotionAction; sectionId?: string; skip?: boolean };
 
@@ -101,8 +103,9 @@ function Promotion({ data, onFormula }: { data: PromotionPreview; onFormula: (id
   const [confirming, setConfirming] = useState(false);
 
   const moveUp: PromotionAction = next ? "PROMOTE" : "GRADUATE";
+  // left the school during the year: their enrollment is only closed
   const actionOf = (s: Row): PromotionAction =>
-    choices[s.enrollmentId]?.action ?? (s.result && !s.result.passed && failedGo === "REPEAT" ? "REPEAT" : moveUp);
+    hasLeft(s) ? "LEAVE" : (choices[s.enrollmentId]?.action ?? (s.result && !s.result.passed && failedGo === "REPEAT" ? "REPEAT" : moveUp));
   const set = (id: string, change: Choice) => setChoices((c) => ({ ...c, [id]: { ...c[id], ...change } }));
   const chosen = pending.filter((s) => !choices[s.enrollmentId]?.skip);
   const count = (a: PromotionAction) => chosen.filter((s) => actionOf(s) === a).length;
@@ -252,6 +255,11 @@ function Promotion({ data, onFormula }: { data: PromotionPreview; onFormula: (id
                       <TableCell>
                         <div className="font-medium">{name(s.student)}</div>
                         <div className="text-xs text-muted-foreground">{s.student.admissionNo}</div>
+                        {hasLeft(s) && (
+                          <Badge variant="outline" className="mt-1 text-muted-foreground">
+                            {t("leftSchool")}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-sm">
                         {s.result ? (
@@ -269,7 +277,7 @@ function Promotion({ data, onFormula }: { data: PromotionPreview; onFormula: (id
                         )}
                       </TableCell>
                       <TableCell>
-                        <Select value={action} onValueChange={(v) => set(s.enrollmentId, { action: v as PromotionAction, sectionId: undefined })} disabled={c?.skip}>
+                        <Select value={action} onValueChange={(v) => set(s.enrollmentId, { action: v as PromotionAction, sectionId: undefined })} disabled={c?.skip || hasLeft(s)}>
                           <SelectTrigger className="h-8 w-40">
                             <SelectValue />
                           </SelectTrigger>

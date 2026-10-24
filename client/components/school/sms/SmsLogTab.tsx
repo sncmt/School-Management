@@ -1,8 +1,9 @@
 "use client";
 
-import { FlaskConical, Search } from "lucide-react";
+import { Clock, FlaskConical, MessageSquareText, Search, Send, TriangleAlert } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
+import { StatCard } from "@/components/data/StatCard";
 import { TablePagination } from "@/components/data/TablePagination";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,10 +44,15 @@ export function SmsLogTab() {
     <div className="space-y-5">
       {data && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Tile label={t("tiles.sent")} value={format.number(data.thisMonth.SENT)} />
-          <Tile label={t("tiles.parts")} value={format.number(data.thisMonth.partsSent)} />
-          <Tile label={t("tiles.waiting")} value={format.number(data.thisMonth.QUEUED + data.thisMonth.SENDING)} />
-          <Tile label={t("tiles.failed")} value={format.number(data.thisMonth.FAILED)} alert={data.thisMonth.FAILED > 0} />
+          <StatCard icon={Send} label={t("tiles.sent")} value={format.number(data.thisMonth.SENT)} />
+          <StatCard icon={MessageSquareText} label={t("tiles.parts")} value={format.number(data.thisMonth.partsSent)} />
+          <StatCard icon={Clock} label={t("tiles.waiting")} value={format.number(data.thisMonth.QUEUED + data.thisMonth.SENDING)} />
+          <StatCard
+            icon={TriangleAlert}
+            label={t("tiles.failed")}
+            value={format.number(data.thisMonth.FAILED)}
+            tone={data.thisMonth.FAILED > 0 ? "alert" : "default"}
+          />
         </div>
       )}
 
@@ -134,15 +140,6 @@ export function SmsLogTab() {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function Tile({ label, value, alert }: { label: string; value: string; alert?: boolean }) {
-  return (
-    <div className="rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
-      <div className="text-xs font-medium text-muted-foreground">{label}</div>
-      <div className={cn("mt-1 text-2xl font-semibold tracking-tight tabular-nums", alert && "text-red-600 dark:text-red-400")}>{value}</div>
     </div>
   );
 }

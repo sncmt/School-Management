@@ -1,10 +1,9 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
 import { Banknote, ClipboardCheck, GraduationCap, Users } from "lucide-react";
 import { useFormatter, useNow, useTranslations } from "next-intl";
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { StatCard } from "@/components/data/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSchoolMe } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
@@ -18,7 +17,6 @@ import { ReceiptDialog } from "../finance/collect/ReceiptDialog";
 import { FeesChart } from "./FeesChart";
 import { MiniCalendar } from "./MiniCalendar";
 import { MyDutiesPanel, NoticesPanel, Panel, PanelLink, UpcomingPanel } from "./panels";
-import { SubscriptionPanel } from "./SubscriptionPanel";
 
 /** The school's home: the numbers that matter today, each part shown only to those allowed to see it. */
 export function DashboardPage() {
@@ -47,8 +45,6 @@ export function DashboardPage() {
         <FamilyHome />
       ) : (
         <>
-          {/* the school's subscription and its payment history: the super admin only, first thing they see */}
-          {me?.isSuperAdmin && <SubscriptionPanel />}
           {family.data && family.data.children.length > 0 && (
             <section className="space-y-3">
               <h2 className="font-semibold">{t("yourChildren")}</h2>
@@ -76,9 +72,9 @@ function StaffDashboard({
   return (
     <>
       {isPending || !data ? (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="h-32 rounded-xl" />
+            <Skeleton key={i} className="h-[86px] rounded-xl" />
           ))}
         </div>
       ) : error ? (
@@ -99,18 +95,18 @@ function Dashboard({ data }: { data: DashboardSummary }) {
   const cards: ReactNode[] = [];
   if (data.students)
     cards.push(
-      <StatCard key="s" icon={Users} tone="emerald" label={t("stats.students")} value={n(data.students.total)} sub={t("stats.boysGirls", { boys: n(data.students.boys), girls: n(data.students.girls) })} href="/students" />,
+      <StatCard key="s" icon={Users} label={t("stats.students")} value={n(data.students.total)} sub={t("stats.boysGirls", { boys: n(data.students.boys), girls: n(data.students.girls) })} href="/students" />,
     );
   if (data.teachers)
     cards.push(
-      <StatCard key="t" icon={GraduationCap} tone="blue" label={t("stats.teachers")} value={n(data.teachers.working)} sub={data.teachers.onLeave > 0 ? t("stats.onLeave", { count: data.teachers.onLeave }) : t("stats.allWorking")} href="/teachers" />,
+      <StatCard key="t" icon={GraduationCap} label={t("stats.teachers")} value={n(data.teachers.working)} sub={data.teachers.onLeave > 0 ? t("stats.onLeave", { count: data.teachers.onLeave }) : t("stats.allWorking")} href="/teachers" />,
     );
   if (data.attendance)
     cards.push(
       <StatCard
         key="a"
         icon={ClipboardCheck}
-        tone="amber"
+       
         label={t("stats.attendance")}
         value={data.attendance.presentPercent === null ? "—" : `${format.number(data.attendance.presentPercent, { maximumFractionDigits: 1 })}%`}
         sub={t("stats.sectionsTaken", { taken: n(data.attendance.sectionsTaken), total: n(data.attendance.sections) })}
@@ -119,12 +115,12 @@ function Dashboard({ data }: { data: DashboardSummary }) {
     );
   if (data.money)
     cards.push(
-      <StatCard key="m" icon={Banknote} tone="violet" label={t("stats.collected")} value={money(data.money.thisMonth.collected)} sub={t("stats.today", { amount: money(data.money.today.collected) })} href="/fees" />,
+      <StatCard key="m" icon={Banknote} label={t("stats.collected")} value={money(data.money.thisMonth.collected)} sub={t("stats.today", { amount: money(data.money.today.collected) })} href="/fees" />,
     );
 
   return (
     <div className="space-y-6">
-      {cards.length > 0 && <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{cards}</div>}
+      {cards.length > 0 && <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards}</div>}
 
       {(data.money || data.attendance) && (
         <div className="grid gap-5 lg:grid-cols-3">
@@ -168,31 +164,6 @@ function Dashboard({ data }: { data: DashboardSummary }) {
 
 // ------------------------------------------------------------------ pieces
 
-const TONES = {
-  emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400",
-  blue: "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400",
-  amber: "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400",
-  violet: "bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400",
-};
-
-/* A headline number: the icon and what it is on the left, the number on the right. */
-function StatCard({ icon: Icon, tone, label, value, sub, href }: { icon: LucideIcon; tone: keyof typeof TONES; label: string; value: string; sub: string; href: string }) {
-  return (
-    <Link href={href} className="group flex items-center gap-5 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-shadow hover:shadow-md">
-      <div className="flex w-24 shrink-0 flex-col items-center gap-2 text-center">
-        <span className={cn("flex size-12 items-center justify-center rounded-full", TONES[tone])}>
-          <Icon className="size-6" />
-        </span>
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      </div>
-      <div className="h-14 w-px bg-border" />
-      <div className="min-w-0 flex-1 text-right">
-        <div className="truncate text-[28px] leading-tight font-semibold tracking-tight tabular-nums">{value}</div>
-        <div className="truncate text-xs text-muted-foreground">{sub}</div>
-      </div>
-    </Link>
-  );
-}
 
 function Figure({ label, value }: { label: string; value: string }) {
   return (

@@ -237,6 +237,7 @@
     "promotion": "Promotion",
     "roles": "Roles and staff",
     "schoolSettings": "School settings",
+    "subscription": "Subscription",
     "notices": "Notices",
     "sms": "SMS",
     "homework": "Homework",
@@ -1214,8 +1215,10 @@
         "remove": "Remove filter: {name}"
       },
       "columns": {
+        "photo": "Photo",
         "student": "Student",
         "class": "Class",
+        "roll": "Roll",
         "father": "Father",
         "family": "Family login",
         "status": "Status",
@@ -1829,6 +1832,7 @@
         "loadFailed": "Couldn't load the register.",
         "empty": "No students in this section this month.",
         "student": "Student",
+        "roll": "Roll",
         "legend": "P present · A absent · L late · Lv on leave. Shaded days are days off; a blank day had no roll call."
       },
       "teachers": {
@@ -1901,7 +1905,8 @@
             "dayOff": "Day off",
             "noYear": "No academic year",
             "error": "Could not be read",
-            "waiting": "Waiting…"
+            "waiting": "Waiting…",
+            "futureTime": "Clock ahead (not used)"
           }
         },
         "form": {
@@ -1921,7 +1926,12 @@
           "save": "Save",
           "add": "Add device",
           "added": "{name} added. Set it to send to this server.",
-          "saved": "Device saved"
+          "saved": "Device saved",
+          "allowedIp": "Allowed internet address",
+          "allowedIpPlaceholder": "Any address",
+          "useLastIp": "Use last seen",
+          "allowedIpHint": "Leave empty to take it from anywhere. The device last connected from {ip}: lock it to that and nobody can send punches from elsewhere with this serial number.",
+          "allowedIpNeverSeen": "Leave empty for now: once the device has connected, you can lock it to the school's address."
         },
         "deleteDialog": {
           "title": "Delete {name}?",
@@ -2002,7 +2012,9 @@
           "saving": "Saving…",
           "undo": "Undo changes",
           "saved": "Rules saved"
-        }
+        },
+        "lockedTo": "Only from {ip}",
+        "refused": "Refused a request from {ip} {when}: has the school's internet address changed?"
       }
     },
     "exams": {
@@ -3038,7 +3050,9 @@
           "date": "Date",
           "submit": "Take {amount}",
           "working": "Saving…",
-          "done": "{amount} received. Receipt {no}."
+          "done": "{amount} received. Receipt {no}.",
+          "paidYear": "Paid fees of",
+          "nothingOwed": "Nothing is owed now. The fees paid this year are listed below."
         },
         "fees": {
           "year": "Year",
@@ -3504,7 +3518,8 @@
       "done": "Done for {year}: {promoted} moved up, {repeated} repeat, {graduated} graduated, {left} left.",
       "doneTitle": "Already moved",
       "undo": "Undo",
-      "undone": "{name}'s move undone."
+      "undone": "{name}'s move undone.",
+      "leftSchool": "Left school"
     },
     "settings": {
       "title": "School settings",
@@ -3557,6 +3572,24 @@
         "save": "Save colours",
         "saved": "Colours saved. Everyone sees them on their next page load."
       }
+    },
+    "subscription": {
+      "title": "Subscription",
+      "description": "Your school's plan and the payments made to the platform.",
+      "superAdminOnly": "Only the school's super admin can see the subscription.",
+      "plan": "Plan",
+      "paidThrough": "Last paid",
+      "count": "Payments",
+      "history": "Payment history",
+      "none": "No payments recorded yet.",
+      "loadFailed": "Couldn't load the subscription.",
+      "columns": {
+        "period": "Period",
+        "plan": "Plan",
+        "amount": "Amount",
+        "paidOn": "Paid on"
+      },
+      "hint": "Payments are recorded by the platform. Only you (the super admin) see this."
     },
     "roles": {
       "title": "Roles and staff",
@@ -3913,22 +3946,6 @@
         "new": "new"
       },
       "yourChildren": "Your children",
-      "subscription": {
-        "title": "Subscription",
-        "plan": "Plan",
-        "paidThrough": "Last paid",
-        "count": "Payments",
-        "history": "Payment history",
-        "none": "No payments recorded yet.",
-        "loadFailed": "Couldn't load the subscription.",
-        "columns": {
-          "period": "Period",
-          "plan": "Plan",
-          "amount": "Amount",
-          "paidOn": "Paid on"
-        },
-        "hint": "Payments are recorded by the platform. Only you (the super admin) see this."
-      },
       "duties": {
         "title": "My invigilation duties",
         "room": "Room {number}",
@@ -4502,6 +4519,17 @@
     "workspace": "Workspace",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
+  },
+  "bottomNav": {
+    "label": "Main pages",
+    "home": "Home",
+    "homework": "Homework",
+    "fees": "Fees",
+    "messages": "Messages",
+    "attendance": "Attendance",
+    "students": "Students",
+    "notices": "Notices",
+    "menu": "Menu"
   },
   "schoolHome": {
     "tagline": "Welcome to our school. See the latest notices, or log in to follow attendance, homework, results and fees.",

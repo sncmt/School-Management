@@ -1,6 +1,6 @@
 "use client";
 
-import { Fingerprint, MoreHorizontal, Pencil, Plus, Power, RefreshCw, Router, Trash2 } from "lucide-react";
+import { Fingerprint, Lock, MoreHorizontal, Pencil, Plus, Power, RefreshCw, Router, Trash2 } from "lucide-react";
 import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -157,6 +157,16 @@ function DeviceRow({ device: d, onEdit }: { device: AttendanceDevice; onEdit: ()
         <div className="text-xs text-muted-foreground">
           {[d.location, t("serial", { sn: d.serialNumber }), d.firmware].filter(Boolean).join(" · ")}
         </div>
+        {d.allowedIp && (
+          <div className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Lock className="size-3" /> {t("lockedTo", { ip: d.allowedIp })}
+          </div>
+        )}
+        {d.allowedIp && d.lastRefusedAt && (!d.lastSeenAt || new Date(d.lastRefusedAt) > new Date(d.lastSeenAt)) && (
+          <div className="mt-0.5 text-xs font-medium text-destructive">
+            {t("refused", { ip: d.lastRefusedIp ?? "", when: format.relativeTime(new Date(d.lastRefusedAt), now) })}
+          </div>
+        )}
       </div>
       <div className="w-40 text-sm">
         <div className="flex items-center gap-2">
@@ -295,7 +305,7 @@ function PunchesPanel() {
 }
 
 // what a punch became, in words (with a dot of the status colour, never colour alone)
-type OutcomeKey = "in" | "late" | "out" | "repeat" | "unknown" | "notOnRoll" | "dayOff" | "noYear" | "error";
+type OutcomeKey = "in" | "late" | "out" | "repeat" | "unknown" | "notOnRoll" | "dayOff" | "noYear" | "futureTime" | "error";
 const OUTCOMES: Record<string, { key: OutcomeKey; dot: string }> = {
   STUDENT_IN: { key: "in", dot: "bg-[#0ca30c]" },
   TEACHER_IN: { key: "in", dot: "bg-[#0ca30c]" },
@@ -309,6 +319,7 @@ const OUTCOMES: Record<string, { key: OutcomeKey; dot: string }> = {
   NOT_ON_ROLL: { key: "notOnRoll", dot: "bg-[#d03b3b]" },
   DAY_OFF: { key: "dayOff", dot: "bg-muted-foreground/30" },
   NO_YEAR: { key: "noYear", dot: "bg-[#d03b3b]" },
+  FUTURE_TIME: { key: "futureTime", dot: "bg-[#d03b3b]" },
   ERROR: { key: "error", dot: "bg-[#d03b3b]" },
 };
 
@@ -347,6 +358,7 @@ function DeviceForm({ device, onDone }: { device: AttendanceDevice | null; onDon
   const [serialNumber, setSerial] = useState(device?.serialNumber ?? "");
   const [name, setName] = useState(device?.name ?? "");
   const [location, setLocation] = useState(device?.location ?? "");
+  const [allowedIp, setAllowedIp] = useState(device?.allowedIp ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const saving = create.isPending || update.isPending;
 
@@ -358,7 +370,7 @@ function DeviceForm({ device, onDone }: { device: AttendanceDevice | null; onDon
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     try {
-      if (device) await update.mutateAsync({ deviceId: device.id, body: { name: name.trim(), location: location.trim() || null } });
+      if (device) await update.mutateAsync({ deviceId: device.id, body: { name: name.trim(), location: location.trim() || null, allowedIp: allowedIp.trim() || null } });
       else await create.mutateAsync({ serialNumber: serialNumber.trim(), name: name.trim(), location: location.trim() || null });
       toast.success(device ? t("saved") : t("added", { name: name.trim() }));
       onDone();
@@ -386,6 +398,24 @@ function DeviceForm({ device, onDone }: { device: AttendanceDevice | null; onDon
         <Label htmlFor="device-location">{t("location")}</Label>
         <Input id="device-location" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={100} placeholder={t("locationPlaceholder")} />
       </div>
+      {device && (
+        <div className="space-y-1.5">
+          <Label htmlFor="device-ip">{t("allowedIp")}</Label>
+          <div className="flex gap-2">
+            <Input id="device-ip" value={allowedIp} onChange={(e) => setAllowedIp(e.target.value)} maxLength={45} className="font-mono" placeholder={t("allowedIpPlaceholder")} />
+            {device.lastIp && allowedIp.trim() !== device.lastIp && (
+              <Button type="button" variant="outline" onClick={() => setAllowedIp(device.lastIp!)}>
+                {t("useLastIp")}
+              </Button>
+            )}
+          </div>
+          {errors.allowedIp ? (
+            <p className="text-xs text-destructive">{errors.allowedIp}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">{device.lastIp ? t("allowedIpHint", { ip: device.lastIp }) : t("allowedIpNeverSeen")}</p>
+          )}
+        </div>
+      )}
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={saving}>
           {t("cancel")}

@@ -11,6 +11,7 @@ import { useSectionRegister } from "@/lib/school/attendance";
 import { keyToDate, todayKey } from "@/lib/school/calendar";
 import { cn } from "@/lib/utils";
 import { SectionPicker, useSectionChoice, type SectionChoice } from "../SectionPicker";
+import { StudentAvatar } from "../students/StudentAvatar";
 import { formatPercent, STATUS_STYLES } from "./shared";
 
 /** A section's month: students down, days across, as in the paper register. */
@@ -58,7 +59,9 @@ export function MonthlyRegister({ choice, onChoice }: { choice: SectionChoice; o
           <table className="border-collapse text-xs">
             <thead>
               <tr className="bg-muted/50">
-                <th className="sticky left-0 z-10 min-w-48 border-b bg-muted p-2 text-left font-medium">{t("student")}</th>
+                {/* roll and student stay in view while the days scroll */}
+                <th className="sticky left-0 z-10 w-12 min-w-12 border-b bg-muted p-2 text-center font-medium">{t("roll")}</th>
+                <th className="sticky left-12 z-10 min-w-52 border-b border-l bg-muted p-2 text-left font-medium">{t("student")}</th>
                 {data.days.map((d) => {
                   const off = !d.day.isSchoolDay;
                   return (
@@ -81,9 +84,14 @@ export function MonthlyRegister({ choice, onChoice }: { choice: SectionChoice; o
             <tbody>
               {data.students.map((row) => (
                 <tr key={row.student.id} className="hover:bg-muted/30">
-                  <td className="sticky left-0 z-10 border-b bg-background p-2">
-                    <span className="mr-2 text-muted-foreground tabular-nums">{row.rollNumber ?? "—"}</span>
-                    <span className="font-medium">{name(row.student)}</span>
+                  <td className="sticky left-0 z-10 w-12 min-w-12 border-b bg-background p-2 text-center text-muted-foreground tabular-nums">
+                    {row.rollNumber ?? "—"}
+                  </td>
+                  <td className="sticky left-12 z-10 border-b border-l bg-background px-2 py-1.5">
+                    <div className="flex items-center gap-2">
+                      <StudentAvatar photo={row.student.photo} name={name(row.student)} className="size-7 text-[11px]" />
+                      <span className="font-medium">{name(row.student)}</span>
+                    </div>
                   </td>
                   {data.days.map((d) => {
                     const status = row.statuses[d.date];

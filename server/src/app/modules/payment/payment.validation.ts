@@ -43,6 +43,8 @@ const studentIdParams = z.object({ studentId: idSchema("Student id") });
 
 const payableQuery = z.object({
   academicYearId: z.string().trim().min(1).optional(),
+  // also this year's paid and waived fees (shown on the pay screen, not payable)
+  paidYearId: z.string().trim().min(1).optional(),
 });
 
 const listPaymentsQuery = z

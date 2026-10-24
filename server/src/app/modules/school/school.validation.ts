@@ -6,6 +6,12 @@ import { emailSchema } from "../../utils/identity";
 
 const schoolStatusValues = Object.values(SchoolStatus) as [string, ...string[]];
 
+// a web address: http(s) only (zod's url() also takes javascript:, data: and the like)
+const websiteSchema = z
+  .string()
+  .url()
+  .refine((v) => /^https?:\/\//i.test(v), "Enter a web address starting with http:// or https://");
+
 const RESERVED_SUBDOMAINS = new Set([
   "www", "admin", "api", "app", "mail", "static", "cdn", "dashboard", "support", "help", "docs", "status",
 ]);
@@ -24,7 +30,7 @@ export const createSchoolSchema = z.object({
     // shown on the public homepage (the email above is the super admin's login)
     publicEmail: emailSchema.optional(),
     phone: z.string().min(10).max(15).optional(),
-    website: z.string().url().optional(),
+    website: websiteSchema.optional(),
     address: z.string().optional(),
     language: z.enum(["EN", "BN"]).optional(),
     // monthly or yearly; activation records the first period in this plan
@@ -76,7 +82,7 @@ const updateSchoolSchema = z
     email: emailSchema.optional(),
     publicEmail: emailSchema.nullable().optional(),
     phone: z.string().trim().min(10).max(15).nullable().optional(),
-    website: z.string().url().nullable().optional(),
+    website: websiteSchema.nullable().optional(),
     address: z.string().trim().max(500).nullable().optional(),
     language: z.enum(["EN", "BN"]).optional(),
     // can change, not be cleared (payments already recorded keep their own plan)

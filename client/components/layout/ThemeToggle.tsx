@@ -14,7 +14,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className={cn(topBarIconButton, "[&_svg]:size-4")}
+      className={cn(topBarIconButton, "rounded-full [&_svg]:size-4")}
       onClick={() => setTheme(dark ? "light" : "dark")}
       aria-label={t(dark ? "lightMode" : "darkMode")}
     >

@@ -7,6 +7,7 @@ import {
   CalendarRange,
   ClipboardCheck,
   Clock,
+  CreditCard,
   FileText,
   GraduationCap,
   IdCard,
@@ -94,6 +95,8 @@ export const schoolMenu: MenuGroup[] = [
       { href: "/roles", label: "roles", icon: ShieldCheck, superAdminOnly: true },
       // the school's own look (its accent colour)
       { href: "/settings", label: "schoolSettings", icon: Settings, superAdminOnly: true },
+      // the school's plan and its payments to the platform
+      { href: "/subscription", label: "subscription", icon: CreditCard, superAdminOnly: true },
     ],
   },
 ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, MoreHorizontal, Plus } from "lucide-react";
+import { Ban, MoreHorizontal, Plus, Receipt } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -105,7 +105,7 @@ export function ExpensesTab() {
 
       {s && (
         <div className="grid gap-2 sm:grid-cols-[14rem_1fr]">
-          <Tile label={t("total")} value={money(s.totalExpense)} />
+          <Tile icon={Receipt} label={t("total")} value={money(s.totalExpense)} />
           {s.byCategory.length > 0 && (
             <div className="flex flex-wrap content-start gap-1.5 rounded-md border p-3 text-sm">
               {s.byCategory.map((c) => (

@@ -1,8 +1,10 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Scale } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { StatCard } from "@/components/data/StatCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLocalizedName } from "@/lib/i18n/names";
@@ -77,9 +79,9 @@ export function LedgerTab() {
 
       {s && (
         <div className="grid gap-2 sm:grid-cols-3">
-          <Tile label={t("totalIn")} value={money(s.totalIn)} />
-          <Tile label={t("totalOut")} value={money(s.totalOut)} />
-          <Tile label={t("net")} value={money(s.net)} />
+          <Tile icon={ArrowDownLeft} label={t("totalIn")} value={money(s.totalIn)} />
+          <Tile icon={ArrowUpRight} label={t("totalOut")} value={money(s.totalOut)} />
+          <Tile icon={Scale} label={t("net")} value={money(s.net)} />
         </div>
       )}
 
@@ -122,14 +124,7 @@ export function LedgerTab() {
   );
 }
 
-export function Tile({ label, value, sub, className }: { label: string; value: string; sub?: string; className?: string }) {
-  return (
-    <Card>
-      <CardContent className="py-3">
-        <div className="text-xs text-muted-foreground">{label}</div>
-        <div className={cn("text-xl font-semibold tabular-nums", className)}>{value}</div>
-        {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
-      </CardContent>
-    </Card>
-  );
+/** A total at the top of a finance page: the shared stat card (icon, label, amount, a line under it). */
+export function Tile({ icon, label, value, sub }: { icon: LucideIcon; label: string; value: string; sub?: string }) {
+  return <StatCard icon={icon} label={label} value={value} sub={sub} />;
 }

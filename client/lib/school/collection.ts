@@ -175,8 +175,8 @@ export const collectionApi = {
   studentFees: async (studentId: string, query: FeeListQuery) =>
     (await httpClient.get<ApiResponse<StudentFeeList>>(`/student-fee/student/${studentId}`, { params: query })).data.data,
   fees: async (query: FeeListQuery) => (await httpClient.get<ApiResponse<StudentFeeList>>("/student-fee", { params: query })).data.data,
-  payable: async (studentId: string) =>
-    (await httpClient.get<ApiResponse<PayableFees>>(`/payment/student/${studentId}/payable`)).data.data,
+  payable: async (studentId: string, paidYearId?: string) =>
+    (await httpClient.get<ApiResponse<PayableFees>>(`/payment/student/${studentId}/payable`, { params: paidYearId ? { paidYearId } : {} })).data.data,
 
   addCustomFee: async (body: CustomFeeBody) => (await httpClient.post<ApiResponse<StudentFee>>("/student-fee/custom", body)).data.data,
   removeCustomFee: async (studentFeeId: string) => {
@@ -213,8 +213,13 @@ export const useFeeList = (query: FeeListQuery | null) =>
     placeholderData: keepPreviousData,
   });
 
-export const usePayableFees = (studentId: string) =>
-  useQuery({ queryKey: [...financeKey, "payable", studentId], queryFn: () => collectionApi.payable(studentId) });
+// paidYearId: also that year's paid and waived fees (listed, not payable)
+export const usePayableFees = (studentId: string, paidYearId?: string) =>
+  useQuery({
+    queryKey: [...financeKey, "payable", studentId, paidYearId ?? null],
+    queryFn: () => collectionApi.payable(studentId, paidYearId),
+    placeholderData: keepPreviousData,
+  });
 
 export const usePayments = (query: PaymentListQuery) =>
   useQuery({

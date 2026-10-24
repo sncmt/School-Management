@@ -11,7 +11,7 @@ const getPayableFees = catchAsync(async (req: Request, res: Response) => {
   const result = await PaymentService.getPayableFees(
     req.auth!.schoolId!,
     req.params.studentId as string,
-    { academicYearId: req.query.academicYearId as string | undefined },
+    { academicYearId: req.query.academicYearId as string | undefined, paidYearId: req.query.paidYearId as string | undefined },
   );
 
   sendResponse(res, {

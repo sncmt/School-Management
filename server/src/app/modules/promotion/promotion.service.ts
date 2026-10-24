@@ -138,7 +138,7 @@ const promote = async (schoolId: string, data: PromotePayload) => {
 
     const enrollments = await tx.enrollment.findMany({
       where: { id: { in: data.students.map((s) => s.enrollmentId) }, academicYearId: from.id, classId: schoolClass.id, student: { schoolId } },
-      select: { id: true, status: true, studentId: true, sectionId: true, groupId: true },
+      select: { id: true, status: true, studentId: true, sectionId: true, groupId: true, student: { select: { nameEn: true, status: true } } },
     });
     if (enrollments.length !== data.students.length) {
       throw new AppError("One or more students are not in this class this year", httpStatus.BAD_REQUEST);
@@ -163,6 +163,17 @@ const promote = async (schoolId: string, data: PromotePayload) => {
 
     for (const choice of data.students) {
       const e = byId.get(choice.enrollmentId)!;
+
+      // left the school during the year (inactive, graduated): this year's enrollment is only
+      // closed. They are not moved on, get no fees or message, and keep the status they have.
+      if (e.student.status === "INACTIVE" || e.student.status === "GRADUATED") {
+        if (choice.action !== "LEAVE") {
+          throw new AppError(`${e.student.nameEn} has left the school. Mark them as back first, or choose Leave`, httpStatus.BAD_REQUEST);
+        }
+        await tx.enrollment.update({ where: { id: e.id }, data: { status: e.student.status === "GRADUATED" ? "GRADUATED" : "WITHDRAWN", leftAt } });
+        counts.left++;
+        continue;
+      }
 
       if (choice.action === "PROMOTE" || choice.action === "REPEAT") {
         const target = choice.action === "PROMOTE" ? nextClass : schoolClass;

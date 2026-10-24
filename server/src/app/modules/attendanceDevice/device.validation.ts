@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { z } from "zod";
 import { idSchema } from "../../shared/financeSchemas";
 
@@ -13,8 +14,17 @@ const name = z.string({ error: "Name is required!" }).trim().min(1, "Give the de
 const location = z.string().trim().max(100).nullable().optional();
 
 const createDevice = z.strictObject({ serialNumber, name, location });
+// the school's internet address (IPv4 or IPv6) the device must connect from; null: any
+const allowedIp = z
+  .string()
+  .trim()
+  .max(45)
+  .refine((v) => v === "" || isIP(v) !== 0, "Enter an internet address like 103.12.34.56")
+  .nullable()
+  .optional();
+
 const updateDevice = z
-  .strictObject({ name: name.optional(), location, isActive: z.boolean().optional() })
+  .strictObject({ name: name.optional(), location, isActive: z.boolean().optional(), allowedIp })
   .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" });
 
 const deviceParams = z.object({ deviceId: idSchema("Device id") });

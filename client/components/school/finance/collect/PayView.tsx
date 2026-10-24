@@ -7,12 +7,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { bangladeshDay } from "@/lib/dates";
 import { toAsciiDigits } from "@/lib/i18n/digits";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useClasses } from "@/lib/school/classes";
 import { usePayableFees, useRecordPayment, type PaymentMethod } from "@/lib/school/collection";
+import type { Enrollment } from "@/lib/school/students";
 import { useMoney } from "@/lib/school/finance";
 import { cn } from "@/lib/utils";
 import { FeeStatusBadge, ListState, useFeeLabel } from "../shared";
@@ -23,13 +25,15 @@ const parseAmount = (text: string) => {
   return /^\d+(\.\d{1,2})?$/.test(v) ? Number(v) : NaN;
 };
 
-/** Take a payment: tick the fees being paid (part of a fee is fine), then the method. */
-export function PayView({ studentId }: { studentId: string }) {
+/** Take a payment: tick the fees being paid (part of a fee is fine), then the method. A year's paid fees are listed too, greyed out. */
+export function PayView({ studentId, enrollments }: { studentId: string; enrollments: Enrollment[] }) {
   const t = useTranslations("school.finance.collect.pay");
   const describeError = useErrorMessage();
   const money = useMoney();
   const feeLabel = useFeeLabel();
-  const payable = usePayableFees(studentId);
+  // the year whose paid fees are shown (unpaid ones of every year always are)
+  const [yearId, setYearId] = useState(enrollments[0]?.academicYearId);
+  const payable = usePayableFees(studentId, yearId);
   // one-time fees of another year show which year they are from
   const currentYearId = useClasses().data?.academicYear?.id;
   const record = useRecordPayment();
@@ -42,6 +46,9 @@ export function PayView({ studentId }: { studentId: string }) {
   const [receiptId, setReceiptId] = useState<string | null>(null);
 
   const items = payable.data?.items ?? [];
+  // paid or waived: listed for reference, never ticked
+  const settled = (f: (typeof items)[number]) => f.remaining <= 0;
+  const owing = items.filter((f) => !settled(f));
   const selected = items.filter((f) => amounts[f.id] !== undefined);
   const invalid = selected.filter((f) => {
     const n = parseAmount(amounts[f.id]);
@@ -56,7 +63,7 @@ export function PayView({ studentId }: { studentId: string }) {
       else delete next[id];
       return next;
     });
-  const selectDue = () => setAmounts(Object.fromEntries(items.filter((f) => f.isDue).map((f) => [f.id, String(f.remaining)])));
+  const selectDue = () => setAmounts(Object.fromEntries(owing.filter((f) => f.isDue).map((f) => [f.id, String(f.remaining)])));
 
   const submit = () =>
     record.mutate(
@@ -88,7 +95,21 @@ export function PayView({ studentId }: { studentId: string }) {
     <div className="space-y-3">
       <ListState isPending={payable.isPending} error={payable.error} onRetry={() => payable.refetch()} empty={items.length === 0 ? t("nothingDue") : null}>
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <div className="flex gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            {enrollments.length > 1 && (
+              <Select value={yearId} onValueChange={setYearId}>
+                <SelectTrigger className="h-8 w-36" aria-label={t("paidYear")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {enrollments.map((e) => (
+                    <SelectItem key={e.academicYearId} value={e.academicYearId}>
+                      {e.academicYear.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <span>
               {t("dueNow")}: <span className="font-semibold tabular-nums">{money(payable.data?.summary.totalDue)}</span>
             </span>
@@ -96,11 +117,12 @@ export function PayView({ studentId }: { studentId: string }) {
               {t("allRemaining")}: <span className="tabular-nums">{money(payable.data?.summary.totalRemaining)}</span>
             </span>
           </div>
-          <Button variant="outline" size="sm" onClick={selectDue}>
+          <Button variant="outline" size="sm" onClick={selectDue} disabled={!owing.some((f) => f.isDue)}>
             <CheckCheck /> {t("selectDue")}
           </Button>
         </div>
 
+        {owing.length === 0 && <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">{t("nothingOwed")}</p>}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -118,12 +140,13 @@ export function PayView({ studentId }: { studentId: string }) {
                 const on = amounts[f.id] !== undefined;
                 const bad = on && invalid.includes(f);
                 return (
-                  <TableRow key={f.id} className={cn(!f.isDue && !on && "text-muted-foreground")}>
+                  <TableRow key={f.id} className={cn(((!f.isDue && !on) || settled(f)) && "text-muted-foreground", settled(f) && "bg-muted/30")}>
                     <TableCell>
                       <input
                         type="checkbox"
-                        className="size-4 cursor-pointer accent-primary"
+                        className={cn("size-4 accent-primary", settled(f) ? "cursor-not-allowed opacity-40" : "cursor-pointer")}
                         checked={on}
+                        disabled={settled(f)}
                         onChange={(e) => toggle(f.id, f.remaining, e.target.checked)}
                         aria-label={feeLabel(f, currentYearId)}
                       />
@@ -132,7 +155,7 @@ export function PayView({ studentId }: { studentId: string }) {
                       <div className="font-medium">{feeLabel(f, currentYearId)}</div>
                       <div className="flex items-center gap-1.5 text-xs">
                         <FeeStatusBadge status={f.status} />
-                        {!f.isDue && <span className="text-muted-foreground">{t("advance")}</span>}
+                        {!f.isDue && !settled(f) && <span className="text-muted-foreground">{t("advance")}</span>}
                         {Number(f.discountAmount) > 0 && (
                           <span className="text-muted-foreground">{t("discounted", { amount: money(f.discountAmount) })}</span>
                         )}

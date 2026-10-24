@@ -64,6 +64,8 @@ type Props = {
   menu: MenuGroup[];
   // the site's own buttons in the top bar, before the language menu (the school's messages)
   topBarItems?: ReactNode;
+  // a bar of the main pages along the bottom on a phone (it can open the menu: it sits inside it)
+  bottomNav?: ReactNode;
   children: ReactNode;
 };
 
@@ -79,7 +81,7 @@ const rowClass = (active: boolean) =>
   );
 
 /** Logged-in layout: the navy menu on the left; a white top bar and the page on a squared light-grey canvas. Used by the admin and school sites. */
-export function SidebarShell({ session, brand, menu, topBarItems, children }: Props) {
+export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, children }: Props) {
   const t = useTranslations("nav");
   const tGroups = useTranslations("navGroups");
   const tShell = useTranslations("shell");
@@ -102,7 +104,7 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
     <SidebarProvider style={{ "--sidebar-width": "14.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
       <Sidebar collapsible="icon" className="dark border-r-0">
         {/* the logo block on the same navy as the menu, as tall as the top bar; its text is white */}
-        <SidebarHeader className="h-[72px] flex-row items-center gap-0 px-5 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        <SidebarHeader className="h-[72px] flex-row items-center gap-0 border-b border-white/10 px-5 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link href={brand.home} className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:hidden">
             <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white text-sidebar shadow-sm">
               {brand.icon}
@@ -128,13 +130,13 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
 
       <SidebarInset className="canvas-grid min-w-0">
         <header className="no-print sticky top-0 z-20 flex h-[72px] shrink-0 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur lg:px-8">
-          {/* on a phone the menu is hidden: its button lives here */}
+          {/* on a phone the menu is hidden: its button lives here (the bottom bar's Menu opens it too) */}
           <MobileMenuButton />
           {/* the school's full name (the sidebar shows the short one) */}
           <p className="min-w-0 truncate text-[15px] font-bold tracking-tight text-foreground sm:text-base">{brand.title}</p>
           <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
-            {/* an icon below lg, the search box from lg */}
-            <div className="lg:w-72">
+            {/* none on a phone, an icon below lg, the search box from lg */}
+            <div className="hidden md:block lg:w-72">
               <PageSearch pages={pages} />
             </div>
             {topBarItems}
@@ -144,7 +146,8 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
             <AccountMenu session={session} />
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        {/* on a phone with the bottom bar, room under the page so the bar never covers it */}
+        <main className={cn("flex-1 p-4 md:p-6 lg:p-8", bottomNav && "pb-28 md:pb-6 lg:pb-8")}>
           <nav aria-label={tShell("home")} className="no-print mb-4 flex flex-wrap items-center gap-2 font-mono text-xs">
             <Link href={brand.home} className="text-muted-foreground hover:text-foreground">
               {tShell("home")}
@@ -167,6 +170,7 @@ export function SidebarShell({ session, brand, menu, topBarItems, children }: Pr
           {children}
         </main>
       </SidebarInset>
+      {bottomNav}
     </SidebarProvider>
   );
 }

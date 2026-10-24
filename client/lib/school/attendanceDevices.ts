@@ -16,6 +16,11 @@ export type AttendanceDevice = {
   firmware: string | null;
   lastSeenAt: string | null;
   lastIp: string | null;
+  // only requests from this address are taken (null: any)
+  allowedIp: string | null;
+  // the last request refused for coming from another address
+  lastRefusedIp: string | null;
+  lastRefusedAt: string | null;
   // heard from in the last two minutes
   online: boolean;
   punchesToday: number;
@@ -82,7 +87,7 @@ export const devicesApi = {
   rules: async () => (await httpClient.get<ApiResponse<DeviceRules>>("/attendance-device/rules")).data.data,
   saveRules: async (body: DeviceRules) => (await httpClient.put<ApiResponse<DeviceRules>>("/attendance-device/rules", body)).data.data,
   create: async (body: DeviceBody) => (await httpClient.post<ApiResponse<AttendanceDevice>>("/attendance-device", body)).data.data,
-  update: async ({ deviceId, body }: { deviceId: string; body: Partial<Omit<DeviceBody, "serialNumber">> & { isActive?: boolean } }) =>
+  update: async ({ deviceId, body }: { deviceId: string; body: Partial<Omit<DeviceBody, "serialNumber">> & { isActive?: boolean; allowedIp?: string | null } }) =>
     (await httpClient.patch<ApiResponse<AttendanceDevice>>(`/attendance-device/${deviceId}`, body)).data.data,
   remove: async (deviceId: string) => {
     await httpClient.delete(`/attendance-device/${deviceId}`);

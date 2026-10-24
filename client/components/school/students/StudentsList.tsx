@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Eye, MoreHorizontal, Pencil, Plus, Search, SlidersHorizontal, Users, X } from "lucide-react";
+import { Download, Eye, MoreHorizontal, Pencil, Plus, Search, Users, X } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -44,7 +44,7 @@ import { StudentStatusBadge } from "./StudentStatusBadge";
 
 const ALL = "ALL";
 const PAGE_SIZES = [20, 50, 100];
-const COLUMNS = ["student", "class", "father", "family", "status"] as const;
+const COLUMNS = ["photo", "student", "class", "roll", "father", "family", "status"] as const;
 const GENDERS = ["MALE", "FEMALE", "OTHER"] as const satisfies readonly Gender[];
 // the status tabs above the table, most used first
 const STATUS_TABS = ["ACTIVE", "SUSPENDED", "INACTIVE", "GRADUATED"] as const satisfies readonly StudentStatus[];
@@ -69,7 +69,7 @@ const isChanged = (filters: Filters) =>
 
 type Option = { value: string; label: string };
 
-/* One dropdown in the filter panel, and the chip it leaves when it is set. */
+/* One dropdown in the filter row. */
 type FilterField = {
   key: Exclude<keyof Filters, "status">;
   label: string;
@@ -98,11 +98,10 @@ export function StudentsList() {
   const [searchInput, setSearchInput] = useState("");
   const search = useDebouncedValue(searchInput.trim());
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-  const [panelOpen, setPanelOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(PAGE_SIZES[0]);
 
-  // one request: this page of students and, for the cards, how many each status has
+  // one request: this page of students and, for the status tabs, how many each status has
   const { data, isPending, isError, error, isFetching, refetch } = useStudents({
     page,
     limit,
@@ -112,7 +111,6 @@ export function StudentsList() {
   });
 
   const currentYear = years.data?.find((y) => y.isCurrent);
-  const shownYear = years.data?.find((y) => y.id === filters.academicYearId) ?? currentYear ?? classes.data?.academicYear;
   const sections =
     classes.data?.items.find((c) => c.id === filters.classId)?.sections.filter((s) => !s.isDefault) ?? [];
   const students = data?.items ?? [];
@@ -206,33 +204,22 @@ export function StudentsList() {
     },
   ];
 
-  // what is set, as chips under the toolbar (the status has its own tabs)
-  const chips = fields.flatMap((field) => {
-    const value = filters[field.key];
-    const option = value && field.options.find((o) => o.value === value);
-    return option ? [{ field, text: option.label }] : [];
-  });
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-            {data && (
-              <span className="rounded-full bg-navy px-2.5 py-0.5 text-sm font-bold text-navy-foreground tabular-nums">
-                {format.number(data.meta.total)}
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {shownYear ? t("descriptionYear", { year: shownYear.name }) : t("description")}
-          </p>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t("title")}</h1>
+          {data && (
+            <span className="rounded-full bg-navy-soft px-2 py-0.5 text-xs font-semibold text-navy tabular-nums">
+              {format.number(data.meta.total)}
+            </span>
+          )}
         </div>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <ExportButton query={{ search: search || undefined, ...filters }} />
           {can("student:create") && (
-            <Button asChild className="h-10 rounded-xl px-5 shadow-sm">
+            <Button asChild className="h-9 px-4 shadow-sm">
               <Link href="/students/new">
                 <Plus /> {t("add")}
               </Link>
@@ -241,30 +228,29 @@ export function StudentsList() {
         </div>
       </div>
 
-      <StatusCards
-        counts={data?.statusCounts}
-        selected={filters.status}
-        onSelect={(status) => setFilter({ status })}
-      />
-
-      <section className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+      <section className="overflow-hidden border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
         <Tabs
           value={filters.status ?? ALL}
           onValueChange={(v) => setFilter({ status: v === ALL ? undefined : (v as StudentStatus) })}
         >
-          <TabsList className="px-5 pt-5" aria-label={t("columns.status")}>
+          <TabsList className="px-4 pt-3" aria-label={t("columns.status")}>
             {STATUS_TABS.map((s) => (
               <TabsTrigger key={s} value={s}>
                 {tStatus(s)}
+                {data?.statusCounts && (
+                  <span className="ml-1.5 text-xs font-normal text-muted-foreground tabular-nums">
+                    {format.number(data.statusCounts[s])}
+                  </span>
+                )}
               </TabsTrigger>
             ))}
             <TabsTrigger value={ALL}>{t("filters.all")}</TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-wrap items-center gap-2 px-5 py-4 sm:gap-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-md">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+          <div className="relative w-full min-w-0 sm:w-60">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchInput}
               onChange={(e) => {
@@ -273,65 +259,25 @@ export function StudentsList() {
               }}
               placeholder={t("searchPlaceholder")}
               aria-label={tCommon("search")}
-              className="h-10 rounded-xl bg-muted/40 pl-10 shadow-none"
+              className="h-9 bg-muted/40 pl-9 shadow-none"
             />
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setPanelOpen((open) => !open)}
-            aria-expanded={panelOpen}
-            className={cn("h-10 rounded-xl px-4", panelOpen && "border-navy/30 bg-navy-soft text-navy hover:bg-navy-soft hover:text-navy")}
-          >
-            <SlidersHorizontal /> {t("filters.button")}
-            {chips.length > 0 && (
-              <span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-navy text-[11px] font-semibold text-navy-foreground tabular-nums">
-                {format.number(chips.length)}
-              </span>
-            )}
-          </Button>
+          {fields.map((field) => (
+            <FilterSelect key={field.key} field={field} />
+          ))}
           {canClear && (
-            <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground">
-              <X /> <span className="hidden sm:inline">{t("filters.clear")}</span>
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-muted-foreground">
+              <X /> {t("filters.clear")}
             </Button>
           )}
         </div>
-
-        {panelOpen && (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-4 border-t bg-muted/30 px-5 py-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-            {fields.map((field) => (
-              <FilterSelect key={field.key} field={field} />
-            ))}
-          </div>
-        )}
-
-        {!panelOpen && chips.length > 0 && (
-          <div className="flex flex-wrap gap-2 px-5 pb-4">
-            {chips.map(({ field, text }) => (
-              <span
-                key={field.key}
-                className="inline-flex h-7 items-center gap-1 rounded-full bg-navy-soft pr-1 pl-3 text-xs text-navy ring-1 ring-navy/10 ring-inset"
-              >
-                <span className="text-navy/70">{field.label}:</span>
-                <span className="font-medium">{text}</span>
-                <button
-                  type="button"
-                  onClick={() => field.onChange(undefined)}
-                  aria-label={t("filters.remove", { name: field.label })}
-                  className="ml-0.5 flex size-5 items-center justify-center rounded-full hover:bg-navy/10"
-                >
-                  <X className="size-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
 
         <div className={cn("border-t transition-opacity", isFetching && !isPending && "opacity-60")}>
           <Table>
             <TableHeader>
               <TableRow>
                 {COLUMNS.map((column) => (
-                  <TableHead key={column} className={HEAD}>
+                  <TableHead key={column} className={cn(HEAD, column === "photo" && "w-16", column === "roll" && "w-20")}>
                     {t(`columns.${column}`)}
                   </TableHead>
                 ))}
@@ -398,29 +344,30 @@ export function StudentsList() {
 const HEAD = "first:pl-5 last:pr-5";
 const CELL = "py-3 first:pl-5 last:pr-5";
 
-/** A labelled dropdown in the filter panel; its "all" choice (if any) clears it. */
+/** A compact dropdown in the filter row; its "all" choice (if any) clears it, and it is tinted while set. */
 function FilterSelect({ field }: { field: FilterField }) {
   const { label, value, allLabel, options, onChange } = field;
-  const id = `student-filter-${field.key}`;
+  const active = !!allLabel && value !== undefined;
   return (
-    <div className="min-w-0 space-y-1.5">
-      <label htmlFor={id} className="text-xs font-medium text-muted-foreground">
-        {label}
-      </label>
-      <Select value={value ?? (allLabel ? ALL : "")} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
-        <SelectTrigger id={id} className="w-full bg-card">
-          <SelectValue placeholder={label} />
-        </SelectTrigger>
-        <SelectContent>
-          {allLabel && <SelectItem value={ALL}>{allLabel}</SelectItem>}
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select value={value ?? (allLabel ? ALL : "")} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
+      <SelectTrigger
+        aria-label={label}
+        className={cn(
+          "h-9 max-w-44 min-w-0 flex-1 bg-card shadow-none sm:flex-none",
+          active && "border-navy/30 bg-navy-soft text-navy [&_svg:not([class*='text-'])]:text-navy",
+        )}
+      >
+        <SelectValue placeholder={label} />
+      </SelectTrigger>
+      <SelectContent>
+        {allLabel && <SelectItem value={ALL}>{allLabel}</SelectItem>}
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -428,15 +375,15 @@ function SkeletonRow() {
   return (
     <TableRow className="hover:bg-transparent">
       <TableCell className={CELL}>
-        <div className="flex items-center gap-3">
-          <Skeleton className="size-9 rounded-full" />
-          <div className="space-y-1.5">
-            <Skeleton className="h-3.5 w-36" />
-            <Skeleton className="h-3 w-20" />
-          </div>
+        <Skeleton className="size-10 rounded-full" />
+      </TableCell>
+      <TableCell className={CELL}>
+        <div className="space-y-1.5">
+          <Skeleton className="h-3.5 w-36" />
+          <Skeleton className="h-3 w-20" />
         </div>
       </TableCell>
-      {Array.from({ length: COLUMNS.length }, (_, j) => (
+      {Array.from({ length: COLUMNS.length - 1 }, (_, j) => (
         <TableCell key={j} className={CELL}>
           <Skeleton className="h-3.5 w-full max-w-28" />
         </TableCell>
@@ -462,12 +409,11 @@ function StudentRow({ student, canUpdate }: { student: StudentListItem; canUpdat
   const name = useLocalizedName();
   const href = `/students/${student.id}`;
   const enrollment = student.enrollment;
-  // under the class: section, group and roll
+  // under the class: section and group (the roll has its own column)
   const details = enrollment
     ? [
         !enrollment.section.isDefault && enrollment.section.name,
         enrollment.group && name(enrollment.group),
-        enrollment.rollNumber && t("roll", { roll: enrollment.rollNumber }),
         enrollment.status !== "ACTIVE" && enrollment.academicYear.name,
       ].filter(Boolean)
     : [];
@@ -475,15 +421,15 @@ function StudentRow({ student, canUpdate }: { student: StudentListItem; canUpdat
   return (
     <TableRow className="group/row">
       <TableCell className={CELL}>
-        <div className="flex items-center gap-3">
-          <StudentAvatar photo={student.photo} name={name(student)} />
-          <div className="min-w-0">
-            <Link href={href} className="font-medium hover:text-navy hover:underline">
-              {name(student)}
-            </Link>
-            <div className="text-xs text-muted-foreground tabular-nums">{t("admissionNoShort", { no: student.admissionNo })}</div>
-          </div>
-        </div>
+        <Link href={href} tabIndex={-1} aria-hidden>
+          <StudentAvatar photo={student.photo} name={name(student)} className="size-10" />
+        </Link>
+      </TableCell>
+      <TableCell className={CELL}>
+        <Link href={href} className="font-medium hover:text-navy hover:underline">
+          {name(student)}
+        </Link>
+        <div className="text-xs text-muted-foreground tabular-nums">{t("admissionNoShort", { no: student.admissionNo })}</div>
       </TableCell>
       <TableCell className={CELL}>
         {enrollment ? (
@@ -494,6 +440,9 @@ function StudentRow({ student, canUpdate }: { student: StudentListItem; canUpdat
         ) : (
           <span className="text-muted-foreground">—</span>
         )}
+      </TableCell>
+      <TableCell className={cn(CELL, "font-medium tabular-nums")}>
+        {enrollment?.rollNumber ?? <span className="text-muted-foreground">—</span>}
       </TableCell>
       <TableCell className={CELL}>{student.fatherName}</TableCell>
       <TableCell className={cn(CELL, "tabular-nums")}>
@@ -531,54 +480,6 @@ function StudentRow({ student, canUpdate }: { student: StudentListItem; canUpdat
         </DropdownMenu>
       </TableCell>
     </TableRow>
-  );
-}
-
-// the dot beside each status count
-const STATUS_DOTS: Record<StudentStatus, string> = {
-  ACTIVE: "bg-emerald-500",
-  SUSPENDED: "bg-amber-500",
-  INACTIVE: "bg-slate-400",
-  GRADUATED: "bg-cyan-500",
-};
-
-/** A card per status with its count under the other filters (from the list's own reply); a click shows that status. */
-function StatusCards({
-  counts,
-  selected,
-  onSelect,
-}: {
-  counts: Record<StudentStatus, number> | undefined;
-  selected: StudentStatus | undefined;
-  onSelect: (status: StudentStatus) => void;
-}) {
-  const tStatus = useTranslations("studentStatuses");
-  const format = useFormatter();
-  return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-      {STATUS_TABS.map((status) => (
-        <button
-          key={status}
-          type="button"
-          onClick={() => onSelect(status)}
-          aria-pressed={selected === status}
-          className={cn(
-            "rounded-xl border bg-card px-4 py-3.5 text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-colors hover:border-navy/25 sm:px-5 sm:py-4",
-            selected === status && "border-navy/30 ring-1 ring-navy/20",
-          )}
-        >
-          <span className="block truncate text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">{tStatus(status)}</span>
-          <span className="mt-1.5 flex items-center gap-2">
-            {counts === undefined ? (
-              <Skeleton className="h-7 w-10" />
-            ) : (
-              <span className="text-2xl font-bold tabular-nums">{format.number(counts[status])}</span>
-            )}
-            <span className={cn("size-2 rounded-full", STATUS_DOTS[status])} />
-          </span>
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -631,7 +532,7 @@ function ExportButton({ query }: { query: StudentFilterQuery }) {
   };
 
   return (
-    <Button variant="outline" onClick={run} disabled={busy} className="h-10 rounded-xl px-5 shadow-sm">
+    <Button variant="outline" onClick={run} disabled={busy} className="h-9 px-4 shadow-sm">
       <Download /> {busy ? t("exporting") : t("export")}
     </Button>
   );

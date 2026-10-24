@@ -27,6 +27,13 @@ model AttendanceDevice {
   // the same for the people / fingerprints it sends us
   operlogStamp String?
 
+  // when set, only requests from this internet address are taken (the protocol has no
+  // password: a device is known by its serial number alone)
+  allowedIp      String?
+  // the last request refused for coming from another address (the school's address changed?)
+  lastRefusedIp  String?
+  lastRefusedAt  DateTime?
+
   punches  DevicePunch[]
   commands DeviceCommand[]
 

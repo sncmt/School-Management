@@ -64,6 +64,8 @@ const updateDevice = async (schoolId: string, deviceId: string, data: UpdateDevi
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.location !== undefined ? { location: data.location || null } : {}),
       ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      // null: from any address
+      ...(data.allowedIp !== undefined ? { allowedIp: data.allowedIp || null } : {}),
     },
   });
 };

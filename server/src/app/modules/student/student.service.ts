@@ -21,7 +21,7 @@ import { DEFAULT_SECTION_NAME } from "../class/class.service";
 import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { processImage } from "../../shared/imageUpload";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
-import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
+import { dayKey, endOfBangladeshDay, todayInBangladesh } from "../../shared/scheduleSchemas";
 import {
   type AccountResult,
   findOrCreateAccount,
@@ -378,6 +378,39 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
 const hasLeft = (status: StudentStatus) => status === "INACTIVE" || status === "GRADUATED";
 
 /*
+ * The enrollments follow the student: leaving (inactive, graduated) closes the open ones on
+ * today's date, so the student stays on the roll of the days they were there and is off it
+ * (roll call, devices, promotion) from tomorrow. Coming back reopens the ones of this year
+ * and later that were closed; a roll number taken meanwhile is left empty.
+ */
+const followStatus = async (tx: Db, before: { id: string; status: StudentStatus }, status: StudentStatus | undefined) => {
+  if (!status || hasLeft(status) === hasLeft(before.status)) return;
+  const today = todayInBangladesh();
+
+  if (hasLeft(status)) {
+    await tx.enrollment.updateMany({
+      where: { studentId: before.id, status: "ACTIVE" },
+      data: { status: status === "GRADUATED" ? "GRADUATED" : "WITHDRAWN", leftAt: endOfBangladeshDay(today) },
+    });
+    return;
+  }
+
+  const closed = await tx.enrollment.findMany({
+    where: { studentId: before.id, status: { in: ["WITHDRAWN", "GRADUATED"] }, academicYear: { endDate: { gte: today } } },
+    select: { id: true, academicYearId: true, sectionId: true, rollNumber: true },
+  });
+  for (const e of closed) {
+    const rollTaken =
+      !!e.rollNumber &&
+      !!(await tx.enrollment.findFirst({
+        where: { academicYearId: e.academicYearId, sectionId: e.sectionId, rollNumber: e.rollNumber, status: "ACTIVE", id: { not: e.id } },
+        select: { id: true },
+      }));
+    await tx.enrollment.update({ where: { id: e.id }, data: { status: "ACTIVE", leftAt: null, ...(rollTaken ? { rollNumber: null } : {}) } });
+  }
+};
+
+/*
  * After an update, the student's fees for the current year:
  * - left (inactive, graduated): unpaid monthly fees after this month are removed
  * - came back: monthly fees from this month on are assigned again
@@ -498,7 +531,8 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
         await deprovisionIfOrphaned(tx, schoolId, student.userId);
       }
 
-      // the fees follow the student: leaving, coming back, a moved admission date
+      // the enrollments, then the fees, follow the student: leaving, coming back, a moved admission date
+      await followStatus(tx, student, rest.status);
       await alignFees(tx, schoolId, student, { status: rest.status, admissionDate });
 
       const saved = await tx.student.findUniqueOrThrow({

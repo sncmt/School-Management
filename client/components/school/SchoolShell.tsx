@@ -7,11 +7,13 @@ import { useSchoolMe } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { MessagesMenu } from "./messages/MessagesMenu";
 import { schoolMenu } from "./navigation";
+import { SchoolBottomNav, useBottomNavHasMessages } from "./SchoolBottomNav";
 
 /** School layout: the school's name and logo, its modules in the sidebar. */
 export function SchoolShell({ children }: { children: ReactNode }) {
   const me = useSchoolMe();
   const name = useLocalizedName();
+  const bottomHasMessages = useBottomNavHasMessages();
 
   const icon = me?.school.logo ? (
     // eslint-disable-next-line @next/next/no-img-element -- school logos can be on any host
@@ -33,7 +35,14 @@ export function SchoolShell({ children }: { children: ReactNode }) {
         home: "/dashboard",
       }}
       menu={schoolMenu}
-      topBarItems={<MessagesMenu />}
+      // on a phone, families and teachers find Messages in the bottom bar instead
+      topBarItems={
+        <div className={bottomHasMessages ? "hidden md:block" : undefined}>
+          <MessagesMenu />
+        </div>
+      }
+      // a phone's bottom bar of the main pages
+      bottomNav={<SchoolBottomNav />}
     >
       {children}
     </SidebarShell>

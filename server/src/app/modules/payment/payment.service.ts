@@ -76,12 +76,13 @@ const getPaymentDetail = async (db: Db, schoolId: string, paymentId: string) => 
 
 /*
  * Everything a student still owes, oldest first, so the cashier can tick what
- * is being paid today. One-time fees (admission, fines...) come first.
+ * is being paid today. One-time fees (admission, fines...) come first. With
+ * paidYearId, that year's paid and waived fees are listed too (nothing left to pay on them).
  */
 const getPayableFees = async (
   schoolId: string,
   studentId: string,
-  opts: { academicYearId?: string },
+  opts: { academicYearId?: string; paidYearId?: string },
 ) => {
   const student = await prisma.student.findFirst({
     where: { id: studentId, schoolId },
@@ -93,8 +94,10 @@ const getPayableFees = async (
     where: {
       schoolId,
       studentId,
-      status: { in: ["UNPAID", "PARTIAL"] },
-      ...(opts.academicYearId ? { academicYearId: opts.academicYearId } : {}),
+      OR: [
+        { status: { in: ["UNPAID", "PARTIAL"] }, ...(opts.academicYearId ? { academicYearId: opts.academicYearId } : {}) },
+        ...(opts.paidYearId ? [{ status: { in: ["PAID" as const, "WAIVED" as const] }, academicYearId: opts.paidYearId }] : []),
+      ],
     },
     orderBy: [
       { year: { sort: "asc", nulls: "first" } },

@@ -178,14 +178,19 @@ const getRemarks = async (auth: Auth, query: RemarksQuery) => {
   const examClass = await findExamClass(schoolId, query.examId, query.classId);
   const section = await findSection(schoolId, query.classId, query.sectionId);
 
-  const [{ students }, remarks, results, canEdit] = await Promise.all([
+  // the class teacher and marks staff (who may also write them), or staff who see results
+  const canEdit = await canWriteRemarks(auth, section.id, examClass.exam.academicYear.id);
+  if (!canEdit && (await checkPermission(auth, "exam:view_result")) !== "OK") {
+    throw new AppError("You can't see this section's remarks", httpStatus.FORBIDDEN);
+  }
+
+  const [{ students }, remarks, results] = await Promise.all([
     loadExamStudents(prisma, examClass.id, { sectionId: section.id }),
     prisma.examRemark.findMany({ where: { examClassId: examClass.id }, select: { enrollmentId: true, remark: true } }),
     prisma.examResult.findMany({
       where: { examClassId: examClass.id, sectionId: section.id },
       select: { enrollmentId: true, gpa: true, grade: true, passed: true, totalMarks: true, sectionPosition: true },
     }),
-    canWriteRemarks(auth, section.id, examClass.exam.academicYear.id),
   ]);
   const remarkOf = new Map(remarks.map((r) => [r.enrollmentId, r.remark]));
   const resultOf = new Map(results.map((r) => [r.enrollmentId, r]));

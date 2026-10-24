@@ -1,7 +1,8 @@
 "use client";
 
-import { ClipboardCheck, Eye } from "lucide-react";
+import { ClipboardCheck, Eye, UserCheck, UserX } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+import { StatCard } from "@/components/data/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,27 +61,28 @@ export function TodaySummary({
       ) : (
         <div className={cn("space-y-4 transition-opacity", isFetching && "opacity-60")}>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Stat
-              title={t("present")}
+            <StatCard
+              icon={UserCheck}
+              label={t("present")}
               value={data.students.percentage !== null ? formatPercent(format, data.students.percentage) : "—"}
-              hint={t("presentOf", {
+              sub={t("presentOf", {
                 present: format.number(data.students.PRESENT + data.students.LATE),
                 total: format.number(data.students.onRoll),
               })}
             />
-            <Stat
-              title={t("absent")}
+            <StatCard
+              icon={UserX}
+              label={t("absent")}
               value={format.number(data.students.ABSENT)}
-              hint={t("lateLeave", { late: format.number(data.students.LATE), leave: format.number(data.students.LEAVE) })}
-              alert={data.students.ABSENT > 0}
+              sub={t("lateLeave", { late: format.number(data.students.LATE), leave: format.number(data.students.LEAVE) })}
+              tone={data.students.ABSENT > 0 ? "warn" : "default"}
             />
-            <Stat
-              title={t("rollCalls")}
+            <StatCard
+              icon={ClipboardCheck}
+              label={t("rollCalls")}
               value={`${format.number(data.students.sectionsTaken)} / ${format.number(data.students.sectionsTaken + data.students.sectionsPending)}`}
-              hint={
-                data.students.sectionsPending > 0 ? t("pending", { count: data.students.sectionsPending }) : t("allTaken")
-              }
-              alert={data.students.sectionsPending > 0}
+              sub={data.students.sectionsPending > 0 ? t("pending", { count: data.students.sectionsPending }) : t("allTaken")}
+              tone={data.students.sectionsPending > 0 ? "warn" : "default"}
             />
           </div>
 
@@ -159,14 +161,3 @@ export function TodaySummary({
   );
 }
 
-function Stat({ title, value, hint, alert }: { title: string; value: string; hint: string; alert?: boolean }) {
-  return (
-    <Card>
-      <CardContent className="space-y-1 pt-6">
-        <div className="text-sm text-muted-foreground">{title}</div>
-        <div className={cn("text-3xl font-semibold tabular-nums", alert && "text-amber-600")}>{value}</div>
-        <div className="text-xs text-muted-foreground">{hint}</div>
-      </CardContent>
-    </Card>
-  );
-}

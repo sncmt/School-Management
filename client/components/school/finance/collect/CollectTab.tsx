@@ -98,7 +98,7 @@ function StudentPanel({ studentId, onChange }: { studentId: string; onChange: ()
           ))}
         </TabsList>
         <TabsContent value="pay">
-          <PayView studentId={studentId} />
+          <PayView studentId={studentId} enrollments={s.enrollments} />
         </TabsContent>
         <TabsContent value="fees">
           <StudentFeesView studentId={studentId} enrollments={s.enrollments} />

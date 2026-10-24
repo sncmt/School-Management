@@ -37,6 +37,13 @@ router.use(async (req, res, next) => {
 
 const reply = (res: Response, body: string, status = 200) => res.status(status).type("text/plain").send(body);
 
+/*
+ * The address the request came from. Behind the site's proxy (as deployed) Express takes it
+ * from X-Forwarded-For as the proxy wrote it; IPv4 written as IPv6 ("::ffff:1.2.3.4") is
+ * read as plain IPv4.
+ */
+export const clientIp = (req: Request) => (req.ip ?? "").replace(/^::ffff:/, "");
+
 const serialOf = (req: Request) => String(req.query.SN ?? req.query.sn ?? "").trim();
 
 /* The registered, active device for this request, noting that it was seen; null when refused. */
@@ -45,9 +52,14 @@ const deviceOf = async (req: Request) => {
   if (!serialNumber || serialNumber.length > 64) return null;
   const device = await prisma.attendanceDevice.findUnique({
     where: { serialNumber },
-    select: { id: true, schoolId: true, isActive: true, attlogStamp: true, operlogStamp: true, school: { select: { status: true } } },
+    select: { id: true, schoolId: true, isActive: true, allowedIp: true, attlogStamp: true, operlogStamp: true, school: { select: { status: true } } },
   });
   if (!device || !device.isActive || device.school.status !== "ACTIVE") return null;
+  // locked to the school's internet address: anything else is refused (and noted for the school)
+  if (device.allowedIp && device.allowedIp !== clientIp(req)) {
+    await prisma.attendanceDevice.update({ where: { id: device.id }, data: { lastRefusedIp: clientIp(req), lastRefusedAt: new Date() } });
+    return null;
+  }
 
   // INFO=firmware,users,fingers,punches,ip,… (sent with getrequest by most firmwares)
   const info = typeof req.query.INFO === "string" ? req.query.INFO.split(",") : null;
@@ -55,7 +67,7 @@ const deviceOf = async (req: Request) => {
     where: { id: device.id },
     data: {
       lastSeenAt: new Date(),
-      lastIp: req.ip ?? null,
+      lastIp: clientIp(req) || null,
       ...(info?.[0] ? { firmware: info[0].trim().slice(0, 60) } : {}),
       ...(typeof req.query.DeviceType === "string" ? { model: req.query.DeviceType.slice(0, 60) } : {}),
     },

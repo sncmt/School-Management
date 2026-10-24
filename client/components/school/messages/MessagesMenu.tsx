@@ -42,7 +42,7 @@ export function MessagesMenu() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className={cn(topBarIconButton, "relative")}
+          className={cn(topBarIconButton, "relative rounded-full")}
           aria-label={unread > 0 ? `${t("title")} (${t("unreadCount", { count: unread })})` : t("title")}
         >
           <MessageSquareText className="size-4.5" />

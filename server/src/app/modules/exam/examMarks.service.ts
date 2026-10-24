@@ -132,10 +132,16 @@ const checkMark = (subject: SubjectMarks, m: MarkEntry, who: string) => {
 
 type MarkRow = ReturnType<typeof checkMark> & { examSubjectId: string; enrollmentId: string; studentId: string };
 
-/* Saves checked marks, all or nothing. Saving again replaces a mark. */
-const writeMarks = async (userId: string, rows: MarkRow[]) => {
+/*
+ * Saves checked marks, all or nothing. Saving again replaces a mark. The exam class is held
+ * (shared) meanwhile: a result being published waits for the save, and a save that waited
+ * for a publish sees the result published and is refused.
+ */
+const writeMarks = async (userId: string, examClassId: string, rows: MarkRow[]) => {
   await prisma.$transaction(
     async (tx) => {
+      const [held] = await tx.$queryRaw<{ status: string }[]>`SELECT "status" FROM "ExamClass" WHERE "id" = ${examClassId} FOR SHARE`;
+      if (held?.status === "PUBLISHED") throw new AppError("The result is published and marks are locked", httpStatus.CONFLICT);
       for (const row of rows) {
         const values = {
           isAbsent: row.isAbsent,
@@ -270,6 +276,7 @@ const saveSheet = async (auth: Auth, data: SaveSheetPayload) => {
 
   await writeMarks(
     auth.userId,
+    ctx.examSubject.examClass.id,
     data.marks.map((m) => {
       const student = studentOf.get(m.enrollmentId)!;
       return {
@@ -378,7 +385,7 @@ const saveGrid = async (auth: Auth, data: SaveGridPayload) => {
     };
   });
 
-  await writeMarks(auth.userId, rows);
+  await writeMarks(auth.userId, examClass.id, rows);
   return getGrid(schoolId, { examId: data.examId, classId: data.classId, sectionId: data.sectionId });
 };
 
@@ -452,7 +459,7 @@ const saveStudentMarks = async (auth: Auth, data: SaveStudentPayload) => {
     };
   });
 
-  await writeMarks(auth.userId, rows);
+  await writeMarks(auth.userId, examClass.id, rows);
   return getStudentMarks(schoolId, { examId: data.examId, enrollmentId: data.enrollmentId });
 };
 

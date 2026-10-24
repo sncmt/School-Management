@@ -94,7 +94,7 @@ export function FeesChart({ months }: { months: Month[] }) {
                   {SERIES.map((s) => (
                     <div
                       key={s.key}
-                      className={cn("relative w-[18px] rounded-t-[4px] transition-opacity", s.swatch, hover !== null && hover !== i && "opacity-40")}
+                      className={cn("relative w-[18px] rounded-t-[3px] transition-opacity", s.swatch, hover !== null && hover !== i && "opacity-40")}
                       style={{ height: `${(r.values[s.key] / max) * 100}%` }}
                     />
                   ))}
