@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import httpStatus from "http-status";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
+import { authConfig } from "../../config/auth.config";
 import { AppError } from "../../errorHandler/AppError";
 import { DomainUtils } from "../../utils/domain";
 import {
@@ -29,6 +30,36 @@ const getSchoolSubdomain = (req: Request) => {
 };
 
 /*
+ * The mobile app (header "X-Client: mobile") has no cookies: its school session's tokens
+ * travel in the request and response bodies instead. School sessions only.
+ */
+const isMobileSession = (req: Request, type: SessionType) =>
+  type === "SCHOOL" && req.get("x-client")?.toLowerCase() === "mobile";
+
+/*
+ * The app's refresh token, from the body only. Never fall back to the cookie: a script on
+ * the website could then add the header and read the browser's httpOnly token in the reply.
+ */
+const bodyRefreshToken = (req: Request) => {
+  const token: unknown = req.body?.refreshToken;
+  return typeof token === "string" && token.length > 0 && token.length <= 256 ? token : undefined;
+};
+
+/* A new session to the client: cookies for the browser, or the tokens to put in the body. */
+const deliverSession = (req: Request, res: Response, type: SessionType, result: SessionResult) => {
+  if (!isMobileSession(req, type)) {
+    setAuthCookies(res, type, result);
+    return null;
+  }
+  return {
+    accessToken: result.accessToken,
+    accessExpiresIn: authConfig.accessTtlSeconds,
+    refreshToken: result.refreshToken,
+    refreshExpiresAt: result.refreshExpiresAt,
+  };
+};
+
+/*
  * Shared by both refresh endpoints. A failed refresh clears the cookies so the
  * client can't loop. The exception is RefreshRetryError (another tab just
  * refreshed): the cookies in the browser are now the winner's, so clearing
@@ -37,13 +68,14 @@ const getSchoolSubdomain = (req: Request) => {
 const refreshHandler = <T extends SessionResult>(
   type: SessionType,
   run: (rawToken: string, req: Request) => Promise<T>,
-  pick: (result: T) => unknown,
+  pick: (result: T) => object,
 ) =>
   catchAsync(async (req: Request, res: Response) => {
-    const rawToken = req.cookies?.[cookieNames[type].refresh] as string | undefined;
+    const mobile = isMobileSession(req, type);
+    const rawToken = mobile ? bodyRefreshToken(req) : (req.cookies?.[cookieNames[type].refresh] as string | undefined);
 
     if (!rawToken) {
-      clearAuthCookies(res, type);
+      if (!mobile) clearAuthCookies(res, type);
       throw new AppError("Refresh token is required!", httpStatus.UNAUTHORIZED);
     }
 
@@ -51,17 +83,17 @@ const refreshHandler = <T extends SessionResult>(
     try {
       result = await run(rawToken, req);
     } catch (error) {
-      if (!(error instanceof RefreshRetryError)) clearAuthCookies(res, type);
+      if (!mobile && !(error instanceof RefreshRetryError)) clearAuthCookies(res, type);
       throw error;
     }
 
-    setAuthCookies(res, type, result);
+    const tokens = deliverSession(req, res, type, result);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Token refreshed successfully!",
-      data: pick(result),
+      data: { ...pick(result), ...(tokens && { tokens }) },
     });
   });
 
@@ -84,13 +116,13 @@ const schoolLogin = catchAsync(async (req: Request, res: Response) => {
     { ...req.body, subdomain: getSchoolSubdomain(req) },
     getClientMeta(req),
   );
-  setAuthCookies(res, "SCHOOL", result);
+  const tokens = deliverSession(req, res, "SCHOOL", result);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Login successful!",
-    data: { user: result.user, school: result.school, roles: result.roles },
+    data: { user: result.user, school: result.school, roles: result.roles, ...(tokens && { tokens }) },
   });
 });
 
@@ -109,8 +141,9 @@ const refreshSchoolAccessToken = refreshHandler(
 
 const logoutHandler = (type: SessionType) =>
   catchAsync(async (req: Request, res: Response) => {
-    await AuthService.logout(req.cookies?.[cookieNames[type].refresh]);
-    clearAuthCookies(res, type);
+    const mobile = isMobileSession(req, type);
+    await AuthService.logout(mobile ? bodyRefreshToken(req) : req.cookies?.[cookieNames[type].refresh]);
+    if (!mobile) clearAuthCookies(res, type);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -150,13 +183,14 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
 
 const changePassword = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.changePassword(req.auth!, req.body, getClientMeta(req));
-  setAuthCookies(res, req.auth!.sessionType, result);
+  // every other session has ended; this device carries on with a fresh one
+  const tokens = deliverSession(req, res, req.auth!.sessionType, result);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Password changed successfully!",
-    data: null,
+    data: tokens && { tokens },
   });
 });
 

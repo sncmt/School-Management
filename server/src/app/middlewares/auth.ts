@@ -17,6 +17,9 @@ type AuthenticateOptions = {
 
 const SCHOOL_ID_HEADER = "x-school-id";
 
+/* "Authorization: Bearer <token>": the mobile app's school session (it has no cookies). */
+const getBearerToken = (req: Request) => /^Bearer\s+(\S+)$/i.exec(req.get("authorization") ?? "")?.[1];
+
 const loadUser = (id: string) =>
   prisma.user.findUnique({
     where: { id },
@@ -66,8 +69,11 @@ const authenticate = (sessionType?: AuthSession, options: AuthenticateOptions = 
   return async (req: Request, _res: Response, next: NextFunction) => {
    
     try {
-      const platformToken = req.cookies?.[cookieNames.PLATFORM.access] as string | undefined;
-      const schoolToken = req.cookies?.[cookieNames.SCHOOL.access] as string | undefined;
+      // a request with a Bearer token is judged by it alone: always a school session,
+      // never mixed with cookies (and so never a platform admin inside a school)
+      const bearerToken = getBearerToken(req);
+      const platformToken = bearerToken ? undefined : (req.cookies?.[cookieNames.PLATFORM.access] as string | undefined);
+      const schoolToken = bearerToken ?? (req.cookies?.[cookieNames.SCHOOL.access] as string | undefined);
       const headerSchoolId = req.get(SCHOOL_ID_HEADER)?.trim();
 
       let mode: "PLATFORM" | "SCHOOL" | "TENANT_ADMIN" | undefined;

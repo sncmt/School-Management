@@ -65,6 +65,9 @@ const revokeFamily = (familyId: string) =>
     data: { revokedAt: new Date() },
   });
 
+const hasLiveToken = async (familyId: string) =>
+  (await prisma.refreshToken.findFirst({ where: { familyId, revokedAt: null }, select: { id: true } })) !== null;
+
 /*
  * Step 1 of a refresh: find and validate the token. Changes nothing except
  * revoking the family when a stale token is replayed (theft signal).
@@ -80,7 +83,10 @@ const inspect = async (
   if (!stored) throw unauthorized("Invalid refresh token!");
 
   if (stored.revokedAt) {
-    if (now.getTime() - stored.revokedAt.getTime() <= authConfig.refreshReuseGraceMs) {
+    // just rotated by a parallel request: a race, as long as the session lives on in the
+    // successor. A family revoked as a whole (theft) has no live token left: refused below.
+    const justRevoked = now.getTime() - stored.revokedAt.getTime() <= authConfig.refreshReuseGraceMs;
+    if (justRevoked && (await hasLiveToken(stored.familyId))) {
       throw new RefreshRetryError();
     }
     await revokeFamily(stored.familyId);
