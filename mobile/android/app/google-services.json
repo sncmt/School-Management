@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "82845418224",
+    "project_id": "sncmt-992e5",
+    "storage_bucket": "sncmt-992e5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:82845418224:android:cf0b0fa03989f78dca7835",
+        "android_client_info": {
+          "package_name": "com.sncmt.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-9tgNgdJ7Ena80DQt5qJZaQO6CKZAT08"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
