@@ -49,10 +49,10 @@ export function ClassesList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("description")}</p>
+          <h1 className="page-title">{t("title")}</h1>
+          <p className="page-subtitle">{t("description")}</p>
         </div>
         {can("class:create") && (
           <Button onClick={() => setAdding(true)}>

@@ -27,9 +27,9 @@ export function OptionalSubjects({ canManage }: { canManage: boolean }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <Select value={shownClassId ?? ""} onValueChange={setClassId}>
-          <SelectTrigger className="w-40" aria-label={t("class")}>
+          <SelectTrigger className="w-40" label={t("class")} required>
             <SelectValue placeholder={t("class")} />
           </SelectTrigger>
           <SelectContent>

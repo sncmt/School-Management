@@ -81,9 +81,9 @@ export function DutiesTab({ canManage }: { canManage: boolean }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         <Select value={exam.id} onValueChange={setChosen}>
-          <SelectTrigger className="w-56" aria-label={t("exam")}>
+          <SelectTrigger className="w-56" label={t("exam")} required>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -109,22 +109,22 @@ export function DutiesTab({ canManage }: { canManage: boolean }) {
       {duties.isPending ? (
         <Skeleton className="h-64" />
       ) : duties.error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">
           {getErrorStatus(duties.error) === 404 ? t("noPlan") : describeError(duties.error)}
         </p>
       ) : data!.sittings.length === 0 ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("noRoutine")}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("noRoutine")}</p>
       ) : (
         <>
           {canManage && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-4">
               <div className="text-sm">
                 <div className="font-medium">{t("summary", { duties: data!.total, sittings: data!.sittings.length })}</div>
                 <div className="text-xs text-muted-foreground">{t("autoHint")}</div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-end gap-2">
                 <Select value={String(each)} onValueChange={(v) => setPerRoom(Number(v))}>
-                  <SelectTrigger className="w-44" aria-label={t("perRoom")}>
+                  <SelectTrigger className="w-44" label={t("perRoom")} required>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -204,7 +204,7 @@ function SittingCard({ sitting, data, canManage, onEdit }: { sitting: Sitting; d
   const short = sitting.rooms.filter((r) => r.teacherIds.length < data.perRoom).length;
 
   return (
-    <section className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+    <section className="rounded-2xl border border-border/70 bg-card">
       <header className="flex flex-wrap items-baseline justify-between gap-2 border-b px-4 py-3">
         <div>
           <h3 className="font-semibold">{label(sitting)}</h3>

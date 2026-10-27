@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { authRoutes, publicSchoolRoutes, sessionFlagCookie, siteAppFolder } from "@/lib/auth/routes";
+import { authRoutes, publicNoticeHref, publicSchoolRoutes, sessionFlagCookie, siteAppFolder } from "@/lib/auth/routes";
 import { getSiteFromHost, type SessionType } from "@/lib/tenant";
 
 /*
@@ -32,8 +32,8 @@ const redirect = (req: NextRequest, path: string) => {
   return NextResponse.redirect(new URL(path, `${req.nextUrl.protocol}//${host}`));
 };
 
-// pages of a school's site anyone may open, logged in or not
-const PUBLIC_SCHOOL_PATHS = [publicSchoolRoutes.noticeBoard];
+// the notice board had its own pages before it became a section of the homepage: old links still land
+const OLD_NOTICE_BOARD = "/notice-board";
 
 /** A logged-in site (admin or school): login is public, everything else needs a session. */
 const appSite = (req: NextRequest, type: SessionType) => {
@@ -43,8 +43,13 @@ const appSite = (req: NextRequest, type: SessionType) => {
 
   if (isAppFolderPath(pathname)) return notFound(req);
 
-  if (type === "SCHOOL" && (pathname === publicSchoolRoutes.home || PUBLIC_SCHOOL_PATHS.some((path) => isUnder(pathname, path)))) {
-    // no session check: the school's public homepage and notice board (logged in or not)
+  if (type === "SCHOOL" && isUnder(pathname, OLD_NOTICE_BOARD)) {
+    const noticeId = pathname.slice(OLD_NOTICE_BOARD.length + 1).split("/")[0];
+    return redirect(req, noticeId ? publicNoticeHref(decodeURIComponent(noticeId)) : publicSchoolRoutes.notices);
+  }
+
+  if (type === "SCHOOL" && pathname === publicSchoolRoutes.home) {
+    // no session check: the school's public homepage (logged in or not)
   } else if (pathname === login) {
     if (hasSession) return redirect(req, home);
   } else if (!hasSession) {

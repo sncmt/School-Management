@@ -4,6 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
@@ -29,17 +30,20 @@ export function MonthlyRegister({ choice, onChoice }: { choice: SectionChoice; o
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Input
-          type="month"
-          value={month}
-          max={todayKey().slice(0, 7)}
-          onChange={(e) => e.target.value && setMonth(e.target.value)}
-          className="w-44"
-          aria-label={t("month")}
-        />
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="space-y-1">
+          <Label htmlFor="register-month">{t("month")}</Label>
+          <Input
+            type="month"
+            value={month}
+            max={todayKey().slice(0, 7)}
+            onChange={(e) => e.target.value && setMonth(e.target.value)}
+            className="w-44"
+            id="register-month"
+          />
+        </div>
         <SectionPicker choice={choice} onChange={onChoice} />
-        {data && <span className="text-sm text-muted-foreground">{t("daysTaken", { count: data.daysTaken })}</span>}
+        {data && <span className="pb-2 text-sm text-muted-foreground">{t("daysTaken", { count: data.daysTaken })}</span>}
       </div>
 
       {isPending && !!sectionId ? (

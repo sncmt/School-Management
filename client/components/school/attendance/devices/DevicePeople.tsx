@@ -59,7 +59,7 @@ export function DevicePeople() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-4">
         <div className="text-sm">
           <div className="font-medium">{t("assignTitle")}</div>
           <div className="text-xs text-muted-foreground">{t("assignHint")}</div>
@@ -78,8 +78,8 @@ export function DevicePeople() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex rounded-md border bg-card p-0.5 text-sm">
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex h-9 items-center rounded-md border bg-card p-0.5 text-sm">
           {(["student", "teacher"] as const).map((k) => (
             <button
               key={k}
@@ -101,7 +101,7 @@ export function DevicePeople() {
                 setSectionId(ALL);
               }}
             >
-              <SelectTrigger className="w-40" aria-label={t("class")}>
+              <SelectTrigger className="w-40" label={t("class")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -115,7 +115,7 @@ export function DevicePeople() {
             </Select>
             {sections.length > 0 && (
               <Select value={sectionId} onValueChange={setSectionId}>
-                <SelectTrigger className="w-36" aria-label={t("section")}>
+                <SelectTrigger className="w-36" label={t("section")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -140,13 +140,13 @@ export function DevicePeople() {
       </div>
 
       {!ready ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("chooseClass")}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("chooseClass")}</p>
       ) : people.isPending ? (
         <Skeleton className="h-48" />
       ) : people.error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(people.error)}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(people.error)}</p>
       ) : rows.length === 0 ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("none")}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("none")}</p>
       ) : (
         <div className="rounded-md border">
           <Table>

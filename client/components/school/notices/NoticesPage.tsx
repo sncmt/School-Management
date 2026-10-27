@@ -24,15 +24,15 @@ export function NoticesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("description")}</p>
+          <h1 className="page-title">{t("title")}</h1>
+          <p className="page-subtitle">{t("description")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {/* what visitors see on the school's website */}
           <Button asChild variant="outline">
-            <a href={publicSchoolRoutes.noticeBoard} target="_blank" rel="noopener noreferrer">
+            <a href={publicSchoolRoutes.notices} target="_blank" rel="noopener noreferrer">
               <Globe /> {t("publicPage")}
             </a>
           </Button>

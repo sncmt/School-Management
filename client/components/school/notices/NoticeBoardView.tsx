@@ -58,14 +58,14 @@ export function NoticeBoardView() {
           ))}
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">
           <p>{describeError(error)}</p>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             {tCommon("tryAgain")}
           </Button>
         </div>
       ) : data.items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-card p-10 text-center text-sm text-muted-foreground">
           <Megaphone className="size-8 text-muted-foreground/50" />
           {category ? t("emptyCategory") : t("empty")}
         </div>
@@ -95,7 +95,7 @@ function NoticeCard({ notice, onOpen }: { notice: BoardNotice; onOpen: () => voi
       type="button"
       onClick={onOpen}
       className={cn(
-        "group relative flex w-full gap-4 rounded-xl border bg-card p-4 text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-shadow hover:shadow-md sm:p-5",
+        "group relative flex w-full gap-4 rounded-2xl border border-border/70 bg-card p-4 text-left shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-shadow hover:shadow-md sm:p-5",
         !notice.read && "border-l-4 border-l-brand",
       )}
     >

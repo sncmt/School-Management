@@ -24,7 +24,7 @@ export function PaymentResult({ tranId }: { tranId: string }) {
   const [receiptId, setReceiptId] = useState<string | null>(null);
 
   if (isPending) return <Skeleton className="mx-auto h-72 max-w-lg rounded-xl" />;
-  if (error) return <p className="mx-auto max-w-lg rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>;
+  if (error) return <p className="mx-auto max-w-lg rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>;
 
   const paid = data.status === "PAID";
   const waiting = data.status === "PENDING";
@@ -32,7 +32,7 @@ export function PaymentResult({ tranId }: { tranId: string }) {
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      <section className="space-y-4 rounded-xl border bg-card p-6 text-center shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+      <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-6 text-center shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
         <Icon className={cn("mx-auto size-12", paid ? "text-[#0ca30c]" : waiting ? "text-[#fab219]" : "text-[#d03b3b]")} />
         <div>
           <h1 className="text-xl font-semibold">{t(`title.${data.status}`)}</h1>

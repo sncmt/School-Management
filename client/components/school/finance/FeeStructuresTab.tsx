@@ -130,9 +130,9 @@ export function FeeStructuresTab({ canManage, canSync, onOpenFeeTypes }: { canMa
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         <Select value={year?.id ?? ""} onValueChange={setYearId}>
-          <SelectTrigger className="w-40" aria-label={t("year")}>
+          <SelectTrigger className="w-40" label={t("year")} required>
             <SelectValue placeholder={t("year")} />
           </SelectTrigger>
           <SelectContent>
@@ -144,7 +144,7 @@ export function FeeStructuresTab({ canManage, canSync, onOpenFeeTypes }: { canMa
           </SelectContent>
         </Select>
         <Select value={schoolClass?.id ?? ""} onValueChange={setClassId}>
-          <SelectTrigger className="w-40" aria-label={t("class")}>
+          <SelectTrigger className="w-40" label={t("class")} required>
             <SelectValue placeholder={t("class")} />
           </SelectTrigger>
           <SelectContent>

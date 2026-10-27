@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -31,17 +32,20 @@ export function AbsentList({ date, onDate }: { date: string; onDate: (date: stri
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Input
-          type="date"
-          value={date}
-          max={todayKey()}
-          onChange={(e) => e.target.value && onDate(e.target.value)}
-          className="w-44"
-          aria-label={t("date")}
-        />
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="space-y-1">
+          <Label htmlFor="absent-date">{t("date")}</Label>
+          <Input
+            type="date"
+            value={date}
+            max={todayKey()}
+            onChange={(e) => e.target.value && onDate(e.target.value)}
+            className="w-44"
+            id="absent-date"
+          />
+        </div>
         <Select value={classId ?? ALL} onValueChange={(v) => setClassId(v === ALL ? undefined : v)}>
-          <SelectTrigger className="w-40" aria-label={t("class")}>
+          <SelectTrigger className="w-40" label={t("class")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

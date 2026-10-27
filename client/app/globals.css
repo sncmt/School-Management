@@ -1,14 +1,31 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/*
+ * SolaimanLipi, a free Bangla font: the visitor's installed copy when there is one, else the file
+ * in public/fonts (put SolaimanLipi.woff2 or .ttf there to show it on every device). For Bangla
+ * letters only, so English stays in Times New Roman.
+ */
+@font-face {
+  font-family: "SolaimanLipi";
+  src:
+    local("SolaimanLipi"),
+    url("/fonts/SolaimanLipi.woff2") format("woff2"),
+    url("/fonts/SolaimanLipi.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0980-09FF, U+200C-200D, U+25CC;
+}
+
 /* Dark mode follows a .dark class on <html>, so it can be toggled later. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* Latin from Geist, Bangla glyphs from Hind Siliguri */
-  --font-sans: var(--font-geist-sans), var(--font-bangla), ui-sans-serif, system-ui, sans-serif;
+  /* English in Times New Roman (Tinos where it isn't installed); Bangla glyphs from SolaimanLipi,
+     then Hind Siliguri as the last resort */
+  --font-sans: "Times New Roman", var(--font-tinos), "SolaimanLipi", var(--font-bangla), Times, serif;
   --font-mono: var(--font-geist-mono);
   /* the accent (teal): the logo block, the current tab, badges and highlights */
   --color-brand: var(--brand);
@@ -22,6 +39,12 @@
   --color-school-sidebar: var(--school-sidebar);
   /* the light-grey page behind the white cards */
   --color-canvas: var(--canvas);
+  /* the marketing site's own palette, the same in both modes: deep ink, violet, amber, mint */
+  --color-mk-ink: var(--mk-ink);
+  --color-mk-ink-2: var(--mk-ink-2);
+  --color-mk-violet: var(--mk-violet);
+  --color-mk-amber: var(--mk-amber);
+  --color-mk-mint: var(--mk-mint);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -97,6 +120,11 @@
   /* the sidebar's colour in both modes; a school's own choice replaces it (lib/theme/accents.ts) */
   --school-sidebar: oklch(0.285 0.11 263);
   --canvas: oklch(0.972 0.006 260);
+  --mk-ink: oklch(0.17 0.045 272);
+  --mk-ink-2: oklch(0.225 0.06 274);
+  --mk-violet: oklch(0.62 0.2 286);
+  --mk-amber: oklch(0.83 0.15 78);
+  --mk-mint: oklch(0.86 0.13 168);
   /* the faint squared-paper lines on the canvas */
   --canvas-line: oklch(0.5 0.03 260 / 0.055);
   --navy: oklch(0.305 0.1 258);
@@ -191,11 +219,8 @@
  */
 .canvas-grid {
   background-color: var(--canvas);
-  background-image:
-    radial-gradient(60rem 28rem at 100% 0%, color-mix(in oklab, var(--brand) 7%, transparent), transparent 70%),
-    linear-gradient(var(--canvas-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--canvas-line) 1px, transparent 1px);
-  background-size: auto, 32px 32px, 32px 32px;
+  /* calm: only a soft light of the accent in the top corner */
+  background-image: radial-gradient(60rem 28rem at 100% 0%, color-mix(in oklab, var(--brand) 6%, transparent), transparent 70%);
 }
 @media print {
   .canvas-grid {
@@ -295,6 +320,43 @@
 }
 
 /*
+ * The school's public homepage (app/school/page): smooth jumps to its sections, a faint grid
+ * behind the hero that fades out towards the edges, and the bar under the slider that fills
+ * while a picture is shown (paused with the slider).
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.site-home) {
+    scroll-behavior: smooth;
+  }
+}
+.site-hero-grid {
+  background-image:
+    linear-gradient(var(--canvas-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%);
+}
+.site-dots {
+  background-image: radial-gradient(currentColor 1.5px, transparent 1.5px);
+  background-size: 14px 14px;
+}
+.slide-progress {
+  transform-origin: left center;
+  animation: slide-progress var(--slide-duration, 6s) linear forwards;
+}
+.slide-progress[data-paused="true"] {
+  animation-play-state: paused;
+}
+@keyframes slide-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/*
  * Printing (result cards, tabulation sheets): only what is inside .print-area prints.
  * .print-page starts a new sheet; .print-landscape asks for landscape pages.
  */
@@ -336,5 +398,97 @@
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+}
+
+/* ---------------------------------------------------------------- marketing site */
+
+/* white hairline grid that fades out from the middle (on the ink sections) */
+.mk-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 30%, black 20%, transparent 75%);
+}
+
+/* the highlighted words of a heading */
+.mk-gradient-text {
+  background: linear-gradient(100deg, var(--mk-amber) 0%, oklch(0.9 0.1 40) 45%, var(--mk-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* the product picture, leaning back */
+.mk-tilt {
+  transform: perspective(1800px) rotateX(14deg);
+  transform-origin: center top;
+}
+
+/* the endless row of modules */
+.mk-marquee {
+  mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+.mk-marquee-track {
+  animation: mk-marquee 40s linear infinite;
+}
+.mk-marquee:hover .mk-marquee-track {
+  animation-play-state: paused;
+}
+@keyframes mk-marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* the cards floating beside the product picture */
+.mk-float {
+  animation: mk-float 6s ease-in-out infinite;
+}
+.mk-float-late {
+  animation: mk-float 7s ease-in-out 1.5s infinite;
+}
+@keyframes mk-float {
+  50% { transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-marquee-track,
+  .mk-float,
+  .mk-float-late {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------- dashboard pages */
+
+/* every page's title: a short accent bar above it, then the name, tight and bold */
+.page-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.page-title::before {
+  content: "";
+  display: block;
+  width: 1.75rem;
+  height: 3px;
+  margin-bottom: 0.625rem;
+  border-radius: 9999px;
+  background: var(--brand);
+}
+@media (min-width: 640px) {
+  .page-title {
+    font-size: 1.75rem;
+  }
+}
+.page-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+@media print {
+  .page-title::before {
+    display: none;
   }
 }

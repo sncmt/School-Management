@@ -67,7 +67,7 @@ export function ExpensesTab() {
       <div className="flex flex-wrap items-end gap-2">
         <DayRange value={range} onChange={reset(setRange)} idPrefix="expenses" />
         <Select value={fundId} onValueChange={reset(setFundId)}>
-          <SelectTrigger className="w-44" aria-label={t("fund")}>
+          <SelectTrigger className="w-44" label={t("fund")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -80,7 +80,7 @@ export function ExpensesTab() {
           </SelectContent>
         </Select>
         <Select value={category} onValueChange={reset(setCategory)}>
-          <SelectTrigger className="w-44" aria-label={t("category")}>
+          <SelectTrigger className="w-44" label={t("category")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

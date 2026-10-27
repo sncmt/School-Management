@@ -50,7 +50,7 @@ export function LedgerTab() {
       <div className="flex flex-wrap items-end gap-2">
         <DayRange value={range} onChange={reset(setRange)} idPrefix="ledger" />
         <Select value={fundId} onValueChange={reset(setFundId)}>
-          <SelectTrigger className="w-44" aria-label={t("fund")}>
+          <SelectTrigger className="w-44" label={t("fund")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -63,7 +63,7 @@ export function LedgerTab() {
           </SelectContent>
         </Select>
         <Select value={source} onValueChange={(v) => reset(setSource)(v as LedgerSource)}>
-          <SelectTrigger className="w-48" aria-label={t("kind")}>
+          <SelectTrigger className="w-48" label={t("kind")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

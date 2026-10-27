@@ -27,10 +27,10 @@ export function RemarksView({ examId, classId }: { examId: string; classId: stri
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         {realSections.length > 0 && (
           <Select value={shownSection ?? ""} onValueChange={setSectionId}>
-            <SelectTrigger className="w-36" aria-label={t("section")}>
+            <SelectTrigger className="w-36" label={t("section")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

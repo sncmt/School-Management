@@ -23,7 +23,7 @@ export function CollectTab({ studentId, onStudent }: { studentId: string | null;
   const t = useTranslations("school.finance.collect");
   if (!studentId) {
     return (
-      <Card className="max-w-3xl">
+      <Card>
         <CardContent className="space-y-3 pt-6">
           <div className="text-sm font-medium">{t("pickTitle")}</div>
           <StudentPicker onPick={onStudent} />

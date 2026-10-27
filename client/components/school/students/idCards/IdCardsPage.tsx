@@ -32,8 +32,8 @@ export function IdCardsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="page-subtitle">{t("description")}</p>
       </div>
       <Tabs defaultValue="print">
         <TabsList>
@@ -81,10 +81,10 @@ function PrintTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         {yearList.length > 1 && (
           <Select value={shownYear} onValueChange={setYearId}>
-            <SelectTrigger className="w-36" aria-label={t("year")}>
+            <SelectTrigger className="w-36" label={t("year")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -103,7 +103,7 @@ function PrintTab() {
             setSectionId(ALL);
           }}
         >
-          <SelectTrigger className="w-40" aria-label={t("class")}>
+          <SelectTrigger className="w-40" label={t("class")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -117,7 +117,7 @@ function PrintTab() {
         </Select>
         {sections.length > 0 && (
           <Select value={sectionId} onValueChange={setSectionId}>
-            <SelectTrigger className="w-36" aria-label={t("section")}>
+            <SelectTrigger className="w-36" label={t("section")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -144,13 +144,13 @@ function PrintTab() {
       </div>
 
       {classId === ALL && (classes.data?.items.length ?? 0) > 3 ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("chooseClass")}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("chooseClass")}</p>
       ) : cards.isPending ? (
         <Skeleton className="h-72" />
       ) : cards.error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(cards.error)}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(cards.error)}</p>
       ) : data!.cards.length === 0 ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("none")}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("none")}</p>
       ) : (
         <>
           <p className="text-sm text-muted-foreground">
@@ -226,7 +226,7 @@ function Designer({ saved, canManage }: { saved: IdCardSettings; canManage: bool
                 disabled={!canManage}
                 onClick={() => set("template", template)}
                 aria-pressed={on}
-                className={cn("flex flex-col items-center gap-2 rounded-xl border bg-card p-3 transition-colors disabled:cursor-default", on ? "border-primary ring-2 ring-primary" : canManage && "hover:bg-muted/50")}
+                className={cn("flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-card p-3 transition-colors disabled:cursor-default", on ? "border-primary ring-2 ring-primary" : canManage && "hover:bg-muted/50")}
               >
                 <IdCardFront school={school} settings={{ ...s, template }} year={sample.year} card={sample.card} />
                 <span className="flex items-center gap-1.5 text-sm font-medium">
@@ -240,7 +240,7 @@ function Designer({ saved, canManage }: { saved: IdCardSettings; canManage: bool
       </section>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto]">
-        <section className="space-y-4 rounded-xl border bg-card p-5">
+        <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-5">
           <div className="space-y-2">
             <Label>{t("colour")}</Label>
             <div className="flex flex-wrap items-center gap-2">

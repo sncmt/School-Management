@@ -95,10 +95,10 @@ export function PayView({ studentId, enrollments }: { studentId: string; enrollm
     <div className="space-y-3">
       <ListState isPending={payable.isPending} error={payable.error} onRetry={() => payable.refetch()} empty={items.length === 0 ? t("nothingDue") : null}>
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-end gap-4">
             {enrollments.length > 1 && (
               <Select value={yearId} onValueChange={setYearId}>
-                <SelectTrigger className="h-8 w-36" aria-label={t("paidYear")}>
+                <SelectTrigger className="h-8 w-36" label={t("paidYear")} required>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

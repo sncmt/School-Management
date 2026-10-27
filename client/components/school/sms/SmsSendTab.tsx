@@ -73,7 +73,7 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <section className="space-y-5 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+      <section className="space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
             <Label htmlFor="sms-class">{t("class")}</Label>
@@ -165,7 +165,7 @@ export function SmsSendTab({ settings }: { settings: SmsSettings | undefined }) 
         {off && <p className="text-right text-xs text-amber-700 dark:text-amber-400">{t("offHint")}</p>}
       </section>
 
-      <aside className="h-fit space-y-3 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+      <aside className="h-fit space-y-3 rounded-2xl border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
         <div className="flex items-center gap-2 font-semibold">
           <Users className="size-4 text-brand" /> {t("summary")}
         </div>

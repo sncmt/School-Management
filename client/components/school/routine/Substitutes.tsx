@@ -73,13 +73,16 @@ export function Substitutes({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="w-44" aria-label={t("date")} />
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="space-y-1">
+          <Label htmlFor="substitutes-date">{t("date")}</Label>
+          <Input type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="w-44" id="substitutes-date" />
+        </div>
         <Select
           value={chosenClass?.id ?? ""}
           onValueChange={(classId) => onChoice({ classId, sectionId: defaultSection(classes.data?.items.find((c) => c.id === classId)) })}
         >
-          <SelectTrigger className="w-40" aria-label={t("class")}>
+          <SelectTrigger className="w-40" label={t("class")} required>
             <SelectValue placeholder={t("class")} />
           </SelectTrigger>
           <SelectContent>
@@ -92,7 +95,7 @@ export function Substitutes({
         </Select>
         {realSections.length > 0 && (
           <Select value={sectionId ?? ""} onValueChange={(id) => onChoice({ classId: chosenClass?.id, sectionId: id })}>
-            <SelectTrigger className="w-32" aria-label={t("section")}>
+            <SelectTrigger className="w-32" label={t("section")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

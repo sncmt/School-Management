@@ -13,7 +13,7 @@
 export const ACCENT_COLORS = ["BLUE", "INDIGO", "VIOLET", "MAROON", "TEAL", "SLATE"] as const;
 export type AccentColor = (typeof ACCENT_COLORS)[number];
 
-export const SIDEBAR_COLORS = ["NAVY", "MAROON", "FOREST", "TEAL", "OCEAN", "PURPLE", "CHARCOAL"] as const;
+export const SIDEBAR_COLORS = ["NAVY", "INDIGO", "TEAL", "OCEAN", "EMERALD", "PURPLE", "CHARCOAL"] as const;
 export type SidebarColor = (typeof SIDEBAR_COLORS)[number];
 
 /*
@@ -56,11 +56,13 @@ const ACCENTS: Record<AccentColor, { light: Shade; dark: Shade }> = {
 const SIDEBARS: Record<SidebarColor, string> = {
   // the platform's own (what globals.css has)
   NAVY: "oklch(0.285 0.11 263)",
-  MAROON: "oklch(0.3 0.1 15)",
-  FOREST: "oklch(0.3 0.07 155)",
+  // a brighter blue-violet (#4d44b5, chosen by hex); white text reads at about 7.5 : 1
+  INDIGO: "#4d44b5",
   TEAL: "oklch(0.32 0.06 200)",
   // a lighter sea-teal (#0a6a6a, chosen by name); white text still reads at about 6 : 1
   OCEAN: "#0a6a6a",
+  // a deep green (#047354, chosen by hex); white text reads at about 5.9 : 1
+  EMERALD: "#047354",
   PURPLE: "oklch(0.3 0.11 300)",
   CHARCOAL: "oklch(0.27 0.012 260)",
 };
@@ -68,10 +70,10 @@ const SIDEBARS: Record<SidebarColor, string> = {
 /** The accent that goes well with a sidebar colour (a suggestion; any pair is allowed). */
 export const SUGGESTED_ACCENT: Record<SidebarColor, AccentColor> = {
   NAVY: "BLUE",
-  MAROON: "MAROON",
-  FOREST: "TEAL",
+  INDIGO: "INDIGO",
   TEAL: "TEAL",
   OCEAN: "TEAL",
+  EMERALD: "TEAL",
   PURPLE: "VIOLET",
   CHARCOAL: "SLATE",
 };

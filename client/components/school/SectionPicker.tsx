@@ -36,7 +36,7 @@ export function SectionPicker({ choice, onChange }: { choice: SectionChoice; onC
           onChange({ classId, sectionId: defaultSectionOf(classes.data?.items.find((c) => c.id === classId)) })
         }
       >
-        <SelectTrigger className="w-40" aria-label={t("class")}>
+        <SelectTrigger className="w-40" label={t("class")} required>
           <SelectValue placeholder={t("class")} />
         </SelectTrigger>
         <SelectContent>
@@ -49,7 +49,7 @@ export function SectionPicker({ choice, onChange }: { choice: SectionChoice; onC
       </Select>
       {realSections.length > 0 && (
         <Select value={sectionId ?? ""} onValueChange={(id) => onChange({ classId: chosenClass?.id, sectionId: id })}>
-          <SelectTrigger className="w-32" aria-label={t("section")}>
+          <SelectTrigger className="w-32" label={t("section")} required>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

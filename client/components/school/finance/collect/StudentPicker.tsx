@@ -22,6 +22,7 @@ const ALL = "all";
  */
 export function StudentPicker({ onPick }: { onPick: (studentId: string) => void }) {
   const t = useTranslations("school.finance.collect.picker");
+  const tCommon = useTranslations("common");
   const name = useLocalizedName();
   const classes = useClasses();
   const years = useAcademicYears();
@@ -60,14 +61,11 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        <div className="relative min-w-60 flex-1">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("search")} className="pl-9" autoFocus />
-        </div>
+      {/* the narrowing selects on the left, the name search on the right */}
+      <div className="flex flex-wrap items-end gap-3">
         {yearList.length > 1 && (
           <Select value={yearId} onValueChange={setChosenYear}>
-            <SelectTrigger className="w-36" aria-label={t("year")}>
+            <SelectTrigger className="w-36" label={t("year")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -87,11 +85,11 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
             setSectionId(ALL);
           }}
         >
-          <SelectTrigger className="w-40" aria-label={t("class")}>
+          <SelectTrigger className="w-40" label={t("class")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>{t("allClasses")}</SelectItem>
+            <SelectItem value={ALL}>{tCommon("all")}</SelectItem>
             {classes.data?.items.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
@@ -101,11 +99,11 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
         </Select>
         {sections.length > 0 && (
           <Select value={sectionId} onValueChange={setSectionId}>
-            <SelectTrigger className="w-36" aria-label={t("section")}>
+            <SelectTrigger className="w-36" label={t("section")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>{t("allSections")}</SelectItem>
+              <SelectItem value={ALL}>{tCommon("all")}</SelectItem>
               {sections.map((sec) => (
                 <SelectItem key={sec.id} value={sec.id}>
                   {sec.name}
@@ -114,6 +112,10 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
             </SelectContent>
           </Select>
         )}
+        <div className="relative w-full sm:ml-auto sm:w-64">
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("search")} className="pl-9" autoFocus />
+        </div>
       </div>
 
       {!active ? (

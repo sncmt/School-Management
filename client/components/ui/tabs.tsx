@@ -11,8 +11,8 @@ function Tabs({ className, ...props }: React.ComponentProps<typeof TabsPrimitive
 
 /*
  * Two looks, matching the sidebar:
- * - "line" (default): the page's sections. Quiet labels in a row; the open one a navy box
- *   with white text.
+ * - "line" (default): the page's sections. Quiet labels on a hairline; the open one in full
+ *   colour with the accent underline.
  * - "chip": tabs inside a tab, or a small switch. Small rounded labels on a grey band; the open
  *   one a white chip.
  */
@@ -27,8 +27,8 @@ function TabsList({
       data-variant={variant}
       className={cn(
         "group/tabs-list inline-flex max-w-full items-center overflow-x-auto [scrollbar-width:none] text-muted-foreground",
-        // a little room around the boxes, so the scrolling row doesn't clip their shadow
-        variant === "line" && "w-full gap-1.5 py-0.5",
+        // the hairline is an inset shadow, so the open tab's underline can sit over it without overflowing
+        variant === "line" && "w-full gap-6 shadow-[inset_0_-1px_0_var(--border)]",
         variant === "chip" && "w-fit gap-1 rounded-lg bg-muted/70 p-1",
         className
       )}
@@ -47,8 +47,9 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
         "focus-visible:ring-[3px] focus-visible:ring-ring/50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         // line
-        "group-data-[variant=line]/tabs-list:h-9 group-data-[variant=line]/tabs-list:rounded-lg group-data-[variant=line]/tabs-list:px-4 group-data-[variant=line]/tabs-list:text-foreground/70 group-data-[variant=line]/tabs-list:hover:bg-muted/70",
-        "group-data-[variant=line]/tabs-list:data-[state=active]:bg-navy group-data-[variant=line]/tabs-list:data-[state=active]:font-semibold group-data-[variant=line]/tabs-list:data-[state=active]:text-navy-foreground group-data-[variant=line]/tabs-list:data-[state=active]:shadow-sm",
+        "group-data-[variant=line]/tabs-list:relative group-data-[variant=line]/tabs-list:h-11 group-data-[variant=line]/tabs-list:px-0.5 group-data-[variant=line]/tabs-list:text-foreground/60",
+        "group-data-[variant=line]/tabs-list:after:absolute group-data-[variant=line]/tabs-list:after:inset-x-0 group-data-[variant=line]/tabs-list:after:bottom-0 group-data-[variant=line]/tabs-list:after:h-0.5 group-data-[variant=line]/tabs-list:after:rounded-full",
+        "group-data-[variant=line]/tabs-list:data-[state=active]:font-semibold group-data-[variant=line]/tabs-list:data-[state=active]:text-foreground group-data-[variant=line]/tabs-list:data-[state=active]:after:bg-brand",
         // chip
         "group-data-[variant=chip]/tabs-list:h-7 group-data-[variant=chip]/tabs-list:rounded-md group-data-[variant=chip]/tabs-list:px-3 group-data-[variant=chip]/tabs-list:text-[13px]",
         "group-data-[variant=chip]/tabs-list:data-[state=active]:bg-background group-data-[variant=chip]/tabs-list:data-[state=active]:text-navy group-data-[variant=chip]/tabs-list:data-[state=active]:shadow-sm",

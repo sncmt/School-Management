@@ -60,7 +60,7 @@ export function ResultsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="no-print flex flex-wrap items-center gap-2">
+      <div className="no-print flex flex-wrap items-end gap-2">
         <Select
           value={exam.id}
           onValueChange={(id) => {
@@ -68,7 +68,7 @@ export function ResultsTab() {
             setView(null);
           }}
         >
-          <SelectTrigger className="w-60" aria-label={t("exam")}>
+          <SelectTrigger className="w-60" label={t("exam")} required>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

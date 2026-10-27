@@ -36,9 +36,9 @@ export function TeacherRoutine({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <Select value={chosen ?? ""} onValueChange={onTeacher}>
-          <SelectTrigger className="w-64" aria-label={t("teacher")}>
+          <SelectTrigger className="w-64" label={t("teacher")} required>
             <SelectValue placeholder={t("teacher")} />
           </SelectTrigger>
           <SelectContent>

@@ -24,8 +24,8 @@ export function FinancePage() {
   return (
     <div className="space-y-4">
       <div className="no-print">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="page-subtitle">{t("description")}</p>
       </div>
 
       <Tabs value={tab ?? tabs[0]} onValueChange={setTab}>

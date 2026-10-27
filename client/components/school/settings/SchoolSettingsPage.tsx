@@ -23,8 +23,10 @@ import {
   type SidebarColor,
 } from "@/lib/theme/accents";
 import { cn } from "@/lib/utils";
+import { AdmissionCard } from "./AdmissionCard";
+import { SlidesCard } from "./SlidesCard";
 
-/** The school's own settings (super admin only): for now, the colours of its site. */
+/** The school's own settings (super admin only): the colours of its site, and its homepage's slider and admission section. */
 export function SchoolSettingsPage() {
   const t = useTranslations("school.settings");
   const me = useSchoolMe();
@@ -34,10 +36,12 @@ export function SchoolSettingsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="page-subtitle">{t("description")}</p>
       </div>
       <AppearanceCard />
+      <SlidesCard />
+      <AdmissionCard />
     </div>
   );
 }
@@ -97,7 +101,7 @@ function AppearanceCard() {
   const suggested = chosen ? SUGGESTED_ACCENT[chosen.sidebar] : undefined;
 
   return (
-    <section className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+    <section className="rounded-2xl border border-border/70 bg-card">
       <header className="flex items-center gap-3 border-b px-5 py-4">
         <span className="flex size-9 items-center justify-center rounded-full bg-brand-soft text-brand">
           <Palette className="size-4" />

@@ -62,10 +62,10 @@ export function SectionsList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("description")}</p>
+          <h1 className="page-title">{t("title")}</h1>
+          <p className="page-subtitle">{t("description")}</p>
         </div>
         {can("section:create") && (
           <Button onClick={() => setAdding(true)} disabled={classes.length === 0}>
@@ -74,9 +74,9 @@ export function SectionsList() {
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <Select value={classFilter} onValueChange={setClassFilter}>
-          <SelectTrigger className="w-48" aria-label={t("columns.class")}>
+          <SelectTrigger className="w-48" label={t("columns.class")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

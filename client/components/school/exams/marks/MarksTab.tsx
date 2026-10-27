@@ -90,9 +90,9 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
         <p className="rounded-md border border-dashed py-12 text-center text-sm text-muted-foreground">{t("noneOpen")}</p>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-end gap-2">
             <Select value={exam?.id ?? ""} onValueChange={(id) => setPick({ examId: id })}>
-              <SelectTrigger className="w-52" aria-label={t("exam")}>
+              <SelectTrigger className="w-52" label={t("exam")} required>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -104,7 +104,7 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
               </SelectContent>
             </Select>
             <Select value={examClass?.class.id ?? ""} onValueChange={(id) => setPick({ examId: exam?.id, classId: id })}>
-              <SelectTrigger className="w-40" aria-label={t("class")}>
+              <SelectTrigger className="w-40" label={t("class")} required>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -117,7 +117,7 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
             </Select>
             {realSections.length > 0 && mode !== "progress" && (
               <Select value={sectionId ?? ""} onValueChange={(id) => setPick((p) => ({ ...p, examId: exam?.id, classId: examClass?.class.id, sectionId: id }))}>
-                <SelectTrigger className="w-32" aria-label={t("section")}>
+                <SelectTrigger className="w-32" label={t("section")} required>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -131,7 +131,7 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
             )}
             {mode === "subject" && subjects.length > 0 && (
               <Select value={examSubjectId ?? ""} onValueChange={(id) => setPick((p) => ({ ...p, examId: exam?.id, classId: examClass?.class.id, sectionId, examSubjectId: id }))}>
-                <SelectTrigger className="w-52" aria-label={t("subject")}>
+                <SelectTrigger className="w-52" label={t("subject")} required>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

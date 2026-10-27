@@ -44,8 +44,8 @@ export function MessagesPage() {
     <div className="mx-auto max-w-3xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("description")}</p>
+          <h1 className="page-title">{t("title")}</h1>
+          <p className="page-subtitle">{t("description")}</p>
         </div>
         {unread > 0 && (
           <Button variant="outline" onClick={() => markAll.mutate(undefined)} disabled={markAll.isPending}>
@@ -54,7 +54,7 @@ export function MessagesPage() {
         )}
       </div>
 
-      <section className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+      <section className="overflow-hidden rounded-2xl border border-border/70 bg-card">
         <div className="border-b px-4 py-3">
           <Tabs
             value={show}

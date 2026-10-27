@@ -1,11 +1,15 @@
 import type { ListMeta, NoticeAttachment, NoticeCategory } from "@/lib/school/noticeKinds";
 
 /*
- * Server only: a school's public notices (those marked "show on the public notice page"
- * that are up now), for its notice board pages. Cached for a minute.
+ * A school's public notices (those marked "show on the public notice page" that are up now),
+ * for the notices section of its homepage. The first page loads on the server (cached for a
+ * minute); more pages and a notice in full load in the browser, through the same public API.
  */
 
 const API_URL = process.env.API_URL ?? "http://localhost:5000";
+
+// notices per page of the homepage's list
+export const PUBLIC_NOTICES_PAGE = 6;
 
 export type PublicNoticeItem = {
   id: string;
@@ -19,18 +23,29 @@ export type PublicNoticeItem = {
 
 export type PublicNotice = Omit<PublicNoticeItem, "attachmentCount"> & { body: string; attachments: NoticeAttachment[] };
 
-const get = async <T>(path: string): Promise<T | null> => {
-  const res = await fetch(`${API_URL}/api/v1/notice/public/${path}`, { next: { revalidate: 60 } });
+export type PublicNoticePage = { items: PublicNoticeItem[]; meta: ListMeta };
+
+const listPath = (subdomain: string, page: number) =>
+  `notice/public/${encodeURIComponent(subdomain)}?${new URLSearchParams({ page: String(page), limit: String(PUBLIC_NOTICES_PAGE) })}`;
+
+/** Server only: the first page, for the homepage's first paint. */
+export const getPublicNotices = async (subdomain: string): Promise<PublicNoticePage | null> => {
+  const res = await fetch(`${API_URL}/api/v1/${listPath(subdomain, 1)}`, { next: { revalidate: 60 } });
   if (res.status === 404 || res.status === 400) return null;
   if (!res.ok) throw new Error(`Loading public notices failed with ${res.status}`);
+  return ((await res.json()) as { data: PublicNoticePage }).data;
+};
+
+// in the browser: through the app's own /api proxy (no login needed for these)
+const browserGet = async <T>(path: string): Promise<T> => {
+  const res = await fetch(`/api/v1/${path}`);
+  if (!res.ok) throw new Error(String(res.status));
   return ((await res.json()) as { data: T }).data;
 };
 
-export const getPublicNotices = (subdomain: string, query: { page: number; category?: NoticeCategory }) => {
-  const params = new URLSearchParams({ page: String(query.page), limit: "15" });
-  if (query.category) params.set("category", query.category);
-  return get<{ items: PublicNoticeItem[]; meta: ListMeta }>(`${encodeURIComponent(subdomain)}?${params}`);
-};
+/** Browser: a further page of the list. */
+export const fetchPublicNotices = (subdomain: string, page: number) => browserGet<PublicNoticePage>(listPath(subdomain, page));
 
-export const getPublicNotice = (subdomain: string, noticeId: string) =>
-  get<PublicNotice>(`${encodeURIComponent(subdomain)}/${encodeURIComponent(noticeId)}`);
+/** Browser: one notice in full, with its files. */
+export const fetchPublicNotice = (subdomain: string, noticeId: string) =>
+  browserGet<PublicNotice>(`notice/public/${encodeURIComponent(subdomain)}/${encodeURIComponent(noticeId)}`);

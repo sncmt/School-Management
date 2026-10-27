@@ -59,10 +59,10 @@ export function TeachersList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("description")}</p>
+          <h1 className="page-title">{t("title")}</h1>
+          <p className="page-subtitle">{t("description")}</p>
         </div>
         {can("teacher:create") && (
           <Button onClick={() => setAdding(true)}>
@@ -71,8 +71,27 @@ export function TeachersList() {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <div className="relative min-w-64 flex-1">
+      <div className="flex flex-wrap items-end gap-2">
+        <Select
+          value={status ?? ALL}
+          onValueChange={(v) => {
+            setStatus(v === ALL ? undefined : (v as TeacherStatus));
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-44" label={t("columns.status")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>{t("allStatuses")}</SelectItem>
+            {TEACHER_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>
+                {tStatus(s)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="relative w-full sm:ml-auto sm:w-64">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchInput}
@@ -85,25 +104,6 @@ export function TeachersList() {
             className="pl-8"
           />
         </div>
-        <Select
-          value={status ?? ALL}
-          onValueChange={(v) => {
-            setStatus(v === ALL ? undefined : (v as TeacherStatus));
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-44" aria-label={t("columns.status")}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t("allStatuses")}</SelectItem>
-            {TEACHER_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {tStatus(s)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       <div className={cn("rounded-md border transition-opacity", isFetching && !isPending && "opacity-60")}>

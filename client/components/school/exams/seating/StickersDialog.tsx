@@ -67,9 +67,9 @@ export function StickersDialog({ view, open, onClose }: { view: SeatPlanView; op
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <Select value={roomId} onValueChange={setRoomId}>
-            <SelectTrigger className="w-44" aria-label={t("room")}>
+            <SelectTrigger className="w-44" label={t("room")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -82,7 +82,7 @@ export function StickersDialog({ view, open, onClose }: { view: SeatPlanView; op
             </SelectContent>
           </Select>
           <Select value={size} onValueChange={(v) => setSize(v as Size)}>
-            <SelectTrigger className="w-52" aria-label={t("size")}>
+            <SelectTrigger className="w-52" label={t("size")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

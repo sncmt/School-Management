@@ -13,21 +13,40 @@ import { CategoryBadge, NoticeReader, useNoticeDate } from "../notices/shared";
 
 // Pieces shared by the staff dashboard and the family home.
 
-export function Panel({ title, action, className, children }: { title: string; action?: ReactNode; className?: string; children: ReactNode }) {
+export function Panel({
+  title,
+  description,
+  action,
+  className,
+  children,
+}: {
+  title: string;
+  // a quiet line under the title
+  description?: string;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <section className={cn("rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]", className)}>
-      <header className="flex items-center justify-between gap-2 border-b px-5 py-4">
-        <h2 className="font-semibold">{title}</h2>
+    <section className={cn("rounded-2xl border border-border/70 bg-card", className)}>
+      <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-4">
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
+          {description && <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>}
+        </div>
         {action}
       </header>
-      <div className="p-5">{children}</div>
+      <div className="px-5 pb-5">{children}</div>
     </section>
   );
 }
 
 export function PanelLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
+    <Link
+      href={href}
+      className="-mr-1.5 flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
       {children} <ArrowRight className="size-3.5" />
     </Link>
   );
@@ -44,7 +63,7 @@ export function UpcomingPanel({ items, className }: { items: UpcomingHoliday[]; 
     <Panel title={t("title")} className={className}>
       {items.length === 0 ? (
         <div className="flex min-h-48 flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
-          <CalendarHeart className="size-8 text-muted-foreground/50" />
+          <CalendarHeart className="size-8 text-muted-foreground/40" />
           {t("none")}
         </div>
       ) : (
@@ -96,7 +115,7 @@ export function NoticesPanel({ className }: { className?: string }) {
         </div>
       ) : !data || data.items.length === 0 ? (
         <div className="flex min-h-32 flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
-          <Megaphone className="size-8 text-muted-foreground/50" />
+          <Megaphone className="size-8 text-muted-foreground/40" />
           {t("none")}
         </div>
       ) : (

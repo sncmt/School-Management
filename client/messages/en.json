@@ -24,7 +24,8 @@
     "imageWrongType": "Choose a JPG, PNG or WebP image.",
     "noImage": "No image",
     "photoUploadFailed": "{name} was saved, but the photo didn't upload: {error} You can add it from their page.",
-    "password": "Password"
+    "password": "Password",
+    "all": "All"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -145,7 +146,10 @@
     "homeworkTitleRequired": "Write a title",
     "homeworkTooLong": "The instructions are too long (5,000 characters at most)",
     "dueBeforeGiven": "The due date can't be before the day it is given",
-    "fullMarksInvalid": "Enter full marks between 0.5 and 1000"
+    "fullMarksInvalid": "Enter full marks between 0.5 and 1000",
+    "monthsRequired": "Tick at least one month",
+    "schoolNameRequired": "Enter your school's name",
+    "max1000": "At most 1000 characters"
   },
   "auth": {
     "email": "Email",
@@ -683,7 +687,7 @@
       "title": "Sections",
       "description": "Split a class into sections. Each section has its own class teacher, capacity and class hours for the year.",
       "add": "Add sections",
-      "allClasses": "All classes",
+      "allClasses": "All",
       "columns": {
         "class": "Class",
         "section": "Section",
@@ -886,7 +890,7 @@
       "description": "The school's teachers. Each one logs in with their mobile number.",
       "add": "Add teacher",
       "searchPlaceholder": "Search name, phone or designation",
-      "allStatuses": "All teachers",
+      "allStatuses": "All",
       "columns": {
         "name": "Teacher",
         "phone": "Mobile",
@@ -1197,18 +1201,18 @@
       "add": "Admit student",
       "searchPlaceholder": "Search name, admission no., father or phone",
       "allStatuses": "All students",
-      "allClasses": "All classes",
-      "allSections": "All sections",
+      "allClasses": "All",
+      "allSections": "All",
       "section": "Section",
       "filters": {
         "academicYear": "Academic year",
         "currentYear": "{year} (current)",
         "group": "Group",
-        "allGroups": "All groups",
+        "allGroups": "All",
         "gender": "Gender",
-        "allGenders": "All genders",
+        "allGenders": "All",
         "religion": "Religion",
-        "allReligions": "All religions",
+        "allReligions": "All",
         "clear": "Clear filters",
         "button": "Filters",
         "all": "All",
@@ -1392,7 +1396,7 @@
       },
       "admissionType": {
         "label": "Admission type",
-        "allTypes": "New and old",
+        "allTypes": "All",
         "types": {
           "NEW": "New",
           "OLD": "Old"
@@ -1812,7 +1816,7 @@
       "absent": {
         "date": "Date",
         "class": "Class",
-        "allClasses": "All classes",
+        "allClasses": "All",
         "count": "{count, plural, =0 {Nobody absent} one {# absent} other {# absent}}",
         "columns": {
           "student": "Student",
@@ -1960,9 +1964,9 @@
             "teacher": "Teachers"
           },
           "class": "Class",
-          "allClasses": "All classes",
+          "allClasses": "All",
           "section": "Section",
-          "allSections": "All sections",
+          "allSections": "All",
           "search": "Name or admission no.",
           "numbered": "{numbered} of {total} have a number",
           "chooseClass": "Choose a class, or search for a name.",
@@ -2338,7 +2342,7 @@
         },
         "sheet": {
           "section": "Section",
-          "allSections": "All sections",
+          "allSections": "All",
           "sectionName": "Section {name}",
           "order": "Order",
           "byRoll": "By roll",
@@ -2701,7 +2705,7 @@
           "title": "Desk stickers",
           "description": "One card for each seated student, in room and seat order, to cut out and stick on the benches.",
           "room": "Room",
-          "allRooms": "All rooms",
+          "allRooms": "All",
           "roomName": "Room {number}",
           "size": "Card size",
           "sizes": {
@@ -2769,9 +2773,9 @@
       "admit": {
         "exam": "Exam",
         "class": "Class",
-        "allClasses": "All classes",
+        "allClasses": "All",
         "section": "Section",
-        "allSections": "All sections",
+        "allSections": "All",
         "noExams": "There are no exams this year yet.",
         "settings": "Rules and signatures",
         "print": "Print",
@@ -2948,19 +2952,21 @@
           "noFeeTypesYet": "There are no fee types yet. Make them first in Fee types (e.g. Tuition, Admission, Exam), then set what this class pays for each.",
           "openFeeTypes": "Open Fee types",
           "loadingFeeTypes": "Loading fee types…",
-          "byMonth": "Different amounts in parts of the year",
-          "byMonthHint": "e.g. ৳700 from January to April, then ৳800 from May",
+          "byMonth": "Different amounts by month",
+          "byMonthHint": "Tick the months it is charged in, each with its amount (e.g. an exam fee in June and November)",
           "amount": "Amount",
           "monthlyAmount": "Amount a month",
-          "from": "From",
-          "to": "To",
-          "removePeriod": "Remove",
-          "addPeriod": "Add a part of the year",
-          "periodsHint": "Months in no part of the year are not charged.",
           "applyNote": "Saving gives the fee to every student of the class. Unpaid fees change to the new amount; fees that already have payments keep theirs.",
           "save": "Save",
           "saving": "Saving…",
-          "saved": "{name} saved."
+          "saved": "{name} saved.",
+          "fillAmount": "Amount",
+          "fillTicked": "Set for ticked months",
+          "tickAll": "All months",
+          "tickNone": "None",
+          "amountOf": "Amount in {month}",
+          "badMonthAmount": "Enter an amount for every ticked month",
+          "monthsHint": "Months not ticked are not charged."
         },
         "copyFrom": "Copy from {year}",
         "copyTitle": "Copy class fees from {from} to {to}?",
@@ -3014,14 +3020,12 @@
         "picker": {
           "search": "Name or admission number",
           "class": "Class",
-          "allClasses": "All classes",
           "hint": "Type a name or admission number, or choose a class. A name search looks at every year unless you choose another year.",
           "none": "No student found.",
           "roll": "Roll {roll}",
           "year": "Academic year",
           "currentYear": "{name} (current)",
-          "section": "Section",
-          "allSections": "All sections"
+          "section": "Section"
         },
         "pay": {
           "nothingDue": "Nothing left to pay. Every fee is paid.",
@@ -3126,14 +3130,14 @@
         "from": "From",
         "to": "To",
         "method": "Method",
-        "allMethods": "All methods",
+        "allMethods": "All",
         "methods": {
           "CASH": "Cash",
           "MOBILE_BANKING": "Mobile banking",
           "ONLINE": "Online (SSLCommerz)"
         },
         "status": "Status",
-        "allStatuses": "All payments",
+        "allStatuses": "All",
         "statuses": {
           "SUCCESS": "Received",
           "CANCELLED": "Cancelled"
@@ -3237,9 +3241,9 @@
       },
       "ledger": {
         "fund": "Fund",
-        "allFunds": "All funds",
+        "allFunds": "All",
         "kind": "Kind",
-        "allKinds": "Everything",
+        "allKinds": "All",
         "sources": {
           "PAYMENT": "Fee payment",
           "PAYMENT_REVERSAL": "Payment cancelled",
@@ -3264,9 +3268,9 @@
       },
       "expenses": {
         "fund": "Fund",
-        "allFunds": "All funds",
+        "allFunds": "All",
         "category": "Category",
-        "allCategories": "All categories",
+        "allCategories": "All",
         "showVoided": "Show voided",
         "add": "Add expense",
         "total": "Spent",
@@ -3403,7 +3407,7 @@
           "from": "From",
           "to": "To",
           "status": "Status",
-          "allStatuses": "All statuses",
+          "allStatuses": "All",
           "statuses": {
             "PAID": "Paid",
             "PENDING": "Waiting",
@@ -3411,7 +3415,7 @@
             "CANCELLED": "Cancelled"
           },
           "refund": "Refund",
-          "allRefunds": "Any refund",
+          "allRefunds": "All",
           "refunds": {
             "OWED": "To refund",
             "DONE": "Refunded"
@@ -3534,10 +3538,10 @@
           "hint": "The menu on the left (and the top of your public homepage). All are dark, so the white menu text stays easy to read.",
           "colors": {
             "NAVY": "Navy",
-            "MAROON": "Maroon",
-            "FOREST": "Forest green",
+            "INDIGO": "Indigo",
             "TEAL": "Deep teal",
             "OCEAN": "Ocean teal",
+            "EMERALD": "Emerald green",
             "PURPLE": "Deep purple",
             "CHARCOAL": "Charcoal"
           }
@@ -3571,6 +3575,50 @@
         "undo": "Undo",
         "save": "Save colours",
         "saved": "Colours saved. Everyone sees them on their next page load."
+      },
+      "slides": {
+        "title": "Homepage slider",
+        "hint": "The pictures in the frame at the top of your public homepage, up to {max}. They're cropped to 4 : 3 (1600 × 1200), so keep the subject near the middle.",
+        "add": "Add picture",
+        "uploading": "Uploading…",
+        "added": "Picture added",
+        "empty": "No pictures yet. Until you add some, the homepage shows your school's name and logo on its colour.",
+        "caption": "Caption of picture {number}",
+        "captionPlaceholder": "Caption (optional), shown over the picture",
+        "save": "Save",
+        "saved": "Caption saved",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "remove": "Remove",
+        "removing": "Removing…",
+        "removed": "Picture removed",
+        "removeTitle": "Remove this picture?",
+        "removeDescription": "It leaves the homepage slider and is deleted.",
+        "note": "JPG, PNG or WebP, up to 5 MB. Changes show on the homepage within a minute.",
+        "full": "The slider is full ({max} pictures). Remove one to add another."
+      },
+      "admission": {
+        "title": "Admission",
+        "hint": "The admission section of your public homepage. Lists you leave empty aren't shown; with all three empty, there's no Admission section or menu item.",
+        "requirements": "Requirements",
+        "addRequirement": "Add requirement",
+        "requirementPlaceholder": "e.g. Birth registration certificate (copy)",
+        "dates": "Important dates",
+        "addDate": "Add date",
+        "dateLabelPlaceholder": "e.g. Admission test",
+        "dateValuePlaceholder": "e.g. 10 January 2027, 10 am",
+        "fees": "Fees",
+        "addFee": "Add fee",
+        "feeLabelPlaceholder": "e.g. Admission fee",
+        "amount": "Amount in taka",
+        "badAmount": "Enter each fee as a whole number of taka.",
+        "emptyList": "Nothing yet: this part is hidden on the homepage.",
+        "removeRow": "Remove",
+        "note": "Changes show on the homepage within a minute.",
+        "undo": "Undo changes",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Admission section saved"
       }
     },
     "subscription": {
@@ -3904,7 +3952,8 @@
         "empty": "Nothing collected or spent in these months yet.",
         "collectedThisMonth": "Collected this month",
         "spentThisMonth": "Spent this month",
-        "dueNow": "Due now"
+        "dueNow": "Due now",
+        "subtitle": "The last six months"
       },
       "attendance": {
         "title": "Today's attendance",
@@ -3950,6 +3999,15 @@
         "title": "My invigilation duties",
         "room": "Room {number}",
         "with": "with {names}"
+      },
+      "year": "Session {name}",
+      "banner": "Here is how your school is doing today.",
+      "actions": {
+        "label": "Quick actions",
+        "collect": "Collect fee",
+        "attendance": "Take attendance",
+        "addStudent": "Add student",
+        "notice": "New notice"
       }
     },
     "notices": {
@@ -3997,7 +4055,7 @@
       "manage": {
         "write": "Write a notice",
         "search": "Search by title",
-        "allStates": "All notices",
+        "allStates": "All",
         "columns": {
           "title": "Notice",
           "audience": "For",
@@ -4186,7 +4244,7 @@
       "back": "All homework",
       "edit": "Edit",
       "delete": "Delete",
-      "allSubjects": "All subjects",
+      "allSubjects": "All",
       "onlyMine": "Only my subjects",
       "emptyUpcoming": "No homework due from today.",
       "empty": "No homework here.",
@@ -4303,7 +4361,8 @@
         "toDo": "To do",
         "notTicked": "Not checked",
         "teacherSays": "Teacher:"
-      }
+      },
+      "subject": "Subject"
     },
     "idCards": {
       "title": "Student ID cards",
@@ -4315,9 +4374,9 @@
       "print": {
         "year": "Academic year",
         "class": "Class",
-        "allClasses": "All classes",
+        "allClasses": "All",
         "section": "Section",
-        "allSections": "All sections",
+        "allSections": "All",
         "withBacks": "Print the backs too",
         "print": "Print",
         "chooseClass": "Choose a class to see its ID cards.",
@@ -4392,8 +4451,229 @@
     }
   },
   "marketing": {
-    "title": "School management built for Bangladesh",
-    "subtitle": "Students, teachers, attendance, exams, results and routines for your school, in English and Bangla, on your own school address."
+    "nav": {
+      "features": "Features",
+      "pricing": "Packages",
+      "contact": "Contact",
+      "start": "Get started",
+      "menu": "Open menu",
+      "close": "Close menu"
+    },
+    "hero": {
+      "badge": "New",
+      "eyebrow": "Made for schools in Bangladesh, in English and বাংলা",
+      "titleStart": "Run your whole school",
+      "titleHighlight": "from one calm place.",
+      "subtitle": "Students, attendance, exams, results, fees, SMS and your own school website: one system for the office, the teachers and every guardian.",
+      "primary": "See packages",
+      "secondary": "Ask for a demo",
+      "proof1": "Your own web address",
+      "proof2": "Guardian & teacher app",
+      "proof3": "We set it up with you",
+      "float": {
+        "attendance": "Attendance today",
+        "attendanceValue": "1,198 of 1,248 present",
+        "fee": "Fee received · ৳2,500",
+        "feeSms": "SMS sent to guardian",
+        "result": "Result published",
+        "resultValue": "Class 10 · 42 got GPA 5.00"
+      }
+    },
+    "preview": {
+      "url": "yourschool.sncmt.com",
+      "greeting": "Good morning, Principal",
+      "today": "Sunday, a regular school day",
+      "statStudents": "Students",
+      "statPresent": "Present today",
+      "statFees": "Fees this month",
+      "statTeachers": "Teachers",
+      "trend": "▲ this week",
+      "chart": "Attendance this week",
+      "payments": "Latest payments",
+      "days": {
+        "sat": "Sat",
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu"
+      },
+      "menu": {
+        "dashboard": "Dashboard",
+        "students": "Students",
+        "attendance": "Attendance",
+        "exams": "Exams",
+        "fees": "Fees",
+        "messages": "Messages",
+        "settings": "Settings"
+      }
+    },
+    "modules": {
+      "label": "Everything a school runs on",
+      "students": "Students",
+      "teachers": "Teachers",
+      "attendance": "Attendance",
+      "routine": "Class routine",
+      "exams": "Exams",
+      "results": "Results",
+      "fees": "Fees",
+      "payments": "Online payment",
+      "sms": "SMS",
+      "notices": "Notices",
+      "homework": "Homework",
+      "admitCards": "Admit cards",
+      "idCards": "ID cards",
+      "seatPlans": "Seat plans",
+      "promotion": "Promotion",
+      "expenses": "Expenses",
+      "website": "School website",
+      "app": "Mobile app"
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "Everything your school runs on, in one place",
+      "subtitle": "No more registers, spreadsheets and phone calls. Each part of the school day has its place, and they all talk to each other.",
+      "attendance": {
+        "title": "Attendance that takes itself",
+        "body": "Fingerprint and card machines mark students as they walk in, or teachers tick a class in seconds. Guardians get an SMS when a child is absent.",
+        "sms": "Absent SMS sent to guardian"
+      },
+      "results": {
+        "title": "Exams & results",
+        "body": "Marks entry, GPA or percentage grading, merit positions and printed result cards.",
+        "gpa": "GPA"
+      },
+      "fees": {
+        "title": "Fees without the ledger",
+        "body": "Fee structures, dues, receipts and accounts. Guardians can pay online too.",
+        "receipt": "Receipt",
+        "total": "Total",
+        "paid": "Paid"
+      },
+      "sms": {
+        "title": "SMS & notices",
+        "body": "Reach every guardian in seconds: fee reminders, results, holidays and notices.",
+        "first": "Dear guardian, the half-yearly exam starts on Sunday at 10 am.",
+        "second": "Fee received: ৳1,500 for October. Thank you!"
+      },
+      "app": {
+        "title": "Guardian & teacher app",
+        "body": "Attendance, homework, results and fees on every phone."
+      },
+      "website": {
+        "title": "Your school's own website",
+        "body": "A homepage on its own address with your photos, admission details and notices, all changed from settings.",
+        "url": "yourschool.sncmt.com"
+      },
+      "more": {
+        "title": "And the rest of the school day",
+        "body": "The small jobs that eat up the office's week, done in a few clicks.",
+        "items": {
+          "routine": "Class routine",
+          "homework": "Homework",
+          "admit": "Admit cards",
+          "idCard": "ID cards",
+          "seatPlan": "Seat plans",
+          "promotion": "Promotion",
+          "expense": "Expenses",
+          "roles": "Roles & permissions",
+          "bangla": "Bangla & English"
+        }
+      }
+    },
+    "pricing": {
+      "eyebrow": "Packages",
+      "title": "Simple prices that grow with your school",
+      "subtitle": "Pick a package, pay by the month or by the year. Move up whenever you need more.",
+      "billing": "Billing period",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "saveUpTo": "Save up to ৳{amount} with a yearly package",
+      "popular": "Most popular",
+      "perMonth": "/ month",
+      "perYear": "/ year",
+      "billedMonthly": "Billed every month",
+      "billedYearly": "Billed once a year",
+      "save": "You save ৳{amount} a year",
+      "choose": "Choose {name}",
+      "everythingIn": "Everything in {name}, plus",
+      "note": "Prices are in Bangladeshi Taka. A very large school or something special in mind? <link>Talk to us</link>.",
+      "packages": {
+        "BASIC": {
+          "name": "Basic",
+          "blurb": "For a small school getting started"
+        },
+        "STANDARD": {
+          "name": "Standard",
+          "blurb": "For growing schools that want it all connected"
+        },
+        "PREMIUM": {
+          "name": "Premium",
+          "blurb": "For large schools that want every tool"
+        }
+      },
+      "features": {
+        "students300": "Up to 300 students",
+        "students800": "Up to 800 students",
+        "studentsUnlimited": "Unlimited students",
+        "core": "Students, teachers, classes & routines",
+        "attendance": "Daily attendance & reports",
+        "exams": "Exams, marks & result cards",
+        "notices": "Notices & homework",
+        "website": "Your own school website",
+        "fees": "Fees, receipts & accounts",
+        "sms": "SMS to guardians",
+        "app": "Guardian & teacher mobile app",
+        "cards": "Admit cards, ID cards & seat plans",
+        "onlinePayment": "Online fee payment",
+        "devices": "Fingerprint & card attendance machines",
+        "support": "Priority phone support"
+      }
+    },
+    "contact": {
+      "eyebrow": "Contact",
+      "title": "Let's get your school online",
+      "subtitle": "Tell us a little about your school. We'll call you back, answer your questions and show you around.",
+      "stepsTitle": "How it works",
+      "step1": {
+        "title": "Send us your details",
+        "body": "A minute's work: your name, your school and a number to call."
+      },
+      "step2": {
+        "title": "See it working",
+        "body": "We show you around and answer every question."
+      },
+      "step3": {
+        "title": "Go live on your own address",
+        "body": "We set up your school with you and train your staff."
+      },
+      "form": {
+        "name": "Your name",
+        "school": "School name",
+        "phone": "Mobile number",
+        "email": "Email (optional)",
+        "package": "Package",
+        "notSure": "Not sure yet",
+        "packageOption": "{name} · {billing} · ৳{price}",
+        "message": "Message (optional)",
+        "messagePlaceholder": "How many students do you have? Anything you'd like to know?",
+        "privacy": "We only use these details to get back to you.",
+        "send": "Send message",
+        "sending": "Sending…",
+        "sentTitle": "Thank you! Your message is on its way",
+        "sentBody": "We'll get back to you on the number you gave.",
+        "another": "Send another message"
+      }
+    },
+    "footer": {
+      "about": "School management for Bangladesh: students, attendance, exams, fees and a website for every school, in English and Bangla.",
+      "links": "On this page",
+      "schools": "For schools",
+      "login": "Already with us? Your school logs in on its own address:",
+      "loginAddress": "yourschool.sncmt.com",
+      "rights": "© {year} {name}. All rights reserved.",
+      "made": "Made in Bangladesh"
+    }
   },
   "inbox": {
     "title": "Messages",
@@ -4532,8 +4812,6 @@
     "menu": "Menu"
   },
   "schoolHome": {
-    "tagline": "Welcome to our school. See the latest notices, or log in to follow attendance, homework, results and fees.",
-    "noticeBoard": "Notice board",
     "logIn": "Log in",
     "openApp": "Open the app",
     "contact": {
@@ -4543,7 +4821,62 @@
       "phone": "Phone",
       "email": "Email",
       "website": "Website",
-      "none": "The school hasn't added its contact details yet."
+      "none": "The school hasn't added its contact details yet.",
+      "eyebrow": "Get in touch"
+    },
+    "nav": {
+      "home": "Home",
+      "admission": "Admission",
+      "notices": "Notices",
+      "contact": "Contact",
+      "menu": "Open menu",
+      "closeMenu": "Close menu"
+    },
+    "slider": {
+      "label": "Pictures of {name}",
+      "slideOf": "Picture {current} of {total}",
+      "previous": "Previous picture",
+      "next": "Next picture",
+      "goTo": "Show picture {number}"
+    },
+    "admission": {
+      "title": "Admission",
+      "subtitle": "What you need, when to apply and what it costs.",
+      "requirements": "Requirements",
+      "dates": "Important dates",
+      "fees": "Fees",
+      "eyebrow": "Join us"
+    },
+    "notices": {
+      "title": "Latest notices",
+      "subtitle": "News and announcements from the school.",
+      "empty": "There are no notices right now.",
+      "pinned": "Pinned",
+      "files": "{count, plural, one {# file} other {# files}}",
+      "showMore": "Show more",
+      "loading": "Loading…",
+      "loadFailed": "Couldn't load more notices. Try again.",
+      "posted": "Posted {date}",
+      "until": "until {date}",
+      "notFound": "Notice not available",
+      "notFoundHint": "This notice has been removed or is no longer public.",
+      "eyebrow": "Stay informed"
+    },
+    "hero": {
+      "eyebrow": "Welcome to",
+      "tagline": "A place where curious minds grow, character is shaped, and every student is helped to shine.",
+      "admission": "Admission info",
+      "notices": "Latest notices",
+      "contact": "Contact us",
+      "phone": "Call us",
+      "address": "Find us",
+      "latestNotice": "Latest notice"
+    },
+    "footer": {
+      "about": "Learning, discipline and care, together. Visit us, call us, or follow our notices to stay up to date.",
+      "links": "Quick links",
+      "reach": "Reach us",
+      "rights": "© {year} {name}. All rights reserved."
     }
   },
   "publicNotices": {

@@ -46,11 +46,11 @@ export function PromotionPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="page-subtitle">{t("description")}</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         <Select
           value={schoolClass?.id ?? ""}
           onValueChange={(v) => {
@@ -58,7 +58,7 @@ export function PromotionPage() {
             setFormulaId(undefined);
           }}
         >
-          <SelectTrigger className="w-44" aria-label={t("class")}>
+          <SelectTrigger className="w-44" label={t("class")} required>
             <SelectValue placeholder={t("class")} />
           </SelectTrigger>
           <SelectContent>

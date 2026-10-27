@@ -48,10 +48,10 @@ export function StudentFeesView({ studentId, enrollments }: { studentId: string;
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         {enrollments.length > 1 && (
           <Select value={yearId} onValueChange={setYearId}>
-            <SelectTrigger className="w-36" aria-label={t("year")}>
+            <SelectTrigger className="w-36" label={t("year")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

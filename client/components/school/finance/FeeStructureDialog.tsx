@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash2 } from "lucide-react";
+import { CheckCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useFieldArray, useForm, useWatch, type FieldPath } from "react-hook-form";
+import { useForm, useWatch, type FieldPath } from "react-hook-form";
 import { toast } from "sonner";
 import { FormError } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,8 @@ import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import type { AcademicYear } from "@/lib/school/academicYears";
 import { useFeeTypes, useMonthName, useSaveFeeStructure, type FeeStructure } from "@/lib/school/finance";
-import { feeStructureFormSchema, monthsOf, type FeeStructureFormInput, type FeeStructureFormValues } from "@/zod/finance";
+import { feeStructureFormSchema, type FeeStructureFormInput, type FeeStructureFormValues } from "@/zod/finance";
+import { cn } from "@/lib/utils";
 import { useSyncToast, yearMonths } from "./FeeStructuresTab";
 
 /** Set one fee for a class and year, or change its amounts. */
@@ -102,20 +103,10 @@ function FeeStructureForm({
   // nothing to choose: no active fee type at all yet, or the class already has every one
   const noneToChoose = !structure && feeTypes.isSuccess && options.length === 0;
   const noFeeTypesYet = noneToChoose && !feeTypes.data.some((f) => f.isActive);
-  // the schedule as periods of the year: consecutive months with the same amount
-  const initialPeriods = () => {
-    if (!structure || structure.monthlyAmounts.length === 0) return [];
-    const by = new Map(structure.monthlyAmounts.map((m) => [m.month, String(Number(m.amount))]));
-    const periods: FeeStructureFormInput["periods"] = [];
-    let i = 0;
-    while (i < months.length) {
-      const amount = by.get(months[i]);
-      let j = i;
-      while (j + 1 < months.length && by.get(months[j + 1]) === amount) j++;
-      if (amount !== undefined) periods.push({ fromMonth: months[i], toMonth: months[j], amount });
-      i = j + 1;
-    }
-    return periods;
+  // every month of the year: ticked (with its amount) when the fee is charged in it
+  const initialMonths = (): FeeStructureFormInput["months"] => {
+    const by = new Map((structure?.monthlyAmounts ?? []).map((m) => [m.month, String(Number(m.amount))]));
+    return months.map((month) => ({ month, on: by.has(month), amount: by.get(month) ?? "" }));
   };
 
   const form = useForm<FeeStructureFormInput, unknown, FeeStructureFormValues>({
@@ -124,26 +115,32 @@ function FeeStructureForm({
       feeTypeId: structure?.feeTypeId ?? "",
       byMonth: !!structure && structure.monthlyAmounts.length > 0,
       amount: structure && structure.monthlyAmounts.length === 0 ? String(Number(structure.amount)) : "",
-      periods: initialPeriods(),
+      months: initialMonths(),
     },
   });
-  const periods = useFieldArray({ control: form.control, name: "periods" });
   const feeTypeId = useWatch({ control: form.control, name: "feeTypeId" });
   const byMonth = useWatch({ control: form.control, name: "byMonth" });
-  const watchedPeriods = useWatch({ control: form.control, name: "periods" });
+  const rows = useWatch({ control: form.control, name: "months" });
   const feeType = options.find((f) => f.id === feeTypeId);
   const monthly = feeType?.frequency === "MONTHLY";
-  const covered = new Set(watchedPeriods.flatMap((p) => monthsOf(p.fromMonth, p.toMonth)));
-  const nextFree = months.find((m) => !covered.has(m));
-  const rootError = form.formState.errors.periods?.root?.message;
+  const rootError = form.formState.errors.months?.root?.message;
   const tValidation = useTranslations("validation");
+  // one amount for every ticked month at once
+  const [fill, setFill] = useState("");
+  const ticked = rows.filter((r) => r.on).length;
 
+  // month by month starts from what it was: nothing ticked yet means every month at the one amount
   const toggleByMonth = (on: boolean) => {
     form.setValue("byMonth", on);
-    if (on && periods.fields.length === 0) {
-      periods.append({ fromMonth: months[0], toMonth: months[months.length - 1], amount: form.getValues("amount") });
+    if (on && !form.getValues("months").some((m) => m.on)) {
+      const amount = form.getValues("amount");
+      form.setValue("months", months.map((month) => ({ month, on: true, amount })));
     }
   };
+  const tickAll = (on: boolean) =>
+    form.setValue("months", form.getValues("months").map((m) => ({ ...m, on })), { shouldValidate: form.formState.isSubmitted });
+  const fillTicked = () =>
+    form.setValue("months", form.getValues("months").map((m) => (m.on ? { ...m, amount: fill.trim() } : m)), { shouldValidate: form.formState.isSubmitted });
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
@@ -153,33 +150,19 @@ function FeeStructureForm({
         academicYearId: year.id,
         classId,
         feeTypeId: values.feeTypeId,
+        // each ticked month is its own part of the year
         ...(useSchedule
-          ? { monthlySchedule: values.periods.map((p) => ({ fromMonth: p.fromMonth, toMonth: p.toMonth, amount: p.amount })) }
+          ? { monthlySchedule: values.months.map((m) => ({ fromMonth: m.month, toMonth: m.month, amount: m.amount })) }
           : { amount: values.amount }),
       });
       toast.success(t("saved", { name: feeType ? name(feeType) : "" }));
       syncToast(result.sync);
       onDone();
     } catch (error) {
-      const fields = ["feeTypeId", "amount", ...values.periods.map((_, i) => `periods.${i}.amount`)] as FieldPath<FeeStructureFormInput>[];
+      const fields = ["feeTypeId", "amount", ...months.map((_, i) => `months.${i}.amount`)] as FieldPath<FeeStructureFormInput>[];
       setFormError(applyServerErrors(error, form.setError, fields, describeError));
     }
   });
-
-  const monthSelect = (value: number, onChange: (m: number) => void, label: string) => (
-    <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
-      <SelectTrigger className="w-full" aria-label={label}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {months.map((m) => (
-          <SelectItem key={m} value={String(m)}>
-            {monthName(m)}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
 
   return (
     <Form {...form}>
@@ -209,7 +192,7 @@ function FeeStructureForm({
                     field.onChange(v);
                     // another fee type starts from one amount
                     form.setValue("byMonth", false);
-                    periods.replace([]);
+                    form.setValue("months", months.map((month) => ({ month, on: false, amount: "" })));
                   }}
                   disabled={!!structure || !feeTypes.isSuccess}
                 >
@@ -263,57 +246,68 @@ function FeeStructureForm({
         )}
 
         {feeType && monthly && byMonth && (
-          <div className="space-y-2">
-            {periods.fields.map((p, i) => (
-              // on a phone: the two months on one line, the amount and the remove button under them
-              <div key={p.id} className="grid grid-cols-2 items-start gap-2 rounded-md border p-2 sm:grid-cols-[1fr_1fr_8rem_auto] sm:border-0 sm:p-0">
-                <FormField
-                  control={form.control}
-                  name={`periods.${i}.fromMonth`}
-                  render={({ field }) => <FormItem>{monthSelect(field.value, field.onChange, t("from"))}</FormItem>}
-                />
-                <FormField
-                  control={form.control}
-                  name={`periods.${i}.toMonth`}
-                  render={({ field }) => (
-                    <FormItem>
-                      {monthSelect(field.value, field.onChange, t("to"))}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`periods.${i}.amount`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">৳</span>
-                          <Input inputMode="decimal" className="pl-7" aria-label={t("monthlyAmount")} {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="button" variant="ghost" size="icon" className="justify-self-end sm:justify-self-auto" onClick={() => periods.remove(i)} aria-label={t("removePeriod")}>
-                  <Trash2 />
-                </Button>
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-32">
+                <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">৳</span>
+                <Input inputMode="decimal" className="h-8 pl-7" value={fill} onChange={(e) => setFill(e.target.value)} aria-label={t("fillAmount")} placeholder={t("fillAmount")} />
               </div>
-            ))}
-            {rootError && <p className="text-sm text-destructive">{tValidation(rootError.replace("validation.", "") as "periodsRequired")}</p>}
-            {nextFree !== undefined && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => periods.append({ fromMonth: nextFree, toMonth: months[months.length - 1], amount: "" })}
-              >
-                <Plus /> {t("addPeriod")}
+              <Button type="button" variant="outline" size="sm" onClick={fillTicked} disabled={!fill.trim() || ticked === 0}>
+                {t("fillTicked")}
               </Button>
-            )}
-            <p className="text-xs text-muted-foreground">{t("periodsHint")}</p>
+              <span className="ml-auto flex gap-1">
+                <Button type="button" variant="ghost" size="sm" onClick={() => tickAll(true)}>
+                  <CheckCheck /> {t("tickAll")}
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => tickAll(false)}>
+                  {t("tickNone")}
+                </Button>
+              </span>
+            </div>
+            <div className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+              {months.map((month, i) => (
+                <div key={month} className={cn("flex items-center gap-2 rounded-md border px-2 py-1.5", !rows[i]?.on && "bg-muted/30")}>
+                  <FormField
+                    control={form.control}
+                    name={`months.${i}.on`}
+                    render={({ field }) => (
+                      <label className="flex flex-1 cursor-pointer items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          className="size-4 cursor-pointer accent-primary"
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                        />
+                        <span className={cn(!field.value && "text-muted-foreground")}>{monthName(month)}</span>
+                      </label>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`months.${i}.amount`}
+                    render={({ field, fieldState }) => (
+                      <FormItem className="w-28">
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">৳</span>
+                            <Input
+                              inputMode="decimal"
+                              className={cn("h-8 pl-6 text-right tabular-nums", fieldState.error && "border-destructive")}
+                              disabled={!rows[i]?.on}
+                              aria-label={t("amountOf", { month: monthName(month) })}
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+            {form.formState.errors.months?.some?.((m) => m?.amount) && <p className="text-sm text-destructive">{t("badMonthAmount")}</p>}
+            {rootError && <p className="text-sm text-destructive">{tValidation(rootError.replace("validation.", "") as "monthsRequired")}</p>}
+            <p className="text-xs text-muted-foreground">{t("monthsHint")}</p>
           </div>
         )}
 

@@ -207,11 +207,11 @@ export function StudentsList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t("title")}</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex min-w-0 items-end gap-2.5">
+          <h1 className="page-title">{t("title")}</h1>
           {data && (
-            <span className="rounded-full bg-navy-soft px-2 py-0.5 text-xs font-semibold text-navy tabular-nums">
+            <span className="mb-1 rounded-full bg-navy-soft px-2 py-0.5 text-xs font-semibold text-navy tabular-nums">
               {format.number(data.meta.total)}
             </span>
           )}
@@ -248,8 +248,17 @@ export function StudentsList() {
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-wrap items-center gap-2 px-4 py-3">
-          <div className="relative w-full min-w-0 sm:w-60">
+        {/* the filters, each named; the search on the right */}
+        <div className="flex flex-wrap items-end gap-3 px-4 py-3">
+          {fields.map((field) => (
+            <FilterSelect key={field.key} field={field} />
+          ))}
+          {canClear && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-muted-foreground">
+              <X /> {t("filters.clear")}
+            </Button>
+          )}
+          <div className="relative w-full min-w-0 sm:ml-auto sm:w-60">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchInput}
@@ -262,14 +271,6 @@ export function StudentsList() {
               className="h-9 bg-muted/40 pl-9 shadow-none"
             />
           </div>
-          {fields.map((field) => (
-            <FilterSelect key={field.key} field={field} />
-          ))}
-          {canClear && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-muted-foreground">
-              <X /> {t("filters.clear")}
-            </Button>
-          )}
         </div>
 
         <div className={cn("border-t transition-opacity", isFetching && !isPending && "opacity-60")}>
@@ -351,9 +352,11 @@ function FilterSelect({ field }: { field: FilterField }) {
   return (
     <Select value={value ?? (allLabel ? ALL : "")} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
       <SelectTrigger
-        aria-label={label}
+        label={label}
+        // no "all" choice (the year): one must be chosen
+        required={!allLabel}
         className={cn(
-          "h-9 max-w-44 min-w-0 flex-1 bg-card shadow-none sm:flex-none",
+          "h-9 w-36 bg-card shadow-none sm:w-40",
           active && "border-navy/30 bg-navy-soft text-navy [&_svg:not([class*='text-'])]:text-navy",
         )}
       >

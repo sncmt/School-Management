@@ -32,7 +32,7 @@ export default async function SchoolLoginPage() {
         ) : null
       }
       footer={
-        <Link href={publicSchoolRoutes.noticeBoard} className="inline-flex items-center gap-1.5 hover:text-foreground hover:underline">
+        <Link href={publicSchoolRoutes.notices} className="inline-flex items-center gap-1.5 hover:text-foreground hover:underline">
           <Megaphone className="size-4" /> {t("noticeBoardLink")}
         </Link>
       }

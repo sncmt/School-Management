@@ -55,10 +55,10 @@ export function StaffHomework() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("description")}</p>
+          <h1 className="page-title">{t("title")}</h1>
+          <p className="page-subtitle">{t("description")}</p>
         </div>
         {canGive && (
           <Button onClick={() => setGiving(true)}>
@@ -67,8 +67,8 @@ export function StaffHomework() {
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex rounded-md border bg-card p-0.5 text-sm">
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex h-9 items-center rounded-md border bg-card p-0.5 text-sm">
           {(["UPCOMING", "PAST", "ALL"] as const).map((w) => (
             <button
               key={w}
@@ -92,7 +92,7 @@ export function StaffHomework() {
               reset();
             }}
           >
-            <SelectTrigger className="w-56">
+            <SelectTrigger className="w-56" label={t("subject")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

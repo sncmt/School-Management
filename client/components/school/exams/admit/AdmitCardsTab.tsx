@@ -57,7 +57,7 @@ export function AdmitCardsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         <Select
           value={exam.id}
           onValueChange={(v) => {
@@ -66,7 +66,7 @@ export function AdmitCardsTab() {
             setSectionId(ALL);
           }}
         >
-          <SelectTrigger className="w-56" aria-label={t("exam")}>
+          <SelectTrigger className="w-56" label={t("exam")} required>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -84,7 +84,7 @@ export function AdmitCardsTab() {
             setSectionId(ALL);
           }}
         >
-          <SelectTrigger className="w-40" aria-label={t("class")}>
+          <SelectTrigger className="w-40" label={t("class")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -98,7 +98,7 @@ export function AdmitCardsTab() {
         </Select>
         {sections.length > 0 && (
           <Select value={sectionId} onValueChange={setSectionId}>
-            <SelectTrigger className="w-36" aria-label={t("section")}>
+            <SelectTrigger className="w-36" label={t("section")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -124,7 +124,7 @@ export function AdmitCardsTab() {
       </div>
 
       {/* families see the cards in the app once released */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-4">
         <div className="text-sm">
           <div className="font-medium">{released ? t("released") : t("notReleased")}</div>
           <div className="text-xs text-muted-foreground">{released ? t("releasedHint") : t("notReleasedHint")}</div>
@@ -149,9 +149,9 @@ export function AdmitCardsTab() {
       {cards.isPending ? (
         <Skeleton className="h-96" />
       ) : cards.error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(cards.error)}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(cards.error)}</p>
       ) : sheet!.cards.length === 0 ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("none")}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("none")}</p>
       ) : (
         <>
           <p className="text-sm text-muted-foreground">

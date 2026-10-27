@@ -39,10 +39,10 @@ export function FinalTabulationView({ formulaId, classId }: { formulaId: string;
 
   return (
     <div className="space-y-3">
-      <div className="no-print flex flex-wrap items-center gap-2">
+      <div className="no-print flex flex-wrap items-end gap-2">
         {sections.length > 0 && (
           <Select value={sectionId ?? ALL} onValueChange={(v) => setSectionId(v === ALL ? undefined : v)}>
-            <SelectTrigger className="w-40" aria-label={t("section")}>
+            <SelectTrigger className="w-40" label={t("section")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -56,7 +56,7 @@ export function FinalTabulationView({ formulaId, classId }: { formulaId: string;
           </Select>
         )}
         <Select value={sort} onValueChange={(v) => setSort(v as "roll" | "merit")}>
-          <SelectTrigger className="w-40" aria-label={t("order")}>
+          <SelectTrigger className="w-40" label={t("order")} required>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

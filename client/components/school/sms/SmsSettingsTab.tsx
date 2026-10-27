@@ -50,7 +50,7 @@ export function SmsSettingsTab() {
     );
 
   return (
-    <section className="max-w-2xl divide-y rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+    <section className="max-w-2xl divide-y rounded-2xl border border-border/70 bg-card">
       <div className="flex items-start gap-4 p-5">
         <div className="flex-1 space-y-1">
           <Label htmlFor="sms-active" className="text-base font-semibold">

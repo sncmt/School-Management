@@ -118,7 +118,7 @@ export function OnlinePaymentsList() {
           <Input id="online-to" type="date" value={to} min={from} max={today} onChange={(e) => reset(setTo)(e.target.value)} className="w-40" />
         </div>
         <Select value={status} onValueChange={(v) => reset(setStatus)(v as OnlinePaymentStatus)}>
-          <SelectTrigger className="w-40" aria-label={t("status")}>
+          <SelectTrigger className="w-40" label={t("status")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -131,7 +131,7 @@ export function OnlinePaymentsList() {
           </SelectContent>
         </Select>
         <Select value={refund} onValueChange={(v) => reset(setRefund)(v as "OWED")}>
-          <SelectTrigger className="w-40" aria-label={t("refund")}>
+          <SelectTrigger className="w-40" label={t("refund")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

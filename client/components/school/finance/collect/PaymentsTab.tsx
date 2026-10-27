@@ -62,7 +62,7 @@ export function PaymentsTab() {
           <Input id="pay-to" type="date" value={to} min={from} max={today} onChange={(e) => reset(setTo)(e.target.value)} className="w-40" />
         </div>
         <Select value={method} onValueChange={(v) => reset(setMethod)(v as PaymentMethod)}>
-          <SelectTrigger className="w-44" aria-label={t("method")}>
+          <SelectTrigger className="w-44" label={t("method")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -73,7 +73,7 @@ export function PaymentsTab() {
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={(v) => reset(setStatus)(v as "SUCCESS")}>
-          <SelectTrigger className="w-40" aria-label={t("status")}>
+          <SelectTrigger className="w-40" label={t("status")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

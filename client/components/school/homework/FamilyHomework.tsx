@@ -29,8 +29,8 @@ export function FamilyHomework() {
   const list = useFamilyHomework(childId, page);
 
   if (home.isPending) return <Skeleton className="h-64 rounded-xl" />;
-  if (home.error) return <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(home.error)}</p>;
-  if (children.length === 0) return <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("noChildren")}</p>;
+  if (home.error) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(home.error)}</p>;
+  if (children.length === 0) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("noChildren")}</p>;
 
   return (
     <div className="space-y-4">
@@ -67,9 +67,9 @@ export function FamilyHomework() {
           <Skeleton className="h-28 rounded-xl" />
         </div>
       ) : list.error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(list.error)}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(list.error)}</p>
       ) : list.data.items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-card p-10 text-center text-sm text-muted-foreground">
           <BookOpenCheck className="size-8 text-muted-foreground/50" />
           {t("empty")}
         </div>
@@ -97,7 +97,7 @@ function HomeworkCard({ homework: hw }: { homework: FamilyHomeworkItem }) {
   const [open, setOpen] = useState(upcoming);
 
   return (
-    <article className={cn("rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]", upcoming && !hw.check && "border-l-4 border-l-brand")}>
+    <article className={cn("rounded-2xl border border-border/70 bg-card", upcoming && !hw.check && "border-l-4 border-l-brand")}>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full flex-wrap items-start gap-x-4 gap-y-2 p-4 text-left sm:p-5">
         <div className="min-w-0 flex-1 space-y-1">
           <div className="text-xs font-medium text-muted-foreground">{name(hw.subject)}</div>

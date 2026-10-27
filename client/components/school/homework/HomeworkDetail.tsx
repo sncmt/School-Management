@@ -54,7 +54,7 @@ export function HomeworkDetail({ homeworkId }: { homeworkId: string }) {
           <Skeleton className="h-72 rounded-xl" />
         </div>
       ) : error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>
       ) : (
         <>
           <Summary homework={data} />
@@ -75,7 +75,7 @@ function Summary({ homework }: { homework: Detail }) {
   const sections = sectionNames(homework.sections);
 
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
+    <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <div className="text-sm text-muted-foreground">
@@ -176,7 +176,7 @@ function CheckSheet({ homework }: { homework: Detail }) {
   };
 
   return (
-    <section className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+    <section className="rounded-2xl border border-border/70 bg-card">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
         <div>
           <h2 className="font-semibold">{t("title", { count: homework.students.length })}</h2>

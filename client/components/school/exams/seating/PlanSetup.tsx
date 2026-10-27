@@ -86,7 +86,7 @@ export function PlanSetup({ view, onDone, onCancel }: { view: SeatPlanView; onDo
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border bg-card p-5">
+      <section className="rounded-2xl border border-border/70 bg-card p-5">
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold">{t("groupsTitle")}</h3>
           <Button
@@ -136,7 +136,7 @@ export function PlanSetup({ view, onDone, onCancel }: { view: SeatPlanView; onDo
         )}
       </section>
 
-      <section className="rounded-xl border bg-card p-5">
+      <section className="rounded-2xl border border-border/70 bg-card p-5">
         <h3 className="mb-1 font-semibold">{t("roomsTitle")}</h3>
         <p className="mb-4 text-sm text-muted-foreground">{t("roomsHint")}</p>
         {rooms.isPending ? (
@@ -190,7 +190,7 @@ export function PlanSetup({ view, onDone, onCancel }: { view: SeatPlanView; onDo
         )}
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-4">
         <p className={cn("text-sm", short ? "text-destructive" : "text-muted-foreground")}>
           {short
             ? t("short", { needed: format.number(needed), seats: format.number(seats) })

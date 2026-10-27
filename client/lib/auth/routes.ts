@@ -19,11 +19,14 @@ export const authRoutes = {
   },
 } as const satisfies Record<SessionType, Record<string, string>>;
 
-// a school's pages for everyone (no login): its homepage (app/school/page) and app/school/notice-board
+// a school's page for everyone (no login): its homepage (app/school/page); notices are a section
+// of it, and one opens in a dialog there from "/?notice=<id>"
 export const publicSchoolRoutes = {
   home: "/",
-  noticeBoard: "/notice-board",
+  notices: "/#notices",
 } as const;
+
+export const publicNoticeHref = (noticeId: string) => `/?${new URLSearchParams({ notice: noticeId })}`;
 
 // app/ folder each site's pages live in
 export const siteAppFolder = {

@@ -77,7 +77,7 @@ const rowClass = (active: boolean) =>
     "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
     active
       ? "bg-sidebar-accent font-semibold text-white ring-1 ring-white/15 ring-inset before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-sidebar-primary"
-      : "text-sidebar-foreground/85 hover:bg-white/5 hover:text-white",
+      : "text-white hover:bg-white/5",
   );
 
 /** Logged-in layout: the navy menu on the left; a white top bar and the page on a squared light-grey canvas. Used by the admin and school sites. */
@@ -104,7 +104,7 @@ export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, chi
     <SidebarProvider style={{ "--sidebar-width": "14.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
       <Sidebar collapsible="icon" className="dark border-r-0">
         {/* the logo block on the same navy as the menu, as tall as the top bar; its text is white */}
-        <SidebarHeader className="h-[72px] flex-row items-center gap-0 border-b border-white/10 px-5 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        <SidebarHeader className="h-[72px] flex-row items-center gap-0 border-b border-white/20 px-5 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link href={brand.home} className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:hidden">
             <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white text-sidebar shadow-sm">
               {brand.icon}
@@ -253,7 +253,7 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
             >
               <Icon className="size-[18px] shrink-0 text-white" />
               <span className="flex-1 truncate">{tGroups(group.label)}</span>
-              {open ? <ChevronDown className="size-4 text-white/60" /> : <ChevronRight className="size-4 text-white/50" />}
+              {open ? <ChevronDown className="size-4 text-white/85" /> : <ChevronRight className="size-4 text-white/85" />}
             </button>
             {open && (
               // its pages, on a thin line under the group's icon
@@ -270,7 +270,7 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
                           "flex h-9 items-center rounded-lg px-3 text-[13.5px] transition-colors",
                           active
                             ? "bg-sidebar-accent font-semibold text-sidebar-primary ring-1 ring-white/15 ring-inset"
-                            : "text-sidebar-foreground/75 hover:bg-white/5 hover:text-white",
+                            : "text-white/90 hover:bg-white/5 hover:text-white",
                         )}
                       >
                         <span className="truncate">{t(item.label)}</span>

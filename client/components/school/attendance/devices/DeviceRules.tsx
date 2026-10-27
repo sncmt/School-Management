@@ -77,7 +77,7 @@ function RulesForm({ saved }: { saved: DeviceRules }) {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-5">
+    <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-5">
       <h2 className="font-semibold">{title}</h2>
       {children}
     </section>

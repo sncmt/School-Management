@@ -53,7 +53,7 @@ export function SmsActivitiesTab({ settings, onOpenSettings }: { settings: SmsSe
       </div>
     );
   }
-  if (templates.isError) return <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("loadFailed")}</p>;
+  if (templates.isError) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("loadFailed")}</p>;
 
   return (
     <div className="space-y-5">
@@ -76,7 +76,7 @@ export function SmsActivitiesTab({ settings, onOpenSettings }: { settings: SmsSe
           const Icon = ICONS[activity];
           const mayToggle = can(activityPermission(activity));
           return (
-            <section key={activity} className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+            <section key={activity} className="rounded-2xl border border-border/70 bg-card">
               <header className="flex items-center gap-3 border-b px-5 py-3.5">
                 <span className="flex size-8 items-center justify-center rounded-full bg-brand-soft text-brand">
                   <Icon className="size-4" />

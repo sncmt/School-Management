@@ -108,7 +108,7 @@ export function PlanView({ view, canManage, onSetup }: { view: SeatPlanView; can
   return (
     <div className="space-y-4">
       {/* summary and tools */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-4">
         <div className="space-y-1 text-sm">
           <div className="font-medium">
             {t("summary", { seated: format.number(plan.seats.length), seats: format.number(totalSeats), rooms: format.number(plan.rooms.length) })}
@@ -282,7 +282,7 @@ function RoomGrid({
   }
 
   return (
-    <section className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+    <section className="rounded-2xl border border-border/70 bg-card">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
         <div>
           <h3 className="font-semibold">

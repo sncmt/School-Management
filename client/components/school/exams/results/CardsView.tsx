@@ -37,7 +37,7 @@ export function CardsView({ examId, formulaId, classId }: { examId?: string; for
 
   return (
     <div className="space-y-3">
-      <div className="no-print flex flex-wrap items-center gap-2">
+      <div className="no-print flex flex-wrap items-end gap-2">
         {realSections.length > 0 && (
           <Select
             value={shownSection ?? ""}
@@ -46,7 +46,7 @@ export function CardsView({ examId, formulaId, classId }: { examId?: string; for
               setEnrollmentId(ALL);
             }}
           >
-            <SelectTrigger className="w-36" aria-label={t("section")}>
+            <SelectTrigger className="w-36" label={t("section")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -60,7 +60,7 @@ export function CardsView({ examId, formulaId, classId }: { examId?: string; for
         )}
         {data && (
           <Select value={enrollmentId} onValueChange={setEnrollmentId}>
-            <SelectTrigger className="w-60" aria-label={t("student")}>
+            <SelectTrigger className="w-60" label={t("student")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

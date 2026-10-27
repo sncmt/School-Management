@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
@@ -42,15 +43,18 @@ export function RollCall({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Input
-          type="date"
-          value={date}
-          max={todayKey()}
-          onChange={(e) => e.target.value && onDate(e.target.value)}
-          className="w-44"
-          aria-label={t("date")}
-        />
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="space-y-1">
+          <Label htmlFor="rollcall-date">{t("date")}</Label>
+          <Input
+            type="date"
+            value={date}
+            max={todayKey()}
+            onChange={(e) => e.target.value && onDate(e.target.value)}
+            className="w-44"
+            id="rollcall-date"
+          />
+        </div>
         <SectionPicker choice={choice} onChange={onChoice} />
       </div>
 

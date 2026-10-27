@@ -1,13 +1,18 @@
-import { getTranslations } from "next-intl/server";
+import { ContactSection } from "@/components/marketing/ContactSection";
+import { Features } from "@/components/marketing/Features";
+import { Hero } from "@/components/marketing/Hero";
+import { ModuleMarquee } from "@/components/marketing/ModuleMarquee";
+import { Pricing } from "@/components/marketing/Pricing";
 
-// Placeholder homepage; the real marketing design comes later.
-export default async function HomePage() {
-  const t = await getTranslations("marketing");
-
+// One page: the menu jumps between its sections (features, pricing, contact).
+export default function HomePage() {
   return (
-    <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 py-24 text-center">
-      <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{t("title")}</h1>
-      <p className="text-lg text-muted-foreground">{t("subtitle")}</p>
-    </section>
+    <>
+      <Hero />
+      <ModuleMarquee />
+      <Features />
+      <Pricing />
+      <ContactSection />
+    </>
   );
 }

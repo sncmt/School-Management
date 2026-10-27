@@ -31,7 +31,7 @@ export function FamilyHome() {
           <Skeleton className="h-72 rounded-xl" />
         </div>
       ) : error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>
       ) : (
         <ChildrenGrid items={data.children} mainYearId={data.academicYear?.id} canPayOnline={data.onlinePayment.enabled} />
       )}
@@ -49,7 +49,7 @@ export function ChildrenGrid({ items, mainYearId, canPayOnline = false }: { item
   const t = useTranslations("school.family");
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-xl border bg-card p-10 text-center text-sm text-muted-foreground">
+      <div className="flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-card p-10 text-center text-sm text-muted-foreground">
         <Users className="size-8 text-muted-foreground/50" />
         {t("noChildren")}
       </div>
@@ -100,7 +100,7 @@ function ChildCard({ child, mainYearId, canPayOnline }: { child: FamilyChild; ma
     : null;
 
   return (
-    <section className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
+    <section className="overflow-hidden rounded-2xl border border-border/70 bg-card">
       <header className="flex items-center gap-4 border-b bg-brand-soft/60 px-5 py-4">
         <StudentAvatar photo={child.photo} className="size-14 border-2 border-card" />
         <div className="min-w-0 flex-1">

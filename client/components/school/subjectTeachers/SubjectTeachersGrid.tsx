@@ -83,13 +83,13 @@ export function SubjectTeachersGrid() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <h1 className="page-title">{t("title")}</h1>
+        <p className="page-subtitle">{t("description")}</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <Select value={classId ?? ""} onValueChange={chooseClass} disabled={classes.length === 0}>
-          <SelectTrigger className="w-48" aria-label={t("class")}>
+          <SelectTrigger className="w-48" label={t("class")} required>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

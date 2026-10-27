@@ -75,7 +75,7 @@ function DeviceList() {
     <div className="space-y-4">
       {data && <SetupCard server={data.server} />}
 
-      <section className="rounded-xl border bg-card">
+      <section className="rounded-2xl border border-border/70 bg-card">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
           <h2 className="font-semibold">{t("title")}</h2>
           <Button size="sm" onClick={() => setEditing("new")}>
@@ -234,7 +234,7 @@ function PunchesPanel() {
     format.dateTime(new Date(iso), { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: "Asia/Dhaka" });
 
   return (
-    <section className="rounded-xl border bg-card">
+    <section className="rounded-2xl border border-border/70 bg-card">
       <header className="flex flex-wrap items-end justify-between gap-3 border-b px-4 py-3">
         <div>
           <h2 className="font-semibold">{t("title")}</h2>

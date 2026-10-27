@@ -56,7 +56,7 @@ export function SeatPlanTab({ canManage }: { canManage: boolean }) {
       {plan.isPending ? (
         <Skeleton className="h-64" />
       ) : plan.error ? (
-        <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(plan.error)}</p>
+        <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(plan.error)}</p>
       ) : !plan.data.plan || settingUp ? (
         canManage ? (
           <PlanSetup
@@ -66,7 +66,7 @@ export function SeatPlanTab({ canManage }: { canManage: boolean }) {
             onCancel={plan.data.plan ? () => setSettingUp(false) : undefined}
           />
         ) : (
-          <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("noPlan")}</p>
+          <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("noPlan")}</p>
         )
       ) : (
         <PlanView view={plan.data} canManage={canManage} onSetup={() => setSettingUp(true)} />

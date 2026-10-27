@@ -30,8 +30,8 @@ export function FamilyPayments() {
   const list = useFamilyPayments({ page, limit: PAGE_SIZE, ...(studentId !== ALL ? { studentId } : {}) }, ready && isFamily);
 
   if (!ready || (isFamily && list.isPending)) return <Skeleton className="h-72 rounded-xl" />;
-  if (!isFamily) return <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t("familyOnly")}</p>;
-  if (list.error) return <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{describeError(list.error)}</p>;
+  if (!isFamily) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("familyOnly")}</p>;
+  if (list.error) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(list.error)}</p>;
 
   const data = list.data!;
   const childName = new Map(data.children.map((c) => [c.id, name(c)]));
@@ -63,7 +63,7 @@ export function FamilyPayments() {
 
       {data.attempts.length > 0 && <Attempts items={data.attempts} childName={data.children.length > 1 ? childName : null} />}
 
-      <section className={cn("overflow-hidden rounded-xl border bg-card", list.isFetching && "opacity-60")}>
+      <section className={cn("overflow-hidden rounded-2xl border border-border/70 bg-card", list.isFetching && "opacity-60")}>
         <h2 className="border-b px-5 py-3 text-sm font-semibold">{t("receipts")}</h2>
         {data.items.length === 0 ? (
           <p className="p-8 text-center text-sm text-muted-foreground">{t("empty")}</p>
@@ -126,7 +126,7 @@ function Attempts({ items, childName }: { items: FamilyPaymentAttempt[]; childNa
   const money = useMoney();
 
   return (
-    <section className="overflow-hidden rounded-xl border bg-card">
+    <section className="overflow-hidden rounded-2xl border border-border/70 bg-card">
       <h2 className="border-b px-5 py-3 text-sm font-semibold">{t("online")}</h2>
       <ul className="divide-y">
         {items.map((a) => {
