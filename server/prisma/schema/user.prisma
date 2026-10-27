@@ -30,6 +30,8 @@ model User {
   noticeReads         NoticeRead[]
   // the in-app inbox
   notifications       Notification[]
+  // phones that get push notifications (the mobile app)
+  deviceTokens        DeviceToken[]
 
   @@index([email])
   @@index([phone])

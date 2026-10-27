@@ -2,6 +2,9 @@ node_modules
 # Keep environment variables out of version control
 .env
 
+# Firebase service account key (push notifications): a secret
+/certs/firebase-*.json
+
 /generated/prisma
 
 /generated/prisma

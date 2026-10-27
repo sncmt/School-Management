@@ -37,6 +37,8 @@ export default {
     // the sender shown to the reader; defaults to SMTP_USER
     from: process.env.MAIL_FROM || process.env.SMTP_USER,
   },
+  // where the marketing site's contact form is sent: CONTACT_EMAIL, else the platform admin's address
+  contactEmail: process.env.CONTACT_EMAIL || process.env.PLATFORM_ADMIN_EMAIL,
   // a school's own web address, for links others follow back to it (SSLCommerz returns the
   // payer there): "{subdomain}" is replaced, e.g. https://{subdomain}.sncmt.com
   publicSchoolUrl: process.env.PUBLIC_SCHOOL_URL || "http://{subdomain}.localhost:3000",

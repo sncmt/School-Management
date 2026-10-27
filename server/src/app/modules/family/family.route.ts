@@ -83,4 +83,52 @@ router.get(
   catchAsync(async (req, res) => ok(res, "Receipt retrieved successfully!", await FamilyPaymentsService.getReceipt(req.auth!, req.params.paymentId as string))),
 );
 
+// ----------------------------------------------- a child's attendance, a month at a time
+
+const attendanceQuery = z.object({
+  studentId: z.string().trim().min(1, "Student is required!"),
+  // "2026-10"
+  month: z.string().trim().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use the month format YYYY-MM"),
+});
+
+router.get(
+  "/attendance",
+  authenticate("SCHOOL"),
+  validateRequest({ query: attendanceQuery }),
+  catchAsync(async (req, res) =>
+    ok(res, "Attendance retrieved successfully!", await FamilyService.getAttendanceMonth(req.auth!, req.query as unknown as z.infer<typeof attendanceQuery>)),
+  ),
+);
+
+// ----------------------------------------------- a child's published exam results
+
+const studentQuery = z.object({ studentId: z.string().trim().min(1, "Student is required!") });
+const examParams = z.object({ examId: z.string().trim().min(1, "Exam is required!") });
+
+router.get(
+  "/results",
+  authenticate("SCHOOL"),
+  validateRequest({ query: studentQuery }),
+  catchAsync(async (req, res) => ok(res, "Results retrieved successfully!", await FamilyService.getResults(req.auth!, req.query.studentId as string))),
+);
+
+// the full marksheet of one exam
+router.get(
+  "/results/:examId",
+  authenticate("SCHOOL"),
+  validateRequest({ params: examParams, query: studentQuery }),
+  catchAsync(async (req, res) =>
+    ok(res, "Result retrieved successfully!", await FamilyService.getResult(req.auth!, req.query.studentId as string, req.params.examId as string)),
+  ),
+);
+
+// ----------------------------------------------- a child's weekly class routine
+
+router.get(
+  "/routine",
+  authenticate("SCHOOL"),
+  validateRequest({ query: studentQuery }),
+  catchAsync(async (req, res) => ok(res, "Routine retrieved successfully!", await FamilyService.getRoutine(req.auth!, req.query.studentId as string))),
+);
+
 export const familyRoutes = router;

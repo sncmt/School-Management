@@ -250,8 +250,9 @@ const getAllSchools = async (query: GetAllSchoolsQuery) => {
 };
 
 /*
- * What a school's own site may show before anyone logs in: name, logo and
- * language. Only active schools; anything else is "not found".
+ * What a school's own site may show before anyone logs in: name, logo, language, colours,
+ * contacts and the homepage's slider and admission section. Only active schools; anything else
+ * is "not found".
  */
 const getPublicSite = async (subdomain: string) => {
   const school = await prisma.school.findUnique({
@@ -266,20 +267,33 @@ const getPublicSite = async (subdomain: string) => {
       // its accent colour, for every page of its site (null = the default)
       accentColor: true,
       sidebarColor: true,
-      // the contact section of its public homepage (the public email, never the login email)
+      // the contacts of its public homepage: the public email, or else the super admin's (login) email
       publicEmail: true,
+      email: true,
       phone: true,
       address: true,
       website: true,
       status: true,
+      slides: { select: { id: true, image: true, caption: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
+      admissionInfo: { select: { requirements: true, dates: true, fees: true } },
     },
   });
   if (!school || school.status !== "ACTIVE") {
     throw new AppError("School not found!", httpStatus.NOT_FOUND);
   }
 
-  const { status: _status, ...site } = school;
-  return withFileUrls(site, ["logo", "favicon"]);
+  const { status: _status, email, slides, admissionInfo, ...site } = school;
+  const [withUrls, signedSlides] = await Promise.all([
+    withFileUrls({ ...site, publicEmail: site.publicEmail ?? email }, ["logo", "favicon"]),
+    Promise.all(slides.map((slide) => withFileUrls(slide, ["image"]))),
+  ]);
+  // a picture that can't be linked (storage off) is left out
+  return {
+    ...withUrls,
+    slides: signedSlides.filter((slide) => slide.image),
+    // never saved = nothing to show
+    admission: admissionInfo ?? { requirements: [], dates: [], fees: [] },
+  };
 };
 
 // ------------------------------------------------------------- one school

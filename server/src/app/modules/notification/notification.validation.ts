@@ -18,6 +18,15 @@ const notificationIdParams = z.object({ notificationId: idSchema("Message id") }
 const typeParams = z.object({ type: z.enum(NotificationType) });
 const setTypeEnabled = z.strictObject({ enabled: z.boolean({ error: "Say whether it is on or off" }) });
 
-export const NotificationValidation = { listQuery, notificationIdParams, typeParams, setTypeEnabled };
+// the mobile app's phone for push notifications (a Firebase token is about 160 characters)
+const token = z.string({ error: "Device token is required" }).trim().min(20, "Invalid device token").max(4096);
+const registerDevice = z.strictObject({
+  token,
+  language: z.enum(["BN", "EN"]).default("BN"),
+  platform: z.enum(["android", "ios"]).default("android"),
+});
+const unregisterDevice = z.strictObject({ token });
+
+export const NotificationValidation = { listQuery, notificationIdParams, typeParams, setTypeEnabled, registerDevice, unregisterDevice };
 
 export type NotificationListQuery = z.infer<typeof listQuery>;

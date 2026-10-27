@@ -42,6 +42,7 @@ import { notificationRoutes } from '../modules/notification/notification.route';
 import { smsRoutes } from '../modules/sms/sms.route';
 import { platformSubscriptionRoutes, schoolSubscriptionRoutes } from '../modules/subscription/subscription.route';
 import { schoolSettingsRoutes } from '../modules/schoolSettings/schoolSettings.route';
+import { contactRoutes } from '../modules/contact/contact.route';
 
 
 const router = express.Router();
@@ -262,6 +263,11 @@ const moduleRoutes = [
         // guardians paying fees through the school's own SSLCommerz store
         path: '/online-payment',
         route: onlinePaymentRoutes
+    },
+    {
+        // the marketing site's contact form, emailed to the platform
+        path: '/contact',
+        route: contactRoutes
     }
 ];
 

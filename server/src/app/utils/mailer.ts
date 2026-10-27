@@ -22,7 +22,7 @@ const getTransporter = () =>
     auth: { user, pass },
   }));
 
-type Mail = { to: string; subject: string; text: string; html?: string };
+type Mail = { to: string; subject: string; text: string; html?: string; replyTo?: string };
 
 const send = async (mail: Mail) => {
   if (!configured) {

@@ -8,6 +8,7 @@ import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { SmsService, type SmsEventMessage, type SmsFacts } from "../sms/sms.service";
 import { currentMonth, dueFilter } from "../studentFee/studentFee.service";
 import type { NotificationListQuery } from "./notification.validation";
+import { PushService } from "./push.service";
 
 type Auth = NonNullable<Express.Request["auth"]>;
 
@@ -71,7 +72,14 @@ const writeInApp = async (messages: Message[]) => {
       dedupeKey: m.dedupeKey,
       data: { student: { nameEn: m.student.nameEn, nameBn: m.student.nameBn }, ...m.data },
     }));
-  if (rows.length > 0) await prisma.notification.createMany({ data: rows, skipDuplicates: true });
+  if (rows.length === 0) return;
+  // only the messages actually added (not those already in the inbox) are pushed to phones
+  const added = await prisma.notification.createManyAndReturn({
+    data: rows,
+    skipDuplicates: true,
+    select: { id: true, schoolId: true, userId: true, studentId: true, type: true, data: true },
+  });
+  notifyInBackground("push", () => PushService.push(added));
 };
 
 /*

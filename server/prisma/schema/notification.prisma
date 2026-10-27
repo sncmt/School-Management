@@ -64,3 +64,30 @@ model Notification {
   @@index([userId, schoolId, readAt])
   @@index([schoolId, dedupeKey])
 }
+
+/*
+ * A phone that gets push notifications: the mobile app's Firebase token, one row per install.
+ * It follows the school the app is logged in to and the app's language, and goes when the app
+ * logs out or Firebase reports the token dead. Every new in-app message is also pushed.
+ */
+model DeviceToken {
+  id String @id @default(cuid())
+
+  token String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // the school the app is logged in to: only its messages are pushed. No relation: the app
+  // re-registers on every login, and a closed school's rows simply get nothing.
+  schoolId String
+
+  // the language the app shows (and so the notification's text)
+  language SmsLanguage @default(BN)
+  platform String      @default("android")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, schoolId])
+}

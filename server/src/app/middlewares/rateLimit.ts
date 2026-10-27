@@ -7,7 +7,7 @@ import { AppError } from "../errorHandler/AppError";
 import { DomainUtils } from "../utils/domain";
 
 /*
- * Rate limits for the auth endpoints, stored in Redis so they hold across
+ * Rate limits for the auth endpoints (and the public contact form), stored in Redis so they hold across
  * restarts and server instances. While Redis is unreachable each limiter falls
  * back to a per-process memory limiter, so limits still apply.
  *
@@ -49,6 +49,9 @@ const limiters = {
 
   // token refreshes from one IP; a tab refreshes about once per access-token lifetime
   refreshIp: createLimiter({ keyPrefix: "refresh:ip", points: 120, duration: MINUTE }),
+
+  // the marketing site's contact form from one IP: enough for a real enquiry, not for spam
+  contactIp: createLimiter({ keyPrefix: "contact:ip", points: 5, duration: 60 * MINUTE }),
 };
 
 // ------------------------------------------------------------------ helpers
@@ -149,5 +152,16 @@ export const refreshIpLimit: RequestHandler = async (req, res, next) => {
   } catch (error) {
     if (!isLimitHit(error)) return next();
     next(tooManyRequests(res, error, "Too many requests."));
+  }
+};
+
+/** Contact form messages from one IP. */
+export const contactIpLimit: RequestHandler = async (req, res, next) => {
+  try {
+    await limiters.contactIp.consume(clientIp(req));
+    next();
+  } catch (error) {
+    if (!isLimitHit(error)) return next();
+    next(tooManyRequests(res, error, "Too many messages from your network."));
   }
 };

@@ -67,7 +67,7 @@ const pick = (names: Names, language: SmsLanguage) =>
   (language === "BN" ? names.nameBn || names.nameEn : names.nameEn || names.nameBn) ?? "";
 
 /* The placeholder values in the school's language (Bangla digits in Bangla SMS). */
-const valuesFor = (language: SmsLanguage, student: SmsStudent, school: Names, facts: SmsFacts): Record<string, string> => {
+const valuesFor = (language: SmsLanguage, student: Names, school: Names, facts: SmsFacts): Record<string, string> => {
   const locale = language === "BN" ? "bn-BD" : "en-GB";
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
   return {
@@ -85,6 +85,13 @@ const valuesFor = (language: SmsLanguage, student: SmsStudent, school: Names, fa
     fees: facts.fees !== undefined ? number.format(facts.fees) : "",
   };
 };
+
+/*
+ * An event's default wording in one language, filled in, without the "-School" signature at
+ * its end: the text of the mobile app's push notification (the school's name is its title).
+ */
+export const defaultText = (event: SmsEvent, language: SmsLanguage, student: Names, facts: SmsFacts) =>
+  fillTemplate(SMS_EVENTS[event].defaults[language].replace(/\s*-\{school\}\s*$/, ""), valuesFor(language, student, {}, facts));
 
 const phoneOf = (student: SmsStudent) => student.guardianPhone || student.phone;
 

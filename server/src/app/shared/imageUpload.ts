@@ -43,11 +43,13 @@ const ACCEPTED = new Set(["jpeg", "png", "webp", "gif", "avif", "tiff"]);
  *   logo     at most 512 px, transparency kept
  *   favicon  64 px square, PNG (every browser shows it)
  *   photo    400 px square, cropped to the centre
+ *   slide    1600 x 1200 (4 : 3), cropped to the busiest part (the homepage hero's picture frame)
  */
 const PRESETS = {
   logo: (image: Sharp) => image.resize(512, 512, { fit: "inside", withoutEnlargement: true }).webp({ quality: 85 }),
   favicon: (image: Sharp) => image.resize(64, 64, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png(),
   photo: (image: Sharp) => image.resize(400, 400, { fit: "cover", position: "attention" }).webp({ quality: 80 }),
+  slide: (image: Sharp) => image.resize(1600, 1200, { fit: "cover", position: "attention" }).webp({ quality: 80 }),
 } as const;
 
 export type ImagePreset = keyof typeof PRESETS;

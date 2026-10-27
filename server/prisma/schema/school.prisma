@@ -5,7 +5,7 @@ model School {
   nameBn     String
 
   subdomain      String       @unique
-  // also the super admin's login: never shown publicly
+  // also the super admin's login; the public homepage shows it only when there is no publicEmail
   email          String       @unique
   // the address the public homepage shows (e.g. office@school.edu.bd); not a login
   publicEmail    String?
@@ -30,6 +30,8 @@ model School {
   subscriptionPlan SubscriptionPlan?
 
   memberships       SchoolMembership[] 
+  slides            SchoolSlide[]
+  admissionInfo     AdmissionInfo?
   roles             Role[]
   modules           SchoolModule[]
   subscriptionPayments SubscriptionPayment[]
@@ -306,4 +308,40 @@ model Group {
 
   @@unique([schoolId, nameEn])
   @@index([schoolId])
+}
+
+// One picture of the image slider at the top of the school's public homepage.
+model SchoolSlide {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // storage key of the picture (cropped 4 : 3, 1600 x 1200)
+  image     String
+  // a line shown over the picture; none = just the picture
+  caption   String?
+  // the slider's order, lowest first
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, sortOrder])
+}
+
+// The admission section of the school's public homepage, written in its settings.
+model AdmissionInfo {
+  id String @id @default(cuid())
+
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // what to bring or meet, one line each
+  requirements String[] @default([])
+  // [{ label, value }]: "Forms given out" / "1 to 15 January"; free text, so ranges read naturally
+  dates        Json     @default("[]")
+  // [{ label, amount }]: "Admission fee" / 2000 (whole taka)
+  fees         Json     @default("[]")
+
+  updatedAt DateTime @updatedAt
 }
