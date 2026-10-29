@@ -93,7 +93,7 @@ export function MonthlyRegister({ choice, onChoice }: { choice: SectionChoice; o
                   </td>
                   <td className="sticky left-12 z-10 border-b border-l bg-background px-2 py-1.5">
                     <div className="flex items-center gap-2">
-                      <StudentAvatar photo={row.student.photo} name={name(row.student)} className="size-7 text-[11px]" />
+                      <StudentAvatar photo={row.student.photo} name={name(row.student)} className="size-7 text-[13px]" />
                       <span className="font-medium">{name(row.student)}</span>
                     </div>
                   </td>

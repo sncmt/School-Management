@@ -2,14 +2,16 @@ import { Globe, Mail, MapPin, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { AboutSection } from "@/components/school/site/AboutSection";
 import { AdmissionSection } from "@/components/school/site/AdmissionSection";
+import { GallerySection } from "@/components/school/site/GallerySection";
 import { HeroSection } from "@/components/school/site/HeroSection";
 import { NoticesSection } from "@/components/school/site/NoticesSection";
 import { SchoolSiteHeader } from "@/components/school/site/SchoolSiteHeader";
 import { SectionHeading } from "@/components/school/site/SectionHeading";
 import { SiteFooter } from "@/components/school/site/SiteFooter";
 import { pickName } from "@/lib/i18n/names";
-import { hasAdmission } from "@/lib/site";
+import { hasAbout, hasAdmission } from "@/lib/site";
 import { getCurrentSchoolSite } from "@/lib/site.server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,9 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
 const localPhone = (phone: string) => phone.replace(/^\+?880/, "0");
 
 /**
- * A school's public homepage (no login), its only page: the two-part header, the hero (words on
- * the left, the image slider on the right), then a section per menu item (admission, notices,
- * contact) and the footer; the menu scrolls to the sections.
+ * A school's public homepage (no login), its only page: the header, the hero (words on the left,
+ * the image slider on the right), then a section per menu item (about, admission, gallery,
+ * notices, contact; those the school left empty are skipped) and the footer; the menu scrolls to
+ * the sections.
  */
 export default async function SchoolHomePage() {
   const [t, locale, school] = await Promise.all([getTranslations("schoolHome"), getLocale(), getCurrentSchoolSite()]);
@@ -47,7 +50,11 @@ export default async function SchoolHomePage() {
       <main className="flex-1">
         <HeroSection school={school} name={name} otherName={otherName} />
 
+        {hasAbout(school.about) && <AboutSection about={school.about} name={name} />}
+
         {hasAdmission(school.admission) && <AdmissionSection admission={school.admission} />}
+
+        {school.gallery.length > 0 && <GallerySection photos={school.gallery} />}
 
         <NoticesSection subdomain={school.subdomain} />
 

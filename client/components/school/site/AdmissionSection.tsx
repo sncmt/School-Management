@@ -10,7 +10,7 @@ export async function AdmissionSection({ admission }: { admission: Admission }) 
   const { requirements, dates, fees } = admission;
 
   return (
-    <section id="admission" className="scroll-mt-20 border-y bg-card">
+    <section id="admission" className="scroll-mt-20">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
         <SectionHeading eyebrow={t("eyebrow")} title={t("title")} subtitle={t("subtitle")} />
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -44,7 +44,7 @@ export async function AdmissionSection({ admission }: { admission: Admission }) 
 
 function AdmissionCard({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border bg-background p-6 shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all hover:-translate-y-1 hover:shadow-xl">
+    <div className="group relative overflow-hidden rounded-xl border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-all hover:-translate-y-1 hover:shadow-xl">
       {/* a gold line across the top that grows on hover */}
       <span aria-hidden className="absolute inset-x-0 top-0 h-1 origin-left scale-x-25 bg-sidebar-primary transition-transform duration-500 group-hover:scale-x-100" />
       <h3 className="mb-5 flex items-center gap-3 text-lg font-semibold">

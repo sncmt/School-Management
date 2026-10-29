@@ -67,7 +67,7 @@ export function SchoolBottomNav() {
 
   const itemClass = (active: boolean) =>
     cn(
-      "flex min-w-0 flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors",
+      "flex min-w-0 flex-col items-center gap-1 py-2 text-[13px] font-medium transition-colors",
       active ? "text-sidebar-primary" : "text-white/70 hover:text-white",
     );
   const iconBox = (active: boolean) =>
@@ -88,7 +88,7 @@ export function SchoolBottomNav() {
                 <span className={iconBox(active)}>
                   <tab.icon className="size-5" />
                   {!!tab.badge && (
-                    <span className="absolute -top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none font-semibold text-white tabular-nums ring-2 ring-school-sidebar">
+                    <span className="absolute -top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[12px] leading-none font-semibold text-white tabular-nums ring-2 ring-school-sidebar">
                       {tab.badge > 99 ? "99+" : format.number(tab.badge)}
                     </span>
                   )}

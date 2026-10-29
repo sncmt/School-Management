@@ -21,7 +21,7 @@ export function ReceiptView({ receipt, copy }: { receipt: Receipt; copy?: "stude
   const e = receipt.enrollment;
 
   return (
-    <div className="relative mx-auto w-[190mm] space-y-3 overflow-hidden border border-neutral-400 bg-white p-5 text-[11px] leading-snug text-neutral-900">
+    <div className="relative mx-auto w-[190mm] space-y-3 overflow-hidden border border-neutral-400 bg-white p-5 text-[13px] leading-snug text-neutral-900">
       {cancelled && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span className="-rotate-12 rounded border-4 border-rose-600/60 px-6 py-1 text-4xl font-bold tracking-widest text-rose-600/60">

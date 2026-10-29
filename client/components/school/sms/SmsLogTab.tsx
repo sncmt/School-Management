@@ -182,16 +182,16 @@ function LogRow({ sms }: { sms: SmsMessage }) {
           {t(`log.statuses.${sms.status}`)}
         </span>
         {sms.status === "SENT" && sms.provider === "TEST" && (
-          <div className="mt-1 flex items-center gap-1 text-[11px] text-amber-700 dark:text-amber-400">
+          <div className="mt-1 flex items-center gap-1 text-[13px] text-amber-700 dark:text-amber-400">
             <FlaskConical className="size-3" /> {t("log.test")}
           </div>
         )}
         {waiting && (
-          <div className="mt-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 text-[13px] text-muted-foreground">
             {t("log.sendsAt", { time: format.dateTime(new Date(sms.sendAfter), { timeStyle: "short" }) })}
           </div>
         )}
-        {sms.error && <div className="mt-1 max-w-48 text-[11px] whitespace-normal text-red-600 dark:text-red-400">{sms.error}</div>}
+        {sms.error && <div className="mt-1 max-w-48 text-[13px] whitespace-normal text-red-600 dark:text-red-400">{sms.error}</div>}
       </TableCell>
     </TableRow>
   );

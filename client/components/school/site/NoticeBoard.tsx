@@ -121,8 +121,8 @@ function NoticeRow({ notice: n, onOpen }: { notice: PublicNoticeItem; onOpen: ()
     <button type="button" onClick={onOpen} className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50 sm:px-5">
       <div className="flex w-14 shrink-0 flex-col items-center rounded-lg bg-brand-soft py-2 text-center">
         <span className="text-xl leading-none font-semibold tabular-nums">{day({ day: "numeric" })}</span>
-        <span className="mt-0.5 text-[11px] text-muted-foreground uppercase">{day({ month: "short" })}</span>
-        <span className="text-[10px] text-muted-foreground tabular-nums">{day({ year: "numeric" })}</span>
+        <span className="mt-0.5 text-[13px] text-muted-foreground uppercase">{day({ month: "short" })}</span>
+        <span className="text-[12px] text-muted-foreground tabular-nums">{day({ year: "numeric" })}</span>
       </div>
       <div className="min-w-0 flex-1 space-y-1">
         <h3 className="leading-snug font-medium">{n.title}</h3>
@@ -198,7 +198,7 @@ function NoticeDialog({ subdomain, opened, onClose }: { subdomain: string; opene
 
         {notice ? (
           <div className="space-y-5">
-            <NoticeText body={notice.body} className="text-[15px]" />
+            <NoticeText body={notice.body} className="text-[17px]" />
             <AttachmentList attachments={notice.attachments} />
           </div>
         ) : failed ? (

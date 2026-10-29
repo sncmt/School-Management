@@ -8,7 +8,7 @@ import { sslcommerzCallbackRoutes } from "./app/modules/onlinePayment/callback.r
 
 const app = express();
 
-app.set("trust proxy", 1); 
+app.set("trust proxy", 1);   
 
 // No CORS: browsers only call /api/v1 on the page's own host and Next.js forwards it
 // here, so no request is cross-origin. verifyOrigin below blocks cross-site writes.

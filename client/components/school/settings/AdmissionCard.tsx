@@ -145,14 +145,15 @@ function AdmissionForm({ saved }: { saved: Admission }) {
   );
 }
 
-/* One list of the section: its rows (each with a remove button) and a button to add one. */
-function ListEditor<T>({
+/* One list of a homepage section: its rows (each with a remove button) and a button to add one. */
+export function ListEditor<T>({
   title,
   addLabel,
   rows,
   onChange,
   blank,
   render,
+  max = MAX_ADMISSION_ROWS,
 }: {
   title: string;
   addLabel: string;
@@ -160,6 +161,7 @@ function ListEditor<T>({
   onChange: (rows: T[]) => void;
   blank: T;
   render: (row: T, update: (row: T) => void) => React.ReactNode;
+  max?: number;
 }) {
   const t = useTranslations("school.settings.admission");
   return (
@@ -182,7 +184,7 @@ function ListEditor<T>({
           </li>
         ))}
       </ul>
-      <Button variant="outline" size="sm" onClick={() => onChange([...rows, blank])} disabled={rows.length >= MAX_ADMISSION_ROWS}>
+      <Button variant="outline" size="sm" onClick={() => onChange([...rows, blank])} disabled={rows.length >= max}>
         <Plus /> {addLabel}
       </Button>
     </div>

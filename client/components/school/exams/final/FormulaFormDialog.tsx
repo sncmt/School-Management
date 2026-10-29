@@ -347,7 +347,7 @@ function ComponentCard({
                     />
                     <span className="flex-1">{name(exam)}</span>
                     {status && (
-                      <Badge variant={status === "PUBLISHED" ? "default" : "outline"} className="text-[10px]">
+                      <Badge variant={status === "PUBLISHED" ? "default" : "outline"} className="text-[12px]">
                         {tStage(status)}
                       </Badge>
                     )}

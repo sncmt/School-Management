@@ -276,16 +276,20 @@ const getPublicSite = async (subdomain: string) => {
       status: true,
       slides: { select: { id: true, image: true, caption: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
       admissionInfo: { select: { requirements: true, dates: true, fees: true } },
+      about: { select: { body: true, image: true, facts: true } },
+      galleryPhotos: { select: { id: true, image: true, caption: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
     },
   });
   if (!school || school.status !== "ACTIVE") {
     throw new AppError("School not found!", httpStatus.NOT_FOUND);
   }
 
-  const { status: _status, email, slides, admissionInfo, ...site } = school;
-  const [withUrls, signedSlides] = await Promise.all([
+  const { status: _status, email, slides, admissionInfo, about, galleryPhotos, ...site } = school;
+  const [withUrls, signedSlides, signedAbout, signedGallery] = await Promise.all([
     withFileUrls({ ...site, publicEmail: site.publicEmail ?? email }, ["logo", "favicon"]),
     Promise.all(slides.map((slide) => withFileUrls(slide, ["image"]))),
+    about ? withFileUrls(about, ["image"]) : null,
+    Promise.all(galleryPhotos.map((photo) => withFileUrls(photo, ["image"]))),
   ]);
   // a picture that can't be linked (storage off) is left out
   return {
@@ -293,6 +297,8 @@ const getPublicSite = async (subdomain: string) => {
     slides: signedSlides.filter((slide) => slide.image),
     // never saved = nothing to show
     admission: admissionInfo ?? { requirements: [], dates: [], fees: [] },
+    about: signedAbout ?? { body: "", image: null, facts: [] },
+    gallery: signedGallery.filter((photo) => photo.image),
   };
 };
 

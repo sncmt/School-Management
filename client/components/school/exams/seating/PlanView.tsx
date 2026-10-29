@@ -328,7 +328,7 @@ function RoomGrid({
                 canManage && "hover:shadow-sm",
               )}
             >
-              <span className="absolute top-1 right-1.5 text-[10px] text-muted-foreground tabular-nums">{n}</span>
+              <span className="absolute top-1 right-1.5 text-[12px] text-muted-foreground tabular-nums">{n}</span>
               {s ? (
                 <>
                   <span className="block pr-4 font-semibold">

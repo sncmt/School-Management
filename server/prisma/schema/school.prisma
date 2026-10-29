@@ -32,6 +32,8 @@ model School {
   memberships       SchoolMembership[] 
   slides            SchoolSlide[]
   admissionInfo     AdmissionInfo?
+  about             SchoolAbout?
+  galleryPhotos     GalleryPhoto[]
   roles             Role[]
   modules           SchoolModule[]
   subscriptionPayments SubscriptionPayment[]
@@ -344,4 +346,40 @@ model AdmissionInfo {
   fees         Json     @default("[]")
 
   updatedAt DateTime @updatedAt
+}
+
+// The about section of the school's public homepage: its own words, a picture and a few facts.
+model SchoolAbout {
+  id String @id @default(cuid())
+
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // what the school says about itself; a blank line starts a new paragraph
+  body  String  @default("")
+  // storage key of its picture (cropped 4 : 3, 1200 x 900); none = the words only
+  image String?
+  // [{ label, value }]: "Established" / "1998", "Students" / "1,200"; up to four
+  facts Json    @default("[]")
+
+  updatedAt DateTime @updatedAt
+}
+
+// One picture of the gallery section of the school's public homepage.
+model GalleryPhoto {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // storage key of the picture (its own shape, at most 1600 px on the longer side)
+  image     String
+  // a line under it; none = just the picture
+  caption   String?
+  // the gallery's order, lowest first
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, sortOrder])
 }

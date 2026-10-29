@@ -5,15 +5,20 @@ import 'storage.dart';
 
 /// A failed API call: the server's message, or `isNetwork` when the server couldn't be reached.
 class ApiException implements Exception {
-  ApiException(this.message, {this.statusCode, this.isNetwork = false});
+  ApiException(this.message, {this.statusCode, this.isNetwork = false, this.detail});
 
   final String message;
   final int? statusCode;
   final bool isNetwork;
 
+  /// What exactly went wrong (timeout, refused...), shown in debug builds only.
+  final String? detail;
+
   factory ApiException.from(DioException e) {
     final response = e.response;
-    if (response == null) return ApiException('Network error', isNetwork: true);
+    if (response == null) {
+      return ApiException('Network error', isNetwork: true, detail: '${e.type.name}: ${e.message ?? e.error}');
+    }
     final data = response.data;
     final message = data is Map && data['message'] is String ? data['message'] as String : 'Something went wrong';
     return ApiException(message, statusCode: response.statusCode);
@@ -64,6 +69,22 @@ class ApiClient {
   /// POST, answering the response's `data`.
   Future<T> post<T>(String path, {Object? body, bool noAuth = false}) => _send(
         () => _dio.post<Map<String, dynamic>>(path, data: body, options: Options(extra: {_noAuth: noAuth})),
+      );
+
+  /// PUT, answering the response's `data`.
+  Future<T> put<T>(String path, {Object? body}) => _send(() => _dio.put<Map<String, dynamic>>(path, data: body));
+
+  /// DELETE, answering the response's `data`.
+  Future<T> delete<T>(String path) => _send(() => _dio.delete<Map<String, dynamic>>(path));
+
+  /// Uploads one file from the phone in the "file" field (multipart), answering `data`.
+  Future<T> upload<T>(String path, String filePath, {String? fileName}) => _send(
+        () async => _dio.post<Map<String, dynamic>>(
+          path,
+          data: FormData.fromMap({'file': await MultipartFile.fromFile(filePath, filename: fileName)}),
+          // a photo over a slow connection takes a while
+          options: Options(sendTimeout: const Duration(minutes: 2)),
+        ),
       );
 
   Future<T> _send<T>(Future<Response<Map<String, dynamic>>> Function() call) async {

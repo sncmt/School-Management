@@ -1,32 +1,23 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/*
- * SolaimanLipi, a free Bangla font: the visitor's installed copy when there is one, else the file
- * in public/fonts (put SolaimanLipi.woff2 or .ttf there to show it on every device). For Bangla
- * letters only, so English stays in Times New Roman.
- */
-@font-face {
-  font-family: "SolaimanLipi";
-  src:
-    local("SolaimanLipi"),
-    url("/fonts/SolaimanLipi.woff2") format("woff2"),
-    url("/fonts/SolaimanLipi.ttf") format("truetype");
-  font-weight: 400;
-  font-display: swap;
-  unicode-range: U+0980-09FF, U+200C-200D, U+25CC;
-}
-
 /* Dark mode follows a .dark class on <html>, so it can be toggled later. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* English in Times New Roman (Tinos where it isn't installed); Bangla glyphs from SolaimanLipi,
-     then Hind Siliguri as the last resort */
-  --font-sans: "Times New Roman", var(--font-tinos), "SolaimanLipi", var(--font-bangla), Times, serif;
+  /* English in Times New Roman (Tinos where it isn't installed); Bangla glyphs from Anek Bangla (drawn at 88%, app/layout.tsx) */
+  --font-sans: "Times New Roman", var(--font-tinos), var(--font-bangla), Times, serif;
   --font-mono: var(--font-geist-mono);
+  /* Times New Roman reads small: every text size two steps up from Tailwind's (xs 12 -> 14px ...) */
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.625rem;
+  --text-3xl: 2rem;
   /* the accent (teal): the logo block, the current tab, badges and highlights */
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
@@ -463,7 +454,7 @@
 
 /* every page's title: a short accent bar above it, then the name, tight and bold */
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -479,12 +470,12 @@
 }
 @media (min-width: 640px) {
   .page-title {
-    font-size: 1.75rem;
+    font-size: 2rem;
   }
 }
 .page-subtitle {
   margin-top: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--muted-foreground);
 }
 @media print {

@@ -58,7 +58,7 @@ export function FeesChart({ months }: { months: Month[] }) {
 
       <div className="relative flex" role="img" aria-label={t("aria")}>
         {/* the one axis, quiet */}
-        <div className="relative w-12 shrink-0 text-right text-[11px] text-muted-foreground" style={{ height: PLOT_HEIGHT }}>
+        <div className="relative w-12 shrink-0 text-right text-[13px] text-muted-foreground" style={{ height: PLOT_HEIGHT }}>
           {ticks.map((v) => (
             <span key={v} className="absolute right-2 -translate-y-1/2 tabular-nums" style={{ bottom: `${(v / max) * 100}%` }}>
               {compact(v)}

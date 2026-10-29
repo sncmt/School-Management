@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Palette } from "lucide-react";
+import { Check, GalleryHorizontalEnd, Palette } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -23,8 +23,9 @@ import {
   type SidebarColor,
 } from "@/lib/theme/accents";
 import { cn } from "@/lib/utils";
+import { AboutCard } from "./AboutCard";
 import { AdmissionCard } from "./AdmissionCard";
-import { SlidesCard } from "./SlidesCard";
+import { PhotoListCard } from "./PhotoListCard";
 
 /** The school's own settings (super admin only): the colours of its site, and its homepage's slider and admission section. */
 export function SchoolSettingsPage() {
@@ -40,8 +41,10 @@ export function SchoolSettingsPage() {
         <p className="page-subtitle">{t("description")}</p>
       </div>
       <AppearanceCard />
-      <SlidesCard />
+      <PhotoListCard list="slides" />
+      <AboutCard />
       <AdmissionCard />
+      <PhotoListCard list="gallery" icon={GalleryHorizontalEnd} />
     </div>
   );
 }
@@ -220,8 +223,8 @@ function Preview() {
     <div className="space-y-2">
       <p className="text-xs font-medium text-muted-foreground">{t("preview")}</p>
       <div className="flex overflow-hidden rounded-lg border">
-        <div className="w-36 shrink-0 space-y-1.5 bg-school-sidebar p-3 text-[13px] text-white">
-          <div className="pb-1 text-[10px] font-semibold tracking-wider text-white/50 uppercase">{t("previewMenu")}</div>
+        <div className="w-36 shrink-0 space-y-1.5 bg-school-sidebar p-3 text-[15px] text-white">
+          <div className="pb-1 text-[12px] font-semibold tracking-wider text-white/50 uppercase">{t("previewMenu")}</div>
           <div className="relative rounded-md bg-white/10 px-2 py-1.5 font-semibold before:absolute before:top-1.5 before:bottom-1.5 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-sidebar-primary">
             {t("previewActive")}
           </div>
@@ -230,7 +233,7 @@ function Preview() {
         </div>
         <div className="min-w-0 flex-1 space-y-3 bg-canvas p-3">
           <div className="overflow-hidden rounded-md border bg-card">
-            <div className="bg-brand-soft px-3 py-2 text-[11px] font-bold tracking-wider text-navy uppercase">{t("previewTable")}</div>
+            <div className="bg-brand-soft px-3 py-2 text-[13px] font-bold tracking-wider text-navy uppercase">{t("previewTable")}</div>
             <div className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
               <span className="truncate">{t("previewRow")}</span>
               <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-medium text-brand">{t("previewBadge")}</span>

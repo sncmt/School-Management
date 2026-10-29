@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/push.dart';
 import 'core/theme.dart';
 import 'features/language/locale_controller.dart';
 import 'features/school/school.dart';
@@ -15,10 +16,13 @@ class SncmtApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // the school's own colour once one is chosen
     final seed = accentColor(ref.watch(schoolProvider.select((s) => s?.accentColor)));
+    // push notifications live as long as the app
+    ref.watch(pushProvider);
 
     return MaterialApp.router(
       title: 'SNCMT',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       routerConfig: ref.watch(routerProvider),
       theme: buildTheme(seed, Brightness.light),
       darkTheme: buildTheme(seed, Brightness.dark),

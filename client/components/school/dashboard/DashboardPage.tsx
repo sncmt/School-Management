@@ -259,7 +259,7 @@ function Kpi({
       className="group flex flex-col rounded-2xl border border-border/70 bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_14px_34px_-18px_rgb(15_23_42/0.35)]"
     >
       <span className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-2.5 text-[13px] font-medium text-muted-foreground">
+        <span className="flex min-w-0 items-center gap-2.5 text-[15px] font-medium text-muted-foreground">
           <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", tint)}>
             <Icon className="size-4" />
           </span>
@@ -382,7 +382,7 @@ function AttendancePanel({ attendance }: { attendance: NonNullable<DashboardSumm
               <span className="text-2xl font-semibold tracking-tight tabular-nums">
                 {attendance.presentPercent === null ? "—" : `${format.number(attendance.presentPercent, { maximumFractionDigits: 1 })}%`}
               </span>
-              <span className="text-[11px] text-muted-foreground">{t("present")}</span>
+              <span className="text-[13px] text-muted-foreground">{t("present")}</span>
             </div>
           </div>
           <ul className="min-w-0 flex-1 space-y-2.5 text-sm">

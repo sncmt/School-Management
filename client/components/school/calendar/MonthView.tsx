@@ -188,11 +188,11 @@ function DayCell({
         {format.dateTime(date, { day: "numeric", timeZone: "UTC" })}
       </span>
       {day.events.slice(0, 2).map((event) => (
-        <span key={`${event.source}-${event.id}`} className="line-clamp-1 w-full text-[11px] leading-tight">
+        <span key={`${event.source}-${event.id}`} className="line-clamp-1 w-full text-[13px] leading-tight">
           {name(event)}
         </span>
       ))}
-      {day.events.length > 2 && <span className="text-[11px] text-muted-foreground">+{day.events.length - 2}</span>}
+      {day.events.length > 2 && <span className="text-[13px] text-muted-foreground">+{day.events.length - 2}</span>}
     </button>
   );
 }

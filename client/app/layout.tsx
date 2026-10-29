@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Hind_Siliguri, Tinos } from "next/font/google";
+import { Geist_Mono, Tinos } from "next/font/google";
+import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
@@ -25,13 +26,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Bangla is in SolaimanLipi (globals.css); this is the last resort when it can't be had,
-// fetched only then
-const bangla = Hind_Siliguri({
+// Bangla: Anek Bangla (free, from Google Fonts; its Bangla letters are kept in app/fonts), so it
+// can be drawn a little smaller than it comes: its letters run large beside Times New Roman.
+// Fetched only when a page has Bangla, so English pages skip it.
+const bangla = localFont({
+  src: "./fonts/AnekBangla-bengali.woff2",
   variable: "--font-bangla",
-  subsets: ["bengali"],
-  weight: ["400", "500", "600", "700"],
+  weight: "100 800",
+  display: "swap",
   preload: false,
+  // its own letters only: no stand-in font while it loads (none has Bangla anyway)
+  adjustFontFallback: false,
+  declarations: [
+    { prop: "size-adjust", value: "88%" },
+    { prop: "unicode-range", value: "U+0951-0952, U+0964-0965, U+0980-09FE, U+200C-200D, U+25CC" },
+  ],
 });
 
 export async function generateMetadata(): Promise<Metadata> {

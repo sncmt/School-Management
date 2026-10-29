@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- the platform's own accent (client/lib/theme/accents.ts, BLUE): icon and notification colour -->
+    <color name="brand">#285CC2</color>
+</resources>

@@ -229,7 +229,7 @@ function EntryChip({
         {entry.teacher ? name(entry.teacher) : t("noTeacher")}
       </div>
       {(entry.group || entry.isOptional || others.length > 0) && (
-        <div className="mt-0.5 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+        <div className="mt-0.5 flex flex-wrap gap-x-2 text-[13px] text-muted-foreground">
           {entry.group && <span>{name(entry.group)}</span>}
           {entry.isOptional && <span>{t("optional")}</span>}
           {others.length > 0 && (

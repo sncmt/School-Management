@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api_client.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/theme.dart';
 import '../../widgets/school_logo.dart';
+import '../../widgets/ui.dart';
 import '../school/school.dart';
 import 'auth_controller.dart';
 
@@ -68,64 +70,119 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (school == null) return const SizedBox.shrink();
     String? required(String? v) => (v == null || v.trim().isEmpty) ? t.required : null;
 
+    final error = _error;
     return Scaffold(
       body: SafeArea(
         child: Form(
           key: _form,
           child: ListView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
             children: [
-              const SizedBox(height: 24),
-              FutureBuilder(
-                future: _site,
-                builder: (context, snapshot) => SchoolLogo(url: snapshot.data?.logo, size: 88),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                school.name(Localizations.localeOf(context)),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 32),
-              TextFormField(
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.next,
-                autofillHints: const [AutofillHints.telephoneNumber],
-                decoration: InputDecoration(labelText: t.mobileNumber, hintText: '01XXXXXXXXX'),
-                validator: required,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _password,
-                obscureText: _hidePassword,
-                textInputAction: TextInputAction.done,
-                autofillHints: const [AutofillHints.password],
-                onFieldSubmitted: (_) => _loading ? null : _submit(),
-                decoration: InputDecoration(
-                  labelText: t.password,
-                  suffixIcon: IconButton(
-                    icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                    onPressed: () => setState(() => _hidePassword = !_hidePassword),
-                  ),
+              FadeSlideIn(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(Radii.tile),
+                        border: Border.all(color: context.palette.hairline),
+                      ),
+                      child: FutureBuilder(
+                        future: _site,
+                        builder: (context, snapshot) => SchoolLogo(url: snapshot.data?.logo, size: 44),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        school.name(Localizations.localeOf(context)),
+                        style: Theme.of(context).textTheme.titleMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-                validator: required,
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-              ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 36),
+              FadeSlideIn(
+                index: 1,
+                child: Text(t.loginTitle, style: Theme.of(context).textTheme.headlineMedium),
+              ),
+              const SizedBox(height: 28),
+              FadeSlideIn(
+                index: 2,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _phone,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.telephoneNumber],
+                      decoration: InputDecoration(
+                        labelText: t.mobileNumber,
+                        hintText: '01XXXXXXXXX',
+                        prefixIcon: const Icon(Icons.phone_iphone_rounded),
+                      ),
+                      validator: required,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _password,
+                      obscureText: _hidePassword,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.password],
+                      onFieldSubmitted: (_) => _loading ? null : _submit(),
+                      decoration: InputDecoration(
+                        labelText: t.password,
+                        prefixIcon: const Icon(Icons.lock_outline_rounded),
+                        suffixIcon: IconButton(
+                          icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                          onPressed: () => setState(() => _hidePassword = !_hidePassword),
+                        ),
+                      ),
+                      validator: required,
+                    ),
+                  ],
+                ),
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                child: error == null
+                    ? const SizedBox(width: double.infinity)
+                    : Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(Radii.control),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline_rounded, color: Theme.of(context).colorScheme.error, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(child: Text(error, style: TextStyle(color: Theme.of(context).colorScheme.error))),
+                          ],
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 28),
               FilledButton(
                 onPressed: _loading ? null : _submit,
                 child: _loading
-                    ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
+                    ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
                     : Text(t.loginButton),
               ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: _loading ? null : () => ref.read(schoolProvider.notifier).forget(),
-                child: Text(t.changeSchool),
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton.icon(
+                  icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                  label: Text(t.changeSchool),
+                  onPressed: _loading ? null : () => ref.read(schoolProvider.notifier).forget(),
+                ),
               ),
             ],
           ),

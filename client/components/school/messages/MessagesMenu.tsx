@@ -47,7 +47,7 @@ export function MessagesMenu() {
         >
           <MessageSquareText className="size-4.5" />
           {unread > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none font-semibold text-white tabular-nums ring-2 ring-background">
+            <span className="absolute -top-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-[12px] leading-none font-semibold text-white tabular-nums ring-2 ring-background">
               {unread > 99 ? "99+" : format.number(unread)}
             </span>
           )}

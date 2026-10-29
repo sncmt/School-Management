@@ -13,8 +13,8 @@ import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage
 
 /*
  * A school's own settings, for its super admin: the accent colour and the sidebar colour of its
- * dashboard and public homepage, the pictures of the homepage's image slider and its admission
- * section (requirements, dates, fees). Only the app's tested colours are
+ * dashboard and public homepage, and the homepage's sections: the image slider's pictures, about
+ * (words, a picture, a few facts), admission (requirements, dates, fees) and the gallery. Only the app's tested colours are
  * allowed: accents stay readable and never look like the green / red / amber of present, absent
  * and late; sidebars stay dark enough for their white text. null is the default (blue, navy).
  * The colours themselves live in the client (lib/theme/accents.ts): keep the lists in step.
@@ -187,6 +187,158 @@ router.put(
     const data = req.body as z.infer<typeof admissionBody>;
     const info = await prisma.admissionInfo.upsert({ where: { schoolId }, create: { schoolId, ...data }, update: data, select: admissionSelect });
     sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Admission saved", data: info });
+  }),
+);
+
+// ------------------------------------------------------------- about section
+
+const MAX_FACTS = 4;
+const aboutBody = z.strictObject({
+  body: z.string().trim().max(3000, "Keep it under 3000 characters"),
+  facts: z.array(z.strictObject({ label: text(40), value: text(40) })).max(MAX_FACTS, `Up to ${MAX_FACTS} facts`),
+});
+const aboutSelect = { body: true, image: true, facts: true } as const;
+const NO_ABOUT = { body: "", image: null, facts: [] };
+
+const readAbout = async (schoolId: string) => {
+  const about = await prisma.schoolAbout.findUnique({ where: { schoolId }, select: aboutSelect });
+  return about ? withFileUrls(about, ["image"]) : NO_ABOUT;
+};
+
+router.get(
+  "/about",
+  catchAsync(async (req: Request, res: Response) => {
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "About retrieved", data: await readAbout(req.auth!.schoolId!) });
+  }),
+);
+
+// the words and the facts; the picture has its own routes
+router.put(
+  "/about",
+  validateRequest({ body: aboutBody }),
+  catchAsync(async (req: Request, res: Response) => {
+    const schoolId = req.auth!.schoolId!;
+    const data = req.body as z.infer<typeof aboutBody>;
+    await prisma.schoolAbout.upsert({ where: { schoolId }, create: { schoolId, ...data }, update: data });
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "About saved", data: await readAbout(schoolId) });
+  }),
+);
+
+router.post(
+  "/about/image",
+  imageUploadMiddleware,
+  catchAsync(async (req: Request, res: Response) => {
+    const schoolId = req.auth!.schoolId!;
+    const image = await processImage(req.file!.buffer, "about");
+    const key = fileKey(`schools/${schoolId}/about`, "about", image.extension);
+    await putFile(key, image.body, image.contentType);
+    const old = await prisma.schoolAbout.findUnique({ where: { schoolId }, select: { image: true } });
+    await prisma.schoolAbout.upsert({ where: { schoolId }, create: { schoolId, image: key }, update: { image: key } });
+    if (old?.image) await deleteFile(old.image);
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Picture saved", data: await readAbout(schoolId) });
+  }),
+);
+
+router.delete(
+  "/about/image",
+  catchAsync(async (req: Request, res: Response) => {
+    const schoolId = req.auth!.schoolId!;
+    const old = await prisma.schoolAbout.findUnique({ where: { schoolId }, select: { image: true } });
+    if (old?.image) {
+      await prisma.schoolAbout.update({ where: { schoolId }, data: { image: null } });
+      await deleteFile(old.image);
+    }
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Picture removed", data: await readAbout(schoolId) });
+  }),
+);
+
+// ------------------------------------------------------------- gallery section
+
+const MAX_GALLERY = 24;
+const photoSelect = { id: true, image: true, caption: true, sortOrder: true } as const;
+const reorderPhotos = z.strictObject({ ids: z.array(z.string().min(1)).min(1).max(MAX_GALLERY) });
+
+const listPhotos = async (schoolId: string) => {
+  const photos = await prisma.galleryPhoto.findMany({
+    where: { schoolId },
+    select: photoSelect,
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  });
+  return Promise.all(photos.map((photo) => withFileUrls(photo, ["image"])));
+};
+
+const findPhoto = async (schoolId: string, id: string) => {
+  const photo = await prisma.galleryPhoto.findFirst({ where: { id, schoolId }, select: photoSelect });
+  if (!photo) throw new AppError("Picture not found", httpStatus.NOT_FOUND);
+  return photo;
+};
+
+router.get(
+  "/gallery",
+  catchAsync(async (req: Request, res: Response) => {
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Gallery retrieved", data: await listPhotos(req.auth!.schoolId!) });
+  }),
+);
+
+// a new picture at the end, with an optional "caption" field beside the file
+router.post(
+  "/gallery",
+  imageUploadMiddleware,
+  catchAsync(async (req: Request, res: Response) => {
+    const schoolId = req.auth!.schoolId!;
+    const words = caption.safeParse(req.body?.caption ?? "");
+    if (!words.success) throw new AppError(words.error.issues[0].message, httpStatus.BAD_REQUEST);
+
+    const [count, last] = await Promise.all([
+      prisma.galleryPhoto.count({ where: { schoolId } }),
+      prisma.galleryPhoto.findFirst({ where: { schoolId }, orderBy: { sortOrder: "desc" }, select: { sortOrder: true } }),
+    ]);
+    if (count >= MAX_GALLERY) throw new AppError(`The gallery holds up to ${MAX_GALLERY} pictures; remove one first`, httpStatus.CONFLICT);
+
+    const image = await processImage(req.file!.buffer, "gallery");
+    const key = fileKey(`schools/${schoolId}/gallery`, "photo", image.extension);
+    await putFile(key, image.body, image.contentType);
+    await prisma.galleryPhoto.create({ data: { schoolId, image: key, caption: words.data, sortOrder: (last?.sortOrder ?? -1) + 1 } });
+
+    sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: "Picture added", data: await listPhotos(schoolId) });
+  }),
+);
+
+router.patch(
+  "/gallery/:id",
+  validateRequest({ params: slideParams, body: updateSlide }),
+  catchAsync(async (req: Request, res: Response) => {
+    const schoolId = req.auth!.schoolId!;
+    const photo = await findPhoto(schoolId, req.params.id as string);
+    await prisma.galleryPhoto.update({ where: { id: photo.id }, data: { caption: req.body.caption } });
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Picture saved", data: await listPhotos(schoolId) });
+  }),
+);
+
+router.put(
+  "/gallery/order",
+  validateRequest({ body: reorderPhotos }),
+  catchAsync(async (req: Request, res: Response) => {
+    const schoolId = req.auth!.schoolId!;
+    const ids: string[] = req.body.ids;
+    const current = await prisma.galleryPhoto.findMany({ where: { schoolId }, select: { id: true } });
+    const same = new Set(ids).size === ids.length && ids.length === current.length && current.every((p) => ids.includes(p.id));
+    if (!same) throw new AppError("The gallery has changed; reload the page and try again", httpStatus.CONFLICT);
+
+    await prisma.$transaction(ids.map((id, sortOrder) => prisma.galleryPhoto.update({ where: { id }, data: { sortOrder } })));
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Gallery reordered", data: await listPhotos(schoolId) });
+  }),
+);
+
+router.delete(
+  "/gallery/:id",
+  validateRequest({ params: slideParams }),
+  catchAsync(async (req: Request, res: Response) => {
+    const schoolId = req.auth!.schoolId!;
+    const photo = await findPhoto(schoolId, req.params.id as string);
+    await prisma.galleryPhoto.delete({ where: { id: photo.id } });
+    await deleteFile(photo.image);
+    sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Picture removed", data: await listPhotos(schoolId) });
   }),
 );
 

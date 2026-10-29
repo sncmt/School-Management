@@ -20,7 +20,7 @@ const CATEGORY_STYLES: Record<NoticeCategory, string> = {
 export function CategoryBadge({ category, className }: { category: NoticeCategory; className?: string }) {
   const t = useTranslations("school.notices.categories");
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap", CATEGORY_STYLES[category], className)}>
+    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[13px] font-medium whitespace-nowrap", CATEGORY_STYLES[category], className)}>
       {t(category)}
     </span>
   );

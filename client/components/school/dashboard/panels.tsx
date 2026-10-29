@@ -31,7 +31,7 @@ export function Panel({
     <section className={cn("rounded-2xl border border-border/70 bg-card", className)}>
       <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-4">
         <div className="min-w-0">
-          <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
+          <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
           {description && <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>}
         </div>
         {action}
@@ -72,7 +72,7 @@ export function UpcomingPanel({ items, className }: { items: UpcomingHoliday[]; 
             <li key={e.id} className="flex items-center gap-4">
               <div className="flex w-12 shrink-0 flex-col items-center rounded-lg bg-brand-soft py-1.5 text-center">
                 <span className="text-lg leading-none font-semibold tabular-nums">{day(e.from, { day: "numeric" })}</span>
-                <span className="text-[11px] text-muted-foreground uppercase">{day(e.from, { month: "short" })}</span>
+                <span className="text-[13px] text-muted-foreground uppercase">{day(e.from, { month: "short" })}</span>
               </div>
               <div className="min-w-0">
                 <div className="truncate font-medium">{name(e)}</div>
@@ -101,7 +101,7 @@ export function NoticesPanel({ className }: { className?: string }) {
       action={
         <div className="flex items-center gap-3">
           {!!data?.unread && (
-            <span className="rounded-full bg-brand px-2 py-0.5 text-[11px] font-semibold text-brand-foreground">{t("unread", { count: data.unread })}</span>
+            <span className="rounded-full bg-brand px-2 py-0.5 text-[13px] font-semibold text-brand-foreground">{t("unread", { count: data.unread })}</span>
           )}
           <PanelLink href="/notices">{t("open")}</PanelLink>
         </div>

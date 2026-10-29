@@ -49,7 +49,7 @@ export function StatCard({ icon: Icon, label, value, sub, tone = "default", dot,
         <Icon className="size-[18px]" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[10.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">{label}</span>
+        <span className="block truncate text-[12.5px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">{label}</span>
         <span className="flex items-center gap-2">
           {loading ? (
             <Skeleton className="my-1 h-6 w-14" />

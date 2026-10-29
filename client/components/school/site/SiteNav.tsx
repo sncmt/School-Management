@@ -49,7 +49,7 @@ export function SiteNav({
             onClick={(e) => jump(e, link)}
             aria-current={active === link.section ? "location" : undefined}
             className={cn(
-              "relative px-3.5 py-2 text-[15px] font-medium transition-colors after:absolute after:inset-x-3.5 after:-bottom-px after:h-0.5 after:rounded-full",
+              "relative px-3.5 py-2 text-[17px] font-medium transition-colors after:absolute after:inset-x-3.5 after:-bottom-px after:h-0.5 after:rounded-full",
               active === link.section ? "text-white after:bg-sidebar-primary" : "text-white/85 hover:text-white hover:after:bg-white/40",
             )}
           >
@@ -88,7 +88,7 @@ export function SiteNav({
                 onClick={(e) => jump(e, link)}
                 aria-current={active === link.section ? "location" : undefined}
                 className={cn(
-                  "border-l-2 px-3 py-2.5 text-[15px] font-medium",
+                  "border-l-2 px-3 py-2.5 text-[17px] font-medium",
                   active === link.section ? "border-sidebar-primary text-white" : "border-transparent text-white/85 hover:text-white",
                 )}
               >

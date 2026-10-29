@@ -141,7 +141,7 @@ export function FinalTabulationView({ formulaId, classId }: { formulaId: string;
                           ) : (
                             <>
                               {num(line.marks)}
-                              {line.grade && <span className="block text-[10px] text-muted-foreground">{line.grade}</span>}
+                              {line.grade && <span className="block text-[12px] text-muted-foreground">{line.grade}</span>}
                             </>
                           )}
                         </td>

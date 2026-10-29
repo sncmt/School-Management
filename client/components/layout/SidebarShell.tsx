@@ -73,7 +73,7 @@ type Props = {
 const rowClass = (active: boolean) =>
   cn(
     // a little more room before the icon (20 px) than after the text
-    "relative flex h-10 w-full items-center gap-3 rounded-lg pr-3 pl-5 text-left text-[14.5px] transition-colors",
+    "relative flex h-10 w-full items-center gap-3 rounded-lg pr-3 pl-5 text-left text-[16.5px] transition-colors",
     "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
     active
       ? "bg-sidebar-accent font-semibold text-white ring-1 ring-white/15 ring-inset before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-sidebar-primary"
@@ -110,17 +110,17 @@ export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, chi
               {brand.icon}
             </span>
             <span className="grid min-w-0 gap-0.5 leading-tight text-white">
-              <span className="truncate text-[15px] font-bold tracking-tight" title={brand.title}>
+              <span className="truncate text-[17px] font-bold tracking-tight" title={brand.title}>
                 {brand.sidebarTitle ?? brand.title}
               </span>
-              {brand.subtitle && <span className="truncate font-mono text-[11px] text-white/70">{brand.subtitle}</span>}
+              {brand.subtitle && <span className="truncate font-mono text-[13px] text-white/70">{brand.subtitle}</span>}
             </span>
           </Link>
           <SidebarToggle />
         </SidebarHeader>
 
         <SidebarContent className="sidebar-scroll gap-0 px-3 pt-3 pb-6">
-          <p className="pr-3 pl-5 pb-2 text-[11px] font-semibold tracking-[0.14em] text-white/50 uppercase group-data-[collapsible=icon]:hidden">
+          <p className="pr-3 pl-5 pb-2 text-[13px] font-semibold tracking-[0.14em] text-white/50 uppercase group-data-[collapsible=icon]:hidden">
             {tShell("workspace")}
           </p>
           <Menu groups={groups} pathname={pathname} />
@@ -133,7 +133,7 @@ export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, chi
           {/* on a phone the menu is hidden: its button lives here (the bottom bar's Menu opens it too) */}
           <MobileMenuButton />
           {/* the school's full name (the sidebar shows the short one) */}
-          <p className="min-w-0 truncate text-[15px] font-bold tracking-tight text-foreground sm:text-base">{brand.title}</p>
+          <p className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground sm:text-base">{brand.title}</p>
           <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
             {/* none on a phone, an icon below lg, the search box from lg */}
             <div className="hidden md:block lg:w-72">
@@ -267,7 +267,7 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
                         onClick={close}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "flex h-9 items-center rounded-lg px-3 text-[13.5px] transition-colors",
+                          "flex h-9 items-center rounded-lg px-3 text-[15.5px] transition-colors",
                           active
                             ? "bg-sidebar-accent font-semibold text-sidebar-primary ring-1 ring-white/15 ring-inset"
                             : "text-white/90 hover:bg-white/5 hover:text-white",

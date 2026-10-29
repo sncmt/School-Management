@@ -47,7 +47,7 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
   return (
     <div
       className={cn(
-        "mx-auto w-[190mm] bg-white text-[11px] leading-snug text-neutral-900",
+        "mx-auto w-[190mm] bg-white text-[13px] leading-snug text-neutral-900",
         compact ? "space-y-2 p-4" : "space-y-3 p-6",
         s.layout === "CLASSIC" && "border-2",
         modern && "border-l-[10px]",
@@ -138,7 +138,7 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
                       <span className="font-medium">{name(line)}</span>
                       {line.isOptional && <span className="text-neutral-500"> ({t("optional")})</span>}
                       {s.showParts && line.parts && line.parts.length > 0 && !line.isAbsent && (
-                        <span className="block text-[10px] text-neutral-500">
+                        <span className="block text-[12px] text-neutral-500">
                           {line.parts.map((p) => `${p.name} ${num(p.marks)}/${num(p.fullMarks)}`).join(" · ")}
                         </span>
                       )}
@@ -203,14 +203,14 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
           </div>
           {s.showRemarks && (
             <div className="rounded border border-neutral-300 p-2">
-              <div className="text-[10px] font-semibold uppercase text-neutral-500">{t("remarks")}</div>
+              <div className="text-[12px] font-semibold uppercase text-neutral-500">{t("remarks")}</div>
               <div className="min-h-8">{card.remark ?? ""}</div>
             </div>
           )}
         </div>
 
         {s.showGradingTable && graded && scale && (
-          <table className="h-fit border-collapse text-[10px]">
+          <table className="h-fit border-collapse text-[12px]">
             <thead>
               <tr className="bg-neutral-100">
                 <th className="border border-neutral-300 px-1.5">{t("marksRange")}</th>
@@ -250,7 +250,7 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
         </footer>
       )}
       {(s.footerNote || data.publishedAt) && (
-        <div className="flex justify-between gap-2 text-[10px] text-neutral-500">
+        <div className="flex justify-between gap-2 text-[12px] text-neutral-500">
           <span>{s.footerNote}</span>
           {data.publishedAt && <span>{t("published", { date: format.dateTime(new Date(data.publishedAt), { dateStyle: "medium" }) })}</span>}
         </div>
@@ -283,7 +283,7 @@ function Info({ label, children }: { label: string; children: ReactNode }) {
 function Stat({ label, value, accent, modern, big }: { label: string; value: string; accent: string; modern: boolean; big?: boolean }) {
   return (
     <div className={cn("rounded border px-2 py-1", modern ? "border-transparent" : "border-neutral-300")} style={modern ? { backgroundColor: `${accent}12` } : undefined}>
-      <div className="text-[10px] text-neutral-500">{label}</div>
+      <div className="text-[12px] text-neutral-500">{label}</div>
       <div className={cn("font-semibold tabular-nums", big ? "text-lg" : "text-sm")} style={{ color: accent }}>
         {value}
       </div>
@@ -323,7 +323,7 @@ function SubjectRows({
         ))}
       </tr>
       {papers.map((p) => (
-        <tr key={p.key} className="text-[10px]">
+        <tr key={p.key} className="text-[12px]">
           {columns.map((c) => (
             <td key={c} className={cn("border border-neutral-200 tabular-nums text-neutral-600", cell, c === "subject" ? "text-left" : "text-center")}>
               {c === "subject" ? p.subject : c === "full" ? p.full : c === "marks" ? p.marks : ""}

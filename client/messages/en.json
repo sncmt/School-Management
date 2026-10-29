@@ -2130,7 +2130,9 @@
         "notSet": "Not set yet",
         "save": "Save",
         "saved": "{name}'s result settings saved.",
-        "subjectScaleNote": "A subject can use its own grading scale instead of its class's: set it in Class subjects > Marks setup."
+        "subjectScaleNote": "A subject can use its own grading scale instead of its class's: set it in Class subjects > Marks setup.",
+        "openScales": "Open Grading scales",
+        "noScaleYet": "No scale yet: add one"
       },
       "stages": {
         "ROUTINE": "Routine",
@@ -3594,7 +3596,7 @@
         "removed": "Picture removed",
         "removeTitle": "Remove this picture?",
         "removeDescription": "It leaves the homepage slider and is deleted.",
-        "note": "JPG, PNG or WebP, up to 5 MB. Changes show on the homepage within a minute.",
+        "note": "JPG, PNG or WebP, up to 5 MB. Changes show on the homepage straight away.",
         "full": "The slider is full ({max} pictures). Remove one to add another."
       },
       "admission": {
@@ -3619,6 +3621,50 @@
         "save": "Save",
         "saving": "Saving…",
         "saved": "Admission section saved"
+      },
+      "about": {
+        "title": "About section",
+        "hint": "Tell visitors about your school on the homepage: your story, a picture and a few facts. Left empty, the section is hidden.",
+        "picture": "Picture",
+        "pictureHint": "Shown beside the words, cropped to 4 : 3 (1200 × 900). JPG, PNG or WebP, up to 5 MB.",
+        "addPicture": "Add picture",
+        "changePicture": "Change picture",
+        "removePicture": "Remove",
+        "uploading": "Uploading…",
+        "pictureSaved": "Picture saved",
+        "pictureRemoved": "Picture removed",
+        "body": "About your school",
+        "bodyPlaceholder": "When it was founded, what it stands for, what makes it special… Leave a blank line to start a new paragraph.",
+        "facts": "Facts",
+        "addFact": "Add fact",
+        "factLabelPlaceholder": "e.g. Established",
+        "factValuePlaceholder": "e.g. 1998",
+        "note": "Up to four facts, shown as tiles under the words. Changes show on the homepage straight away.",
+        "undo": "Undo changes",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "About section saved"
+      },
+      "gallery": {
+        "title": "Gallery",
+        "hint": "Pictures for the gallery section of your homepage, up to {max}. Each keeps its own shape and opens full size.",
+        "add": "Add picture",
+        "uploading": "Uploading…",
+        "added": "Picture added",
+        "empty": "No pictures yet. The gallery section shows once you add one.",
+        "caption": "Caption of picture {number}",
+        "captionPlaceholder": "Caption (optional), shown with the picture",
+        "save": "Save",
+        "saved": "Caption saved",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "remove": "Remove",
+        "removing": "Removing…",
+        "removed": "Picture removed",
+        "removeTitle": "Remove this picture?",
+        "removeDescription": "It leaves the gallery and is deleted.",
+        "note": "JPG, PNG or WebP, up to 5 MB. Changes show on the homepage straight away.",
+        "full": "The gallery is full ({max} pictures). Remove one to add another."
       }
     },
     "subscription": {
@@ -4830,7 +4876,9 @@
       "notices": "Notices",
       "contact": "Contact",
       "menu": "Open menu",
-      "closeMenu": "Close menu"
+      "closeMenu": "Close menu",
+      "about": "About",
+      "gallery": "Gallery"
     },
     "slider": {
       "label": "Pictures of {name}",
@@ -4877,6 +4925,21 @@
       "links": "Quick links",
       "reach": "Reach us",
       "rights": "© {year} {name}. All rights reserved."
+    },
+    "about": {
+      "eyebrow": "About us",
+      "title": "Welcome to {name}"
+    },
+    "gallery": {
+      "eyebrow": "Gallery",
+      "title": "Life at our school",
+      "subtitle": "Moments from our classrooms, events and celebrations.",
+      "open": "Open picture {number}",
+      "openNamed": "Open picture: {caption}",
+      "counter": "{current} of {total}",
+      "previous": "Previous picture",
+      "next": "Next picture",
+      "close": "Close"
     }
   },
   "publicNotices": {

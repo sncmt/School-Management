@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 
 /** How each class's result is worked out this year: graded or marks only, scale, papers, absences. */
-export function ResultSettings({ canManage }: { canManage: boolean }) {
+export function ResultSettings({ canManage, onOpenScales }: { canManage: boolean; onOpenScales?: () => void }) {
   const t = useTranslations("school.exams.settings");
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
@@ -53,10 +53,18 @@ export function ResultSettings({ canManage }: { canManage: boolean }) {
       </div>
 
       {scales.data?.length === 0 && (
-        <p className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm">{t("noScales")}</p>
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm">
+          <span className="flex-1">{t("noScales")}</span>
+          {onOpenScales && (
+            <Button type="button" size="sm" variant="outline" onClick={onOpenScales}>
+              {t("openScales")}
+            </Button>
+          )}
+        </div>
       )}
 
-      {settings.isPending ? (
+      {/* the scales too: a class's only scale is chosen for it when the row starts */}
+      {settings.isPending || scales.isPending ? (
         <Skeleton className="h-48" />
       ) : settings.isError ? (
         <div className="flex flex-col items-center gap-2 py-12 text-center text-sm text-muted-foreground">
@@ -89,6 +97,7 @@ export function ResultSettings({ canManage }: { canManage: boolean }) {
                   setting={setting}
                   scales={scales.data ?? []}
                   canManage={canManage}
+                  onOpenScales={onOpenScales}
                 />
               ))}
             </TableBody>
@@ -107,6 +116,7 @@ function SettingRow({
   setting,
   scales,
   canManage,
+  onOpenScales,
 }: {
   yearId: string;
   classId: string;
@@ -114,6 +124,7 @@ function SettingRow({
   setting: ClassResultSetting | null;
   scales: GradingScale[];
   canManage: boolean;
+  onOpenScales?: () => void;
 }) {
   const t = useTranslations("school.exams.settings");
   const describeError = useErrorMessage();
@@ -165,7 +176,12 @@ function SettingRow({
         </Select>
       </TableCell>
       <TableCell>
-        {graded ? (
+        {graded && scales.length === 0 ? (
+          // an empty dropdown would open as a blank box: say what is missing instead
+          <Button type="button" variant="link" size="sm" className="h-auto p-0 text-amber-700 dark:text-amber-400" onClick={onOpenScales} disabled={!onOpenScales}>
+            {t("noScaleYet")}
+          </Button>
+        ) : graded ? (
           <Select value={value.gradingScaleId} onValueChange={(v) => setValue((s) => ({ ...s, gradingScaleId: v }))} disabled={!canManage}>
             <SelectTrigger className={cn("w-36", missingScale && "border-amber-500")}>
               <SelectValue placeholder={t("chooseScale")} />

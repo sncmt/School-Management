@@ -32,7 +32,7 @@ export async function HeroSection({ school, name, otherName }: { school: SchoolS
 
       <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 pt-12 pb-16 sm:pt-16 lg:grid-cols-12 lg:gap-10 lg:pt-20 lg:pb-24">
         <div className="lg:col-span-5">
-          <span className="inline-flex items-center gap-2 rounded-full border bg-card/80 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-school-sidebar uppercase shadow-sm backdrop-blur dark:text-foreground">
+          <span className="inline-flex items-center gap-2 rounded-full border bg-card/80 px-3 py-1 text-[13px] font-semibold tracking-[0.16em] text-school-sidebar uppercase shadow-sm backdrop-blur dark:text-foreground">
             <span className="relative flex size-2">
               <span className="absolute inset-0 animate-ping rounded-full bg-sidebar-primary/70 motion-reduce:animate-none" />
               <span className="relative size-2 rounded-full bg-sidebar-primary" />
@@ -100,7 +100,7 @@ export async function HeroSection({ school, name, otherName }: { school: SchoolS
                 <Megaphone className="size-4.5" />
               </span>
               <span className="min-w-0">
-                <span className="block text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">{t("latestNotice")}</span>
+                <span className="block text-[12px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">{t("latestNotice")}</span>
                 <span className="block truncate text-sm font-semibold">{latest.title}</span>
               </span>
             </OpenNoticeButton>
@@ -116,7 +116,7 @@ function Fact({ icon, label, children }: { icon: React.ReactNode; label: string;
     <div className="flex items-center gap-3">
       <span className="flex size-9 items-center justify-center rounded-lg bg-school-sidebar/10 text-school-sidebar dark:bg-white/10 dark:text-foreground">{icon}</span>
       <div className="min-w-0">
-        <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{label}</dt>
+        <dt className="text-[13px] font-medium tracking-wide text-muted-foreground uppercase">{label}</dt>
         <dd className="text-sm font-semibold">{children}</dd>
       </div>
     </div>

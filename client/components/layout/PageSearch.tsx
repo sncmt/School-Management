@@ -38,7 +38,7 @@ export function PageSearch({ pages }: { pages: SearchablePage[] }) {
       >
         <Search className="size-4.5 lg:size-4" />
         <span className="hidden flex-1 text-left lg:block">{t("search")}</span>
-        <kbd className="hidden rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-[10px] leading-none lg:inline">Ctrl K</kbd>
+        <kbd className="hidden rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-[12px] leading-none lg:inline">Ctrl K</kbd>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="top-[10%] translate-y-0 gap-0 overflow-hidden p-0 sm:top-[20%] sm:max-w-lg" showCloseButton={false}>
@@ -99,7 +99,7 @@ function Finder({ pages, onDone }: { pages: SearchablePage[]; onDone: () => void
           className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           aria-label={t("search")}
         />
-        <kbd className="rounded border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">Esc</kbd>
+        <kbd className="rounded border bg-muted px-1.5 font-mono text-[12px] text-muted-foreground">Esc</kbd>
       </div>
       {found.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-muted-foreground">{t("noPages")}</p>

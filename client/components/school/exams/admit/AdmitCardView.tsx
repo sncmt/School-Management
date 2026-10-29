@@ -24,7 +24,7 @@ export function AdmitCardView({ sheet, card }: { sheet: Omit<AdmitCardSheet, "ca
 
   return (
     <div
-      className="mx-auto flex w-[190mm] flex-col overflow-hidden border-2 bg-white px-[6mm] py-[4mm] text-[10.5px] leading-snug text-neutral-900"
+      className="mx-auto flex w-[190mm] flex-col overflow-hidden border-2 bg-white px-[6mm] py-[4mm] text-[12.5px] leading-snug text-neutral-900"
       style={{ borderColor: accent, height: CARD_HEIGHT }}
     >
       <header className="flex items-center justify-center gap-3 text-center">
@@ -43,14 +43,14 @@ export function AdmitCardView({ sheet, card }: { sheet: Omit<AdmitCardSheet, "ca
         </div>
       </header>
 
-      <div className="mx-auto mt-[2mm] rounded-full px-5 py-0.5 text-[12px] font-semibold tracking-[0.15em] text-white uppercase" style={{ backgroundColor: accent }}>
+      <div className="mx-auto mt-[2mm] rounded-full px-5 py-0.5 text-[14px] font-semibold tracking-[0.15em] text-white uppercase" style={{ backgroundColor: accent }}>
         {t("title")}
       </div>
 
       <div className="mt-[3mm] flex gap-[5mm]">
         <dl className="grid flex-1 grid-cols-[auto_1fr_auto_1fr] content-start gap-x-3 gap-y-[1.6mm]">
           <Row label={t("name")} wide>
-            <span className="text-[12.5px] font-bold">{name(card.student)}</span>
+            <span className="text-[14.5px] font-bold">{name(card.student)}</span>
           </Row>
           <Row label={t("father")} wide>
             {card.student.fatherName}
@@ -60,7 +60,7 @@ export function AdmitCardView({ sheet, card }: { sheet: Omit<AdmitCardSheet, "ca
           </Row>
           <Row label={t("class")}>{card.class.name}</Row>
           <Row label={t("roll")}>
-            <span className="text-[12.5px] font-bold">{card.rollNumber ?? "—"}</span>
+            <span className="text-[14.5px] font-bold">{card.rollNumber ?? "—"}</span>
           </Row>
           <Row label={t("section")}>{card.section.isDefault ? "—" : card.section.name}</Row>
           <Row label={t("admissionNo")}>{card.student.admissionNo}</Row>
@@ -88,7 +88,7 @@ export function AdmitCardView({ sheet, card }: { sheet: Omit<AdmitCardSheet, "ca
             // eslint-disable-next-line @next/next/no-img-element -- signed links to private storage
             <img src={card.student.photo} alt="" className="size-full object-cover" />
           ) : (
-            <span className="flex flex-col items-center gap-1 text-[9px] text-neutral-500">
+            <span className="flex flex-col items-center gap-1 text-[11px] text-neutral-500">
               <UserRound className="size-6" />
               {t("photo")}
             </span>
@@ -101,7 +101,7 @@ export function AdmitCardView({ sheet, card }: { sheet: Omit<AdmitCardSheet, "ca
           <div className="font-semibold" style={{ color: accent }}>
             {t("rules")}
           </div>
-          <ol className="mt-0.5 list-decimal space-y-0.5 pl-4 text-[9.5px] text-neutral-700">
+          <ol className="mt-0.5 list-decimal space-y-0.5 pl-4 text-[11.5px] text-neutral-700">
             {sheet.rules.slice(0, 6).map((rule, i) => (
               <li key={i}>{rule}</li>
             ))}
@@ -112,7 +112,7 @@ export function AdmitCardView({ sheet, card }: { sheet: Omit<AdmitCardSheet, "ca
       {/* the signatures sit at the foot of the card */}
       <footer className="mt-auto flex justify-between gap-6 pt-[6mm]">
         {sheet.signatures.map((label, i) => (
-          <div key={i} className="min-w-[38mm] border-t border-neutral-500 pt-0.5 text-center text-[9.5px] text-neutral-700">
+          <div key={i} className="min-w-[38mm] border-t border-neutral-500 pt-0.5 text-center text-[11.5px] text-neutral-700">
             {label}
           </div>
         ))}

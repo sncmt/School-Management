@@ -25,6 +25,10 @@ export type SchoolSite = {
   slides: { id: string; image: string; caption: string | null }[];
   // the homepage's admission section; all empty = no section
   admission: Admission;
+  // the homepage's about section; all empty = no section
+  about: About;
+  // the homepage's gallery; empty = no section
+  gallery: { id: string; image: string; caption: string | null }[];
 };
 
 export type Admission = {
@@ -35,6 +39,10 @@ export type Admission = {
 };
 
 export const hasAdmission = (a: Admission) => a.requirements.length + a.dates.length + a.fees.length > 0;
+
+export type About = { body: string; image: string | null; facts: { label: string; value: string }[] };
+
+export const hasAbout = (a: About) => a.body.trim().length > 0 || !!a.image || a.facts.length > 0;
 
 const API_URL = process.env.API_URL ?? "http://localhost:5000";
 

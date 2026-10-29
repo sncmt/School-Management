@@ -51,7 +51,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
         "group-data-[variant=line]/tabs-list:after:absolute group-data-[variant=line]/tabs-list:after:inset-x-0 group-data-[variant=line]/tabs-list:after:bottom-0 group-data-[variant=line]/tabs-list:after:h-0.5 group-data-[variant=line]/tabs-list:after:rounded-full",
         "group-data-[variant=line]/tabs-list:data-[state=active]:font-semibold group-data-[variant=line]/tabs-list:data-[state=active]:text-foreground group-data-[variant=line]/tabs-list:data-[state=active]:after:bg-brand",
         // chip
-        "group-data-[variant=chip]/tabs-list:h-7 group-data-[variant=chip]/tabs-list:rounded-md group-data-[variant=chip]/tabs-list:px-3 group-data-[variant=chip]/tabs-list:text-[13px]",
+        "group-data-[variant=chip]/tabs-list:h-7 group-data-[variant=chip]/tabs-list:rounded-md group-data-[variant=chip]/tabs-list:px-3 group-data-[variant=chip]/tabs-list:text-[15px]",
         "group-data-[variant=chip]/tabs-list:data-[state=active]:bg-background group-data-[variant=chip]/tabs-list:data-[state=active]:text-navy group-data-[variant=chip]/tabs-list:data-[state=active]:shadow-sm",
         className
       )}

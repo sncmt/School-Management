@@ -26,7 +26,7 @@ export function StudentAvatar({ photo, name, className }: { photo: string | null
         // eslint-disable-next-line @next/next/no-img-element -- signed links to private storage
         <img src={photo} alt="" className="size-full object-cover" />
       ) : letters ? (
-        <span className="text-[13px] font-semibold tracking-wide">{letters}</span>
+        <span className="text-[15px] font-semibold tracking-wide">{letters}</span>
       ) : (
         <UserRound className="size-1/2 opacity-70" />
       )}

@@ -85,7 +85,7 @@ export function ExamsPage() {
           <GradingScales canManage={canManageGrading} />
         </TabsContent>
         <TabsContent value="settings">
-          <ResultSettings canManage={canManageGrading} />
+          <ResultSettings canManage={canManageGrading} onOpenScales={() => setTab("scales")} />
         </TabsContent>
       </Tabs>
     </div>

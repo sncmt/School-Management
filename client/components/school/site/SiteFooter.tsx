@@ -1,7 +1,7 @@
 import { Mail, MapPin, Phone, School } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { pickName } from "@/lib/i18n/names";
-import { hasAdmission, type SchoolSite } from "@/lib/site";
+import { hasAbout, hasAdmission, type SchoolSite } from "@/lib/site";
 
 // "+8801712345678" -> "01712345678", how people here write it
 const localPhone = (phone: string) => phone.replace(/^\+?880/, "0");
@@ -11,7 +11,9 @@ export async function SiteFooter({ school }: { school: SchoolSite }) {
   const [t, tNav, locale] = await Promise.all([getTranslations("schoolHome.footer"), getTranslations("schoolHome.nav"), getLocale()]);
   const name = pickName(school, locale);
   const links = [
+    hasAbout(school.about) && { href: "#about", label: tNav("about") },
     hasAdmission(school.admission) && { href: "#admission", label: tNav("admission") },
+    school.gallery.length > 0 && { href: "#gallery", label: tNav("gallery") },
     { href: "#notices", label: tNav("notices") },
     { href: "#contact", label: tNav("contact") },
   ].filter(Boolean) as { href: string; label: string }[];

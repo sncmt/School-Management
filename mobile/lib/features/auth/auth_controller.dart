@@ -18,6 +18,7 @@ class Me {
     required this.phone,
     required this.roles,
     required this.canChangeOwnPassword,
+    required this.permissions,
     required this.schoolNameEn,
     this.schoolNameBn,
     this.schoolLogo,
@@ -29,6 +30,9 @@ class Me {
 
   /// Only guardians change their own password; a teacher's is changed by the school's super admin.
   final bool canChangeOwnPassword;
+
+  /// What the school's roles let this person do ("attendance:mark"...), as the website uses them.
+  final Set<String> permissions;
   final String schoolNameEn;
   final String? schoolNameBn;
   final String? schoolLogo;
@@ -47,6 +51,7 @@ class Me {
       phone: user['phone'] as String?,
       roles: {for (final role in json['roles'] as List) (role as Map)['name'] as String},
       canChangeOwnPassword: json['canChangeOwnPassword'] == true,
+      permissions: {for (final p in (json['permissions'] as List?) ?? const []) p as String},
       schoolNameEn: school['nameEn'] as String,
       schoolNameBn: school['nameBn'] as String?,
       schoolLogo: school['logo'] as String?,
