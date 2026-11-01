@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api_client.dart';
 import '../../core/format.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/async_body.dart';
 import '../../widgets/ui.dart';
 import '../auth/auth_controller.dart';
 import '../teacher/teacher.dart';
@@ -22,6 +22,7 @@ class TeacherHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
     final canMark = me.permissions.contains('attendance:mark');
+    final dayValue = ref.watch(myDayProvider);
 
     return RefreshIndicator(
       onRefresh: () => ref.refresh(myDayProvider.future),
@@ -41,36 +42,66 @@ class TeacherHome extends ConsumerWidget {
               ),
             ),
           ),
-          AsyncBody(
-            value: ref.watch(myDayProvider),
-            onRetry: () => ref.invalidate(myDayProvider),
-            builder: (day) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          // The tools always show, even while today's classes load or fail to load.
+          FadeSlideIn(
+            index: 2,
+            child: ShortcutGrid(
               children: [
-                FadeSlideIn(index: 1, child: _TodayCard(day: day)),
-                const SizedBox(height: 16),
-                FadeSlideIn(
-                  index: 2,
-                  child: ShortcutGrid(
-                    children: [
-                      ShortcutTile(icon: Icons.calendar_view_week_rounded, label: t.weeklyRoutine, onTap: () => context.push('/teacher/week')),
-                      if (canMark)
-                        ShortcutTile(icon: Icons.fact_check_rounded, label: t.takeAttendance, onTap: () => context.push('/teacher/attendance')),
-                      ShortcutTile(icon: Icons.menu_book_rounded, label: t.homework, onTap: () => context.push('/teacher/homework')),
-                      ShortcutTile(icon: Icons.edit_note_rounded, label: t.examMarks, onTap: () => context.push('/teacher/marks')),
-                    ],
-                  ),
-                ),
-                if (day.isSchoolDay) ...[
-                  SectionHeader(t.todaysClasses),
-                  if (day.classes.isEmpty) EmptyState(icon: Icons.free_breakfast_outlined, message: t.noClassesToday),
-                  for (final (i, c) in day.classes.indexed) FadeSlideIn(index: i + 3, child: ClassTile(item: c)),
-                ],
+                ShortcutTile(icon: Icons.calendar_view_week_rounded, label: t.weeklyRoutine, onTap: () => context.push('/teacher/week')),
+                if (canMark)
+                  ShortcutTile(icon: Icons.fact_check_rounded, label: t.takeAttendance, onTap: () => context.push('/teacher/attendance')),
+                ShortcutTile(icon: Icons.menu_book_rounded, label: t.homework, onTap: () => context.push('/teacher/homework')),
+                ShortcutTile(icon: Icons.edit_note_rounded, label: t.examMarks, onTap: () => context.push('/teacher/marks')),
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          _TodaySection(day: dayValue, onRetry: () => ref.invalidate(myDayProvider)),
         ],
       ),
+    );
+  }
+}
+
+/// Today's card and classes, with its own spinner or error so the rest of the home stays usable.
+class _TodaySection extends StatelessWidget {
+  const _TodaySection({required this.day, required this.onRetry});
+
+  final AsyncValue<TeacherDay> day;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final data = day.value;
+    if (data == null) {
+      final error = day.error;
+      if (error == null) {
+        return const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()));
+      }
+      final message = switch (error) {
+        ApiException(isNetwork: true) => t.networkError,
+        ApiException e => e.message,
+        _ => t.somethingWentWrong,
+      };
+      return Column(
+        children: [
+          EmptyState(icon: Icons.cloud_off_rounded, message: message),
+          const SizedBox(height: 8),
+          FilledButton.tonal(onPressed: onRetry, child: Text(t.retry)),
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FadeSlideIn(index: 1, child: _TodayCard(day: data)),
+        if (data.isSchoolDay) ...[
+          SectionHeader(t.todaysClasses),
+          if (data.classes.isEmpty) EmptyState(icon: Icons.free_breakfast_outlined, message: t.noClassesToday),
+          for (final (i, c) in data.classes.indexed) FadeSlideIn(index: i + 3, child: ClassTile(item: c)),
+        ],
+      ],
     );
   }
 }
