@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api_client.dart';
 import '../../core/format.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/async_body.dart';
 import '../../widgets/attendance_status.dart';
 import '../../widgets/child_avatar.dart';
 import '../../widgets/ui.dart';
@@ -33,16 +33,53 @@ class ChildScreen extends ConsumerWidget {
           ref.invalidate(resultsProvider(childId));
           return ref.refresh(familyHomeProvider.future);
         },
-        child: AsyncBody(
-          value: home,
-          onRetry: () => ref.invalidate(familyHomeProvider),
-          builder: (home) {
-            final child = home.child(childId);
-            if (child == null) return Center(child: Text(t.noChildren));
-            final base = '/child/${child.id}';
+        child: Builder(
+          builder: (context) {
+            final data = home.value;
+            final child = data?.child(childId);
+            final base = '/child/$childId';
+            // The options only need the child's id, so they show even when the data can't load.
+            final tools = FadeSlideIn(
+              index: 1,
+              child: ShortcutGrid(
+                children: [
+                  ShortcutTile(icon: Icons.event_available_rounded, label: t.attendance, onTap: () => context.push('$base/attendance')),
+                  ShortcutTile(icon: Icons.menu_book_rounded, label: t.homework, onTap: () => context.push('$base/homework')),
+                  ShortcutTile(icon: Icons.schedule_rounded, label: t.classRoutine, onTap: () => context.push('$base/routine')),
+                  ShortcutTile(icon: Icons.receipt_long_rounded, label: t.paymentHistory, onTap: () => context.push('$base/payments')),
+                ],
+              ),
+            );
+
+            if (data == null || child == null) {
+              final error = home.error;
+              Widget status;
+              if (data != null) {
+                status = EmptyState(icon: Icons.family_restroom_rounded, message: t.noChildren);
+              } else if (error == null) {
+                status = const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()));
+              } else {
+                final message = switch (error) {
+                  ApiException(isNetwork: true) => t.networkError,
+                  ApiException e => e.message,
+                  _ => t.somethingWentWrong,
+                };
+                status = Column(
+                  children: [
+                    EmptyState(icon: Icons.cloud_off_rounded, message: message),
+                    FilledButton.tonal(onPressed: () => ref.invalidate(familyHomeProvider), child: Text(t.retry)),
+                  ],
+                );
+              }
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                children: [tools, const SizedBox(height: 12), status],
+              );
+            }
+
             final sections = [
               _AttendanceCard(child: child),
-              _FeesCard(child: child, onlinePayment: home.onlinePayment),
+              _FeesCard(child: child, onlinePayment: data.onlinePayment),
               _HomeworkCard(child: child),
               _Section(icon: Icons.emoji_events_outlined, title: t.results, children: [ResultList(childId: child.id)]),
               if (child.admitCards.isNotEmpty) _AdmitCardsCard(child: child),
@@ -52,17 +89,7 @@ class ChildScreen extends ConsumerWidget {
               children: [
                 FadeSlideIn(child: _Header(child: child)),
                 const SizedBox(height: 20),
-                FadeSlideIn(
-                  index: 1,
-                  child: ShortcutGrid(
-                    children: [
-                      ShortcutTile(icon: Icons.event_available_rounded, label: t.attendance, onTap: () => context.push('$base/attendance')),
-                      ShortcutTile(icon: Icons.menu_book_rounded, label: t.homework, onTap: () => context.push('$base/homework')),
-                      ShortcutTile(icon: Icons.schedule_rounded, label: t.classRoutine, onTap: () => context.push('$base/routine')),
-                      ShortcutTile(icon: Icons.receipt_long_rounded, label: t.paymentHistory, onTap: () => context.push('$base/payments')),
-                    ],
-                  ),
-                ),
+                tools,
                 const SizedBox(height: 20),
                 for (final (i, section) in sections.indexed) FadeSlideIn(index: i + 2, child: section),
               ],
