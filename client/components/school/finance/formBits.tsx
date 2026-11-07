@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toAsciiDigits } from "@/lib/i18n/digits";
+import { useCurrencySign } from "@/lib/i18n/useCurrency";
 
 /* "500", "৫০০", "12.50": a money amount, or NaN. */
 export const parseMoney = (text: string) => {
@@ -13,6 +14,7 @@ export const parseMoney = (text: string) => {
 
 /** A label, the control, and an optional hint under it (for the small finance dialogs). */
 export function Field({ label, htmlFor, required, children, hint }: { label: string; htmlFor?: string; required?: boolean; children: ReactNode; hint?: string }) {
+ 
   return (
     <div className="space-y-1.5">
       <Label htmlFor={htmlFor} required={required}>
@@ -26,10 +28,11 @@ export function Field({ label, htmlFor, required, children, hint }: { label: str
 
 /** An amount in taka, with the ৳ sign inside the box. */
 export function TakaInput({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const { sign, pad } = useCurrencySign();
   return (
     <div className="relative w-40">
-      <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">৳</span>
-      <Input id={id} inputMode="decimal" className="pl-7" value={value} onChange={(e) => onChange(e.target.value)} />
+      <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">{sign}</span>
+      <Input id={id} inputMode="decimal" className={pad} value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }

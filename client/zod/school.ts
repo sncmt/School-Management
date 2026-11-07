@@ -25,8 +25,6 @@ const clearableText = (schema: z.ZodType<string, string>) =>
 
 const optionalNumber = (schema: z.ZodNumber) =>
   text.transform((v) => (v === "" ? undefined : asNumber(v))).pipe(schema.optional());
-const clearableNumber = (schema: z.ZodNumber) =>
-  text.transform((v) => (v === "" ? null : asNumber(v))).pipe(schema.nullable());
 
 const phoneRule = z.string().regex(/^\+?\d{10,14}$/, "validation.phoneInvalid");
 
@@ -35,7 +33,6 @@ const nameEn = z.string().trim().min(1, "validation.nameEnRequired").min(2, "val
 const nameBn = z.string().trim().min(1, "validation.banglaNameRequired").min(2, "validation.nameMin").max(200);
 const email = z.string().trim().min(1, "validation.emailRequired").pipe(z.email("validation.emailInvalid"));
 const language = z.enum(["BN", "EN"]);
-const feeRule = z.number("validation.numberInvalid").nonnegative("validation.feeNonNegative");
 const discountRule = z
   .number("validation.numberInvalid")
   .min(0, "validation.discountRange")
@@ -61,8 +58,8 @@ export const createSchoolSchema = z.object({
   address: optionalText(z.string().max(500)),
   language,
   subscriptionPlan: z.string().pipe(planRule),
-  monthlyFee: optionalNumber(feeRule),
-  yearlyFee: optionalNumber(feeRule),
+  // the package: its student limit and price a month (a year is twelve months)
+  packageId: z.string().min(1, "validation.packageRequired"),
   discount: optionalNumber(discountRule),
 });
 
@@ -83,8 +80,11 @@ export const updateSchoolSchema = z.object({
     .string()
     .transform((v) => (v === "" ? undefined : v))
     .pipe(planRule.optional()),
-  monthlyFee: clearableNumber(feeRule),
-  yearlyFee: clearableNumber(feeRule),
+  // a school made before packages has none: left empty, it isn't sent
+  packageId: z
+    .string()
+    .transform((v) => (v === "" ? undefined : v))
+    .pipe(z.string().optional()),
   discount: text.transform((v) => (v === "" ? 0 : asNumber(v))).pipe(discountRule),
 });
 

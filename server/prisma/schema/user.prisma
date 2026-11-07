@@ -203,3 +203,34 @@ model PasswordChangeCode {
   @@index([requestedById])
   @@index([expiresAt])
 }
+
+// who changed whose password from where: the platform admin, or a school's super admin
+enum PasswordChangeSource {
+  PLATFORM
+  SCHOOL_SUPER_ADMIN
+}
+
+/*
+ * A record of every password set for someone else (never the password itself): the account,
+ * the school it was done for, who did it and how. Kept when the people involved go (no relations).
+ */
+model PasswordChangeLog {
+  id String @id @default(cuid())
+
+  // the account whose password changed, and its name then
+  targetUserId String
+  targetName   String
+  // the school it was done for (null: none)
+  schoolId     String?
+
+  source      PasswordChangeSource
+  changedById String
+  changedByName String
+  // a password typed in, or one made up and shown once
+  generated   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([schoolId, createdAt])
+  @@index([targetUserId])
+}

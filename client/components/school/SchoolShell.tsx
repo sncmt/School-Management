@@ -4,6 +4,7 @@ import { School } from "lucide-react";
 import type { ReactNode } from "react";
 import { SidebarShell } from "@/components/layout/SidebarShell";
 import { useSchoolMe } from "@/lib/auth/hooks";
+import { useTranslations } from "next-intl";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { MessagesMenu } from "./messages/MessagesMenu";
 import { schoolMenu } from "./navigation";
@@ -11,6 +12,7 @@ import { SchoolBottomNav, useBottomNavHasMessages } from "./SchoolBottomNav";
 
 /** School layout: the school's name and logo, its modules in the sidebar. */
 export function SchoolShell({ children }: { children: ReactNode }) {
+  const t = useTranslations("nav");
   const me = useSchoolMe();
   const name = useLocalizedName();
   const bottomHasMessages = useBottomNavHasMessages();
@@ -29,7 +31,7 @@ export function SchoolShell({ children }: { children: ReactNode }) {
         icon,
         title: me ? name(me.school) : "",
         // the narrow sidebar shows the school's short address: DEMO for demo.<domain>
-        sidebarTitle: me ? me.school.subdomain.toUpperCase() : "",
+        sidebarTitle: t("dashboard"),
         // everyone sees the year they are working in
         subtitle: me?.academicYear?.name,
         home: "/dashboard",

@@ -5,6 +5,7 @@ import { useFormatter } from "next-intl";
 import { useCallback } from "react";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
+import { useTaka } from "../i18n/useCurrency";
 
 // Mirrors server/src/app/modules/{finance,fund,feeType,feeStructure}. Decimals arrive as strings.
 
@@ -175,13 +176,10 @@ export const academicMonths = (year: { startDate: string; endDate: string }) => 
 
 /** Taka for display: "৳1,250.50" in the current language's digits. */
 export const useMoney = () => {
-  const format = useFormatter();
+  const taka = useTaka();
   return useCallback(
-    (value: string | number | null | undefined) =>
-      value === null || value === undefined
-        ? "—"
-        : `৳${format.number(Number(value), { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`,
-    [format],
+    (value: string | number | null | undefined) => (value === null || value === undefined ? "—" : taka(Number(value))),
+    [taka],
   );
 };
 

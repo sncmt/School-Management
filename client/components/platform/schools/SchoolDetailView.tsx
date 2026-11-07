@@ -1,17 +1,7 @@
 "use client";
 
-import {
-  ArrowLeft,
-  Ban,
-  CreditCard,
-  ExternalLink,
-  KeyRound,
-  MoreHorizontal,
-  Pause,
-  Pencil,
-  Power,
-  RotateCcw,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, Ban, CreditCard, ExternalLink, KeyRound, MoreHorizontal, Pause, Pencil, Power, RotateCcw, Users } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
@@ -32,14 +22,15 @@ import { ResetSuperAdminPasswordDialog } from "./ResetSuperAdminPasswordDialog";
 import { SchoolBrandingCard } from "./SchoolBrandingCard";
 import { SchoolStatusBadge } from "./SchoolStatusBadge";
 import { SchoolStatusDialog, type StatusAction } from "./SchoolStatusDialog";
+import { useTaka } from "@/lib/i18n/useCurrency";
 
 export function SchoolDetailView({ school }: { school: SchoolDetail }) {
   const t = useTranslations("platform.schoolDetail");
   const tLanguage = useTranslations("languages");
   const tPlans = useTranslations("platform.subscriptions.plans");
   const format = useFormatter();
+  const taka = useTaka();
   const actions = schoolActions(school);
-
   const [activating, setActivating] = useState(false);
   const [statusAction, setStatusAction] = useState<StatusAction | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -83,6 +74,11 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
               </Link>
             </Button>
           )}
+          <Button variant="outline" asChild>
+            <Link href={`/schools/${school.id}/users`}>
+              <Users /> {t("users")}
+            </Link>
+          </Button>
           <Button variant="outline" asChild>
             <Link href={`/schools/${school.id}/edit`}>
               <Pencil /> {t("edit")}
@@ -200,13 +196,31 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
               notSet
             )}
           </Field>
-          <Field label={t("fields.monthlyFee")}>
-            {school.monthlyFee != null
-              ? format.number(Number(school.monthlyFee), { style: "currency", currency: "BDT" })
+          <Field label={t("fields.package")}>
+            {school.package ? (
+              <>
+                {school.package.name}
+                <span className="text-muted-foreground">
+                  {" · "}
+                  {school.package.maxStudents === null ? t("unlimitedStudents") : t("upToStudents", { count: school.package.maxStudents })}
+                </span>
+              </>
+            ) : (
+              notSet
+            )}
+          </Field>
+          <Field label={t("fields.price")}>
+            {school.subscription?.price.due != null
+              ? `${taka(Number(school.subscription.price.due))} ${t(school.subscriptionPlan === "YEARLY" ? "perYear" : "perMonth")}`
               : notSet}
           </Field>
-          <Field label={t("fields.yearlyFee")}>
-            {school.yearlyFee != null ? format.number(Number(school.yearlyFee), { style: "currency", currency: "BDT" }) : notSet}
+          <Field label={t("fields.studentsUsed")}>
+            <span className={cn(school.subscription?.overLimit && "font-medium text-destructive")}>
+              {school.package?.maxStudents != null
+                ? t("studentsOf", { count: school.stats.activeStudents, max: school.package.maxStudents })
+                : t("stats.students", { count: school.stats.activeStudents })}
+            </span>
+            {school.subscription?.overLimit && <div className="text-xs text-destructive">{t("overLimit")}</div>}
           </Field>
           <Field label={t("fields.discount")}>
             {format.number(Number(school.discount) / 100, { style: "percent", maximumFractionDigits: 2 })}

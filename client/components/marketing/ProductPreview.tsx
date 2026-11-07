@@ -1,5 +1,7 @@
 import { Bell, CalendarCheck, FileText, LayoutDashboard, MessageSquare, Settings, Users, Wallet, type LucideIcon } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { withSign } from "@/lib/i18n/currency";
+
 
 /*
  * A drawing of the school dashboard for the hero, made of plain boxes so it stays sharp, light
@@ -28,11 +30,12 @@ const WEEK = [
 
 export async function ProductPreview() {
   const t = await getTranslations("marketing.preview");
+  const locale = await getLocale();
 
   const stats = [
     { label: t("statStudents"), value: "1,248", tone: "bg-indigo-50 text-indigo-600" },
     { label: t("statPresent"), value: "96%", tone: "bg-emerald-50 text-emerald-600" },
-    { label: t("statFees"), value: "৳4.2L", tone: "bg-amber-50 text-amber-600" },
+    { label: t("statFees"), value: withSign(locale, "4.2L"), tone: "bg-amber-50 text-amber-600" },
     { label: t("statTeachers"), value: "64", tone: "bg-violet-50 text-violet-600" },
   ];
 
@@ -108,14 +111,14 @@ export async function ProductPreview() {
               <div className="rounded-lg border border-slate-200 bg-white p-3 md:col-span-2">
                 <p className="text-[11px] font-semibold">{t("payments")}</p>
                 <ul className="mt-2.5 space-y-2.5">
-                  {["৳1,500", "৳2,500", "৳1,200"].map((amount, i) => (
+                  {["1,500", "2,500", "1,200"].map((amount, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <span className={`size-6 shrink-0 rounded-full ${["bg-rose-100", "bg-sky-100", "bg-amber-100"][i]}`} />
                       <span className="flex-1 space-y-1">
                         <span className="block h-1.5 w-3/4 rounded-full bg-slate-200" />
                         <span className="block h-1.5 w-1/2 rounded-full bg-slate-100" />
                       </span>
-                      <span className="text-[11px] font-semibold text-emerald-600">{amount}</span>
+                      <span className="text-[11px] font-semibold text-emerald-600">{withSign(locale, amount)}</span>
                     </li>
                   ))}
                 </ul>

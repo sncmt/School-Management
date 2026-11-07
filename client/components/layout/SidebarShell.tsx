@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight, Menu as MenuIcon, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment, useState, type ReactNode } from "react";
+import { Fragment, useState, useEffect, useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -18,7 +18,11 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCan, useSchoolMe } from "@/lib/auth/hooks";
 import type { PermissionCheck } from "@/lib/auth/permissions";
 import type { SessionType } from "@/lib/tenant";
@@ -26,9 +30,9 @@ import { cn } from "@/lib/utils";
 import type messages from "@/messages/en.json";
 import { AccountMenu } from "./AccountMenu";
 import { LanguageMenu } from "./LanguageMenu";
-import { PageSearch } from "./PageSearch";
 import { ThemeToggle } from "./ThemeToggle";
 import { topBarIconButton } from "./topBar";
+
 
 export type MenuItem = {
   href: string;
@@ -49,18 +53,30 @@ export type MenuItem = {
  * Teachers…), or just the page's own row when only one of them is visible; without a label its
  * pages are rows of their own.
  */
-export type MenuGroup = { label?: keyof (typeof messages)["navGroups"]; icon?: LucideIcon; items: MenuItem[] };
+export type MenuGroup = {
+  label?: keyof (typeof messages)["navGroups"];
+  icon?: LucideIcon;
+  items: MenuItem[];
+};
 
 /** Active on its own page and the pages under it ("/" only on itself). */
 const isActive = (href: string, pathname: string) =>
-  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  href === "/"
+    ? pathname === "/"
+    : pathname === href || pathname.startsWith(`${href}/`);
 
 type Props = {
   session: SessionType;
   // the logo block: logo, site name, and a line under it (the academic year)
   // title: the full name, in the top bar; sidebarTitle: a short one for the narrow sidebar (the
   // title when left out)
-  brand: { icon: ReactNode; title: string; sidebarTitle?: string; subtitle?: ReactNode; home: string };
+  brand: {
+    icon: ReactNode;
+    title: string;
+    sidebarTitle?: string;
+    subtitle?: ReactNode;
+    home: string;
+  };
   menu: MenuGroup[];
   // the site's own buttons in the top bar, before the language menu (the school's messages)
   topBarItems?: ReactNode;
@@ -81,7 +97,14 @@ const rowClass = (active: boolean) =>
   );
 
 /** Logged-in layout: the navy menu on the left; a white top bar and the page on a squared light-grey canvas. Used by the admin and school sites. */
-export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, children }: Props) {
+export function SidebarShell({
+  session,
+  brand,
+  menu,
+  topBarItems,
+  bottomNav,
+  children,
+}: Props) {
   const t = useTranslations("nav");
   const tGroups = useTranslations("navGroups");
   const tShell = useTranslations("shell");
@@ -90,30 +113,55 @@ export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, chi
   const isSuperAdmin = !!me?.isSuperAdmin;
   const isFamily = !!me?.roles.some((r) => r.name === "GUARDIAN");
   // each site is served from its app folder; compare public paths only
-  const pathname = usePathname().replace(/^\/(platform|school)(?=\/|$)/, "") || "/";
+  const pathname =
+    usePathname().replace(/^\/(platform|school)(?=\/|$)/, "") || "/";
 
   const visible = (item: MenuItem) =>
-    (!item.superAdminOnly || isSuperAdmin) && ((item.family && isFamily) || !item.permission || can(item.permission, { any: item.anyPermission }));
-  const groups = menu.map((g) => ({ ...g, items: g.items.filter(visible) })).filter((g) => g.items.length > 0);
+    (!item.superAdminOnly || isSuperAdmin) &&
+    ((item.family && isFamily) ||
+      !item.permission ||
+      can(item.permission, { any: item.anyPermission }));
+  const groups = menu
+    .map((g) => ({ ...g, items: g.items.filter(visible) }))
+    .filter((g) => g.items.length > 0);
 
   // where we are: "Home / People / Students"
-  const current = groups.flatMap((g) => g.items.map((item) => ({ item, group: g }))).find(({ item }) => isActive(item.href, pathname));
-  const pages = groups.flatMap((g) => g.items.map((item) => ({ href: item.href, label: t(item.label), group: g.label ? tGroups(g.label) : null, icon: item.icon })));
+  const current = groups
+    .flatMap((g) => g.items.map((item) => ({ item, group: g })))
+    .find(({ item }) => isActive(item.href, pathname));
+
 
   return (
-    <SidebarProvider style={{ "--sidebar-width": "14.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "14.5rem",
+          "--sidebar-width-icon": "4.25rem",
+        } as React.CSSProperties
+      }
+    >
       <Sidebar collapsible="icon" className="dark border-r-0">
         {/* the logo block on the same navy as the menu, as tall as the top bar; its text is white */}
         <SidebarHeader className="h-[72px] flex-row items-center gap-0 border-b border-white/20 px-5 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-          <Link href={brand.home} className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:hidden">
+          <Link
+            href={brand.home}
+            className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:hidden"
+          >
             <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white text-sidebar shadow-sm">
               {brand.icon}
             </span>
             <span className="grid min-w-0 gap-0.5 leading-tight text-white">
-              <span className="truncate text-[17px] font-bold tracking-tight" title={brand.title}>
+              <span
+                className="truncate text-[17px] font-bold tracking-tight"
+                title={brand.title}
+              >
                 {brand.sidebarTitle ?? brand.title}
               </span>
-              {brand.subtitle && <span className="truncate font-mono text-[13px] text-white/70">{brand.subtitle}</span>}
+              {brand.subtitle && (
+                <span className="truncate font-mono text-[13px] text-white/70">
+                  {brand.subtitle}
+                </span>
+              )}
             </span>
           </Link>
           <SidebarToggle />
@@ -133,35 +181,53 @@ export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, chi
           {/* on a phone the menu is hidden: its button lives here (the bottom bar's Menu opens it too) */}
           <MobileMenuButton />
           {/* the school's full name (the sidebar shows the short one) */}
-          <p className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground sm:text-base">{brand.title}</p>
+          <p className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground sm:text-base">
+            {brand.title}
+          </p>
           <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
-            {/* none on a phone, an icon below lg, the search box from lg */}
-            <div className="hidden md:block lg:w-72">
-              <PageSearch pages={pages} />
-            </div>
+           
             {topBarItems}
             <LanguageMenu />
             <ThemeToggle />
-            <Separator orientation="vertical" className="mx-0.5 hidden data-[orientation=vertical]:h-8 sm:block" />
+            <Separator
+              orientation="vertical"
+              className="mx-0.5 hidden data-[orientation=vertical]:h-8 sm:block"
+            />
             <AccountMenu session={session} />
           </div>
         </header>
         {/* on a phone with the bottom bar, room under the page so the bar never covers it */}
-        <main className={cn("flex-1 p-4 md:p-6 lg:p-8", bottomNav && "pb-28 md:pb-6 lg:pb-8")}>
-          <nav aria-label={tShell("home")} className="no-print mb-4 flex flex-wrap items-center gap-2 font-mono text-xs">
-            <Link href={brand.home} className="text-muted-foreground hover:text-foreground">
+        <main
+          className={cn(
+            "flex-1 p-4 md:p-6 lg:p-8",
+            bottomNav && "pb-28 md:pb-6 lg:pb-8",
+          )}
+        >
+          <nav
+            aria-label={tShell("home")}
+            className="no-print mb-4 flex flex-wrap items-center gap-2 font-mono text-xs"
+          >
+            <Link
+              href={brand.home}
+              className="text-muted-foreground hover:text-foreground"
+            >
               {tShell("home")}
             </Link>
             {current?.group.label && current.group.items.length > 1 && (
               <>
                 <span className="text-muted-foreground/50">/</span>
-                <span className="text-muted-foreground">{tGroups(current.group.label)}</span>
+                <span className="text-muted-foreground">
+                  {tGroups(current.group.label)}
+                </span>
               </>
             )}
             {current && current.item.href !== brand.home && (
               <>
                 <span className="text-muted-foreground/50">/</span>
-                <Link href={current.item.href} className="font-semibold text-foreground hover:underline">
+                <Link
+                  href={current.item.href}
+                  className="font-semibold text-foreground hover:underline"
+                >
                   {t(current.item.label)}
                 </Link>
               </>
@@ -179,10 +245,17 @@ export function SidebarShell({ session, brand, menu, topBarItems, bottomNav, chi
 function SidebarToggle() {
   const tShell = useTranslations("shell");
   const { isMobile, setOpenMobile } = useSidebar();
-  const look = "size-9 shrink-0 text-white hover:bg-white/15 hover:text-white [&_svg]:size-5!";
+  const look =
+    "size-9 shrink-0 text-white hover:bg-white/15 hover:text-white [&_svg]:size-5!";
   if (!isMobile) return <SidebarTrigger className={look} />;
   return (
-    <Button variant="ghost" size="icon" className={look} onClick={() => setOpenMobile(false)} aria-label={tShell("closeMenu")}>
+    <Button
+      variant="ghost"
+      size="icon"
+      className={look}
+      onClick={() => setOpenMobile(false)}
+      aria-label={tShell("closeMenu")}
+    >
       <X />
     </Button>
   );
@@ -206,23 +279,51 @@ function MobileMenuButton() {
 }
 
 /* The rows: a page, or a group that opens into its pages; folded to icons, every page is an icon. */
-function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] })[]; pathname: string }) {
+function Menu({
+  groups,
+  pathname,
+}: {
+  groups: (MenuGroup & { items: MenuItem[] })[];
+  pathname: string;
+}) {
   const t = useTranslations("nav");
   const tGroups = useTranslations("navGroups");
   const { state, isMobile, setOpenMobile } = useSidebar();
   const folded = state === "collapsed" && !isMobile;
-  const activeGroup = groups.find((g) => g.items.some((i) => isActive(i.href, pathname)))?.label;
+  const activeGroup = groups.find((g) =>
+    g.items.some((i) => isActive(i.href, pathname)),
+  )?.label;
   // one group open at a time: the one with the current page, until another is opened ("" = none)
   const [openLabel, setOpenLabel] = useState<string | undefined>();
   const openGroup = openLabel ?? activeGroup;
   const close = () => isMobile && setOpenMobile(false);
 
+  // each group's box, so the menu can scroll to it
+  const groupEls = useRef(new Map<string, HTMLDivElement>());
+  // when a group is opened by a click, scroll the menu just enough to show all its pages
+  useEffect(() => {
+    if (!openLabel) return;
+    const el = groupEls.current.get(openLabel);
+    if (!el) return;
+    const frame = requestAnimationFrame(() =>
+      el.scrollIntoView({ block: "nearest", behavior: "smooth" }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [openLabel]);
+
   const pageRow = (item: MenuItem) => {
     const active = isActive(item.href, pathname);
     const row = (
-      <Link href={item.href} onClick={close} className={rowClass(active)} aria-current={active ? "page" : undefined}>
+      <Link
+        href={item.href}
+        onClick={close}
+        className={rowClass(active)}
+        aria-current={active ? "page" : undefined}
+      >
         <item.icon className="size-[18px] shrink-0 text-white" />
-        <span className="truncate group-data-[collapsible=icon]:hidden">{t(item.label)}</span>
+        <span className="truncate group-data-[collapsible=icon]:hidden">
+          {t(item.label)}
+        </span>
       </Link>
     );
     return folded ? (
@@ -235,16 +336,35 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
     );
   };
 
-  if (folded) return <nav className="grid gap-1">{groups.flatMap((g) => g.items).map(pageRow)}</nav>;
+  if (folded)
+    return (
+      <nav className="grid gap-1">
+        {groups.flatMap((g) => g.items).map(pageRow)}
+      </nav>
+    );
 
   return (
     <nav className="grid gap-1">
       {groups.map((group, i) => {
-        if (!group.label || group.items.length === 1) return <Fragment key={group.label ?? i}>{group.items.map(pageRow)}</Fragment>;
+        if (!group.label || group.items.length === 1)
+          return (
+            <Fragment key={group.label ?? i}>
+              {group.items.map(pageRow)}
+            </Fragment>
+          );
         const open = openGroup === group.label;
         const Icon = group.icon ?? group.items[0].icon;
+        const label = group.label;
+
         return (
-          <div key={group.label} className="grid gap-1">
+          <div
+            key={label}
+            ref={(el) => {
+              if (el) groupEls.current.set(label, el);
+              else groupEls.current.delete(label);
+            }}
+            className="grid scroll-mb-6 gap-1"
+          >
             <button
               type="button"
               onClick={() => setOpenLabel(open ? "" : group.label)}
@@ -253,7 +373,11 @@ function Menu({ groups, pathname }: { groups: (MenuGroup & { items: MenuItem[] }
             >
               <Icon className="size-[18px] shrink-0 text-white" />
               <span className="flex-1 truncate">{tGroups(group.label)}</span>
-              {open ? <ChevronDown className="size-4 text-white/85" /> : <ChevronRight className="size-4 text-white/85" />}
+              {open ? (
+                <ChevronDown className="size-4 text-white/85" />
+              ) : (
+                <ChevronRight className="size-4 text-white/85" />
+              )}
             </button>
             {open && (
               // its pages, on a thin line under the group's icon

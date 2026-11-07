@@ -13,11 +13,11 @@ export type CreateSchoolPayload = {
   phone?: string;
   website?: string;
   address?: string;
-  monthlyFee?: string;
-  yearlyFee?: string;
-  discount: number;
+  discount?: number;
   language?: "EN" | "BN";
-  subscriptionPlan?: "MONTHLY" | "YEARLY";
+  subscriptionPlan: "MONTHLY" | "YEARLY";
+  // the subscription package (student limit and price)
+  packageId: string;
   logo?: string;
   favicon?: string;
 };

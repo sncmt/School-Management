@@ -17,6 +17,7 @@ import { localizeDigits } from "@/lib/i18n/digits";
  */
 
 const SKIP = "input, textarea, script, style, code, pre, [contenteditable], [data-ascii-digits]";
+const rewritten = new WeakMap<Text, { original: string; shown: string }>();
 
 const convertNode = (node: Text) => {
   const value = node.nodeValue;
@@ -25,7 +26,22 @@ const convertNode = (node: Text) => {
   if (!parent || parent.closest(SKIP)) return;
   const next = localizeDigits(value);
   // no change means nothing to do (and no endless loop: the new text has no digits to convert)
-  if (next !== value) node.nodeValue = next;
+  if (next !== value) {
+     rewritten.set(node, { original: value, shown: next });
+     node.nodeValue = next;
+   }
+};
+
+// the reverse: every text node we rewrote gets its own text back, unless something has changed it since
+const restoreTree = (root: Node) => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const node = n as Text;
+    const was = rewritten.get(node);
+    if (!was) continue;
+    if (node.nodeValue === was.shown) node.nodeValue = was.original;
+    rewritten.delete(node);
+  }
 };
 
 const convertTree = (root: Node) => {
@@ -49,7 +65,10 @@ export function BanglaDigits() {
       }
     });
     observer.observe(document.body, { subtree: true, childList: true, characterData: true });
-    return () => observer.disconnect();
+     return () => {
+     observer.disconnect();
+     restoreTree(document.body);
+   };
   }, [locale]);
 
   return null;

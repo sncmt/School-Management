@@ -97,7 +97,10 @@ export function SubscriptionsList() {
                       </Link>
                       <div className="text-xs text-muted-foreground">{s.subdomain}</div>
                     </TableCell>
-                    <TableCell className="py-3">{s.subscriptionPlan ? t(`plans.${s.subscriptionPlan}`) : <span className="text-muted-foreground">—</span>}</TableCell>
+                    <TableCell className="py-3">
+                      {s.subscriptionPlan ? t(`plans.${s.subscriptionPlan}`) : <span className="text-muted-foreground">—</span>}
+                      {s.package && <div className="text-xs text-muted-foreground">{s.package.name}</div>}
+                    </TableCell>
                     <TableCell className="py-3">
                       {s.paidThrough ? period(s.paidThrough) : <span className="text-muted-foreground">{t("nothingPaid")}</span>}
                       <div className="text-xs text-muted-foreground">{t("paymentsCount", { count: s.payments })}</div>

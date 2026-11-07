@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
@@ -31,6 +32,8 @@ import {
 import { PlanPicker } from "./PaymentFields";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { StandingBadge } from "./StandingBadge";
+import { useTaka } from "@/lib/i18n/useCurrency";
+
 
 /** One school's plan, where it stands, and every payment recorded (record more, or remove a mistake). */
 export function SchoolSubscriptionView({ schoolId }: { schoolId: string }) {
@@ -38,6 +41,7 @@ export function SchoolSubscriptionView({ schoolId }: { schoolId: string }) {
   const name = useLocalizedName();
   const period = usePeriodLabel();
   const format = useFormatter();
+  const taka = useTaka();
   const describeError = useErrorMessage();
   const { data, isPending, isError, error } = useSchoolSubscription(schoolId);
   const setPlan = useSetSubscriptionPlan();
@@ -82,6 +86,20 @@ export function SchoolSubscriptionView({ schoolId }: { schoolId: string }) {
           </div>
           <dl className="space-y-2 border-t pt-4 text-sm">
             <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">{t("package")}</dt>
+              <dd className="text-right font-medium">{data.package ? data.package.name : "—"}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">{t("price")}</dt>
+              <dd className="font-medium tabular-nums">{data.price?.due != null ? taka(Number(data.price.due)) : "—"}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">{t("students")}</dt>
+              <dd className={cn("tabular-nums", data.students.max !== null && data.students.active > data.students.max && "font-medium text-destructive")}>
+                {data.students.max === null ? format.number(data.students.active) : t("studentsOf", { count: data.students.active, max: data.students.max })}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
               <dt className="text-muted-foreground">{t("columns.current")}</dt>
               <dd>
                 <StandingBadge currentPaid={data.currentPaid} />
@@ -120,7 +138,7 @@ export function SchoolSubscriptionView({ schoolId }: { schoolId: string }) {
                   <TableRow key={p.id}>
                     <TableCell className="py-3 pl-5 font-medium">{period(p)}</TableCell>
                     <TableCell className="py-3">{t(`plans.${p.plan}`)}</TableCell>
-                    <TableCell className="py-3 tabular-nums">{p.amount ? `৳${format.number(Number(p.amount))}` : "—"}</TableCell>
+                    <TableCell className="py-3 tabular-nums">{p.amount ? taka(Number(p.amount)) : "—"}</TableCell>
                     <TableCell className="py-3">{format.dateTime(new Date(p.paidOn), { dateStyle: "medium", timeZone: "UTC" })}</TableCell>
                     <TableCell className="max-w-56 py-3 whitespace-normal text-muted-foreground">{p.note || "—"}</TableCell>
                     <TableCell className="py-3 pr-5">
@@ -136,7 +154,7 @@ export function SchoolSubscriptionView({ schoolId }: { schoolId: string }) {
         </section>
       </div>
 
-      <RecordPaymentDialog open={recording} school={{ ...data.school, subscriptionPlan: data.plan }} onClose={() => setRecording(false)} />
+      <RecordPaymentDialog open={recording} school={{ ...data.school, subscriptionPlan: data.plan, package: data.package }} onClose={() => setRecording(false)} />
 
       <AlertDialog open={!!removing} onOpenChange={(open) => !open && !remove.isPending && setRemoving(null)}>
         <AlertDialogContent>

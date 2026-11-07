@@ -4,6 +4,7 @@ import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { endOfBangladeshDay } from "../../shared/scheduleSchemas";
 import { NotificationService, notifyInBackground, type PromotionMove } from "../notification/notification.service";
+import { assertStudentRoom } from "../package/package.service";
 import { currentMonth, generateStudentFees, removeUntouchedMonthlyFees } from "../studentFee/studentFee.service";
 import type { PromotePayload, PromotionPreviewQuery } from "./promotion.validation";
 
@@ -273,6 +274,9 @@ const undo = async (schoolId: string, enrollmentId: string) => {
 
     await tx.enrollment.update({ where: { id: old.id }, data: { status: "ACTIVE", leftAt: null } });
     if (old.status === "GRADUATED" || old.status === "WITHDRAWN") {
+      // active again: the package must have room
+      const now = await tx.student.findUniqueOrThrow({ where: { id: old.studentId }, select: { status: true } });
+      if (now.status !== "ACTIVE") await assertStudentRoom(tx, schoolId);
       await tx.student.update({ where: { id: old.studentId }, data: { status: "ACTIVE" } });
       // the months removed when they left come back from this month on
       await generateStudentFees(tx, {

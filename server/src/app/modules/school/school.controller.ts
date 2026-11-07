@@ -1,3 +1,5 @@
+import { SchoolUsersService } from "./schoolUsers.service";
+import type { SchoolUsersQuery } from "./school.validation";
 import { Request, Response } from "express";
 import { SchoolService } from "./school.service";
 import sendResponse from "../../shared/sendResponse";
@@ -59,7 +61,7 @@ const changeSchoolStatus = catchAsync(async (req: Request, res: Response) => {
 });
 
 const resetSuperAdminPassword = catchAsync(async (req: Request, res: Response) => {
-  const result = await SchoolService.resetSuperAdminPassword(req.params.schoolId as string);
+  const result = await SchoolService.resetSuperAdminPassword(req.params.schoolId as string, req.auth!.userId);
 
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Super admin password reset successfully!", data: result });
 });
@@ -78,7 +80,25 @@ const brandingImage = (kind: "logo" | "favicon") => ({
 const logo = brandingImage("logo");
 const favicon = brandingImage("favicon");
 
+const listUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await SchoolUsersService.listUsers(req.params.schoolId as string, req.query as unknown as SchoolUsersQuery);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "School users retrieved successfully!", data: result });
+});
+
+const setUserPassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await SchoolUsersService.setUserPassword(req.params.schoolId as string, req.params.userId as string, req.auth!.userId, req.body);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Password changed", data: result });
+});
+
+const passwordLog = catchAsync(async (req: Request, res: Response) => {
+  const result = await SchoolUsersService.passwordLog(req.params.schoolId as string, req.query as unknown as { page: number; limit: number });
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: "Password changes retrieved successfully!", data: result });
+});
+
 export const SchoolController = {
+  listUsers,
+  setUserPassword,
+  passwordLog,
   logo,
   favicon,
   createSchool,

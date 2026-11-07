@@ -9,15 +9,18 @@ export function AuthCard({
   logo,
   children,
   footer,
+  back,
 }: {
   title: ReactNode;
   description?: ReactNode;
   logo?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  back?: ReactNode;
 }) {
   return (
     <div className="relative flex min-h-screen flex-1 items-center justify-center bg-muted/40 p-4">
+      {back && <div className="absolute left-4 top-4">{back}</div>}
       <LanguageSwitcher className="absolute right-4 top-4 bg-background" />
       <div className="w-full max-w-sm space-y-4">
         <Card>

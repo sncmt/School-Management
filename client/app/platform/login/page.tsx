@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { ShieldCheck } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { AuthCard } from "@/components/auth/AuthCard";
+import { AuthBrandCard } from "@/components/auth/AuthBrandCard";
 import { PlatformLoginForm } from "@/components/auth/PlatformLoginForm";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,13 +11,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PlatformLoginPage() {
-  const t = await getTranslations("auth");
+  const [t, tCommon] = await Promise.all([getTranslations("auth"), getTranslations("common")]);
 
   return (
-    <AuthCard title={t("platformLoginTitle")} description={t("platformLoginDescription")}>
+    <AuthBrandCard icon={<ShieldCheck />} title={tCommon("appName")} subtitle={t("platformLoginDescription")}>
       <Suspense>
         <PlatformLoginForm />
       </Suspense>
-    </AuthCard>
+    </AuthBrandCard>
   );
 }

@@ -23,8 +23,8 @@ export const useLocaleChoice = () => {
   return { current: current as Locale, choose, pending };
 };
 
-/** বাংলা | English toggle. */
-export function LanguageSwitcher({ className }: { className?: string }) {
+/** বাংলা | English toggle; "accent" (the login pages): EN | বাংলা, the active one in the school's colour. */
+export function LanguageSwitcher({ className, variant = "default" }: { className?: string; variant?: "default" | "accent" }) {
   const t = useTranslations("common");
   const { current, choose, pending } = useLocaleChoice();
 
@@ -43,10 +43,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           aria-pressed={locale === current}
           className={cn(
             "rounded px-2.5 py-1 text-muted-foreground hover:text-foreground",
-            locale === current && "bg-muted font-medium text-foreground",
+            variant === "accent" && "px-3 py-1.5 text-xs",
+            locale === current && (variant === "accent" ? "bg-primary font-semibold text-primary-foreground hover:text-primary-foreground" : "bg-muted font-medium text-foreground"),
           )}
         >
-          {localeLabels[locale]}
+          {variant === "accent" && locale === "en" ? "EN" : localeLabels[locale]}
         </button>
       ))}
     </div>

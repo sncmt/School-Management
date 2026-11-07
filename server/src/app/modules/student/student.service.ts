@@ -19,6 +19,7 @@ import type {
 import { isUniqueViolation } from "../../utils/prismaError";
 import { DEFAULT_SECTION_NAME } from "../class/class.service";
 import { NotificationService, notifyInBackground } from "../notification/notification.service";
+import { assertStudentRoom } from "../package/package.service";
 import { processImage } from "../../shared/imageUpload";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
 import { dayKey, endOfBangladeshDay, todayInBangladesh } from "../../shared/scheduleSchemas";
@@ -291,6 +292,9 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
         fatherName: profile.fatherName,
       });
 
+      // the package must have room for one more active student
+      await assertStudentRoom(tx, schoolId);
+
       const student = await tx.student.create({
         data: {
           schoolId,
@@ -463,6 +467,8 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
     return await prisma.$transaction(async (tx) => {
       const student = await tx.student.findFirst({ where: { id: studentId, schoolId } });
       if (!student) throw new AppError("Student not found", httpStatus.NOT_FOUND);
+      // active again: the package must have room
+      if (rest.status === "ACTIVE" && student.status !== "ACTIVE") await assertStudentRoom(tx, schoolId);
 
       // the first year here starts from the admission date (or that year's first day)
       if (admissionDate) {

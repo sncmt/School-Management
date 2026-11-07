@@ -3,12 +3,21 @@
 import { CreditCard } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { StandingBadge } from "@/components/platform/subscriptions/StandingBadge";
 import { useSchoolMe } from "@/lib/auth/hooks";
 import { usePeriodLabel } from "@/lib/platform/subscriptions";
 import { useMySubscription } from "@/lib/school/subscription";
 import { Panel } from "../dashboard/panels";
+import { useTaka } from "@/lib/i18n/useCurrency";
+
 
 /**
  * The school's subscription to the platform (super admin only): its plan, where it stands, and
@@ -18,7 +27,12 @@ export function SubscriptionPage() {
   const t = useTranslations("school.subscription");
   const me = useSchoolMe();
 
-  if (me && !me.isSuperAdmin) return <p className="py-12 text-center text-sm text-muted-foreground">{t("superAdminOnly")}</p>;
+  if (me && !me.isSuperAdmin)
+    return (
+      <p className="py-12 text-center text-sm text-muted-foreground">
+        {t("superAdminOnly")}
+      </p>
+    );
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
@@ -36,10 +50,14 @@ function SubscriptionPanel() {
   const tPlans = useTranslations("platform.subscriptions.plans");
   const period = usePeriodLabel();
   const format = useFormatter();
+  const taka = useTaka();
   const { data, isPending, isError } = useMySubscription(true);
 
   return (
-    <Panel title={t("history")} action={data && <StandingBadge currentPaid={data.currentPaid} />}>
+    <Panel
+      title={t("history")}
+      action={data && <StandingBadge currentPaid={data.currentPaid} />}
+    >
       {isPending ? (
         <Skeleton className="h-32 w-full" />
       ) : isError ? (
@@ -47,9 +65,24 @@ function SubscriptionPanel() {
       ) : (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-x-10 gap-y-2">
-            <Figure label={t("plan")} value={data.plan ? tPlans(data.plan) : "—"} />
-            <Figure label={t("paidThrough")} value={data.paidThrough ? period(data.paidThrough) : "—"} />
-            <Figure label={t("count")} value={format.number(data.payments.length)} />
+            <Figure
+              label={t("plan")}
+              value={data.plan ? tPlans(data.plan) : "—"}
+            />
+            <Figure label={t("package")} value={data.package?.name ?? "—"} />
+            <Figure label={t("price")} value={data.price?.due != null ? taka(Number(data.price.due)) : "—"} />
+            <Figure
+              label={t("students")}
+              value={data.students.max === null ? format.number(data.students.active) : t("studentsOf", { count: data.students.active, max: data.students.max })}
+            />
+            <Figure
+              label={t("paidThrough")}
+              value={data.paidThrough ? period(data.paidThrough) : "—"}
+            />
+            <Figure
+              label={t("count")}
+              value={format.number(data.payments.length)}
+            />
           </div>
 
           {data.payments.length === 0 ? (
@@ -62,19 +95,34 @@ function SubscriptionPanel() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="pl-4">{t("columns.period")}</TableHead>
+                    <TableHead className="pl-4">
+                      {t("columns.period")}
+                    </TableHead>
                     <TableHead>{t("columns.plan")}</TableHead>
-                    <TableHead className="text-right">{t("columns.amount")}</TableHead>
-                    <TableHead className="pr-4">{t("columns.paidOn")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("columns.amount")}
+                    </TableHead>
+                    <TableHead className="pr-4">
+                      {t("columns.paidOn")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {data.payments.map((p) => (
                     <TableRow key={p.id}>
-                      <TableCell className="py-2.5 pl-4 font-medium">{period(p)}</TableCell>
+                      <TableCell className="py-2.5 pl-4 font-medium">
+                        {period(p)}
+                      </TableCell>
                       <TableCell className="py-2.5">{tPlans(p.plan)}</TableCell>
-                      <TableCell className="py-2.5 text-right tabular-nums">{p.amount ? `৳${format.number(Number(p.amount))}` : "—"}</TableCell>
-                      <TableCell className="py-2.5 pr-4">{format.dateTime(new Date(p.paidOn), { dateStyle: "medium", timeZone: "UTC" })}</TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums">
+                        {p.amount ? taka(Number(p.amount)) : "—"}
+                      </TableCell>
+                      <TableCell className="py-2.5 pr-4">
+                        {format.dateTime(new Date(p.paidOn), {
+                          dateStyle: "medium",
+                          timeZone: "UTC",
+                        })}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -4,6 +4,7 @@ import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { Mailer } from "../../utils/mailer";
 import { AuthService } from "./auth.service";
+import { logPasswordChange } from "./passwordLog";
 import type { ClientMeta } from "./refreshToken.service";
 
 /*
@@ -154,6 +155,7 @@ const changeWithCode = async (auth: Auth, targetUserId: string, body: { newPassw
 
   const self = target.id === admin.id;
   const session = await AuthService.setPassword(target.id, body.newPassword, self ? { auth, meta } : undefined);
+  if (!self) await logPasswordChange(prisma, { targetUserId: target.id, schoolId: auth.schoolId!, source: "SCHOOL_SUPER_ADMIN", changedById: admin.id, generated: false });
   return { self, session, user: { id: target.id, fullname: target.fullname } };
 };
 

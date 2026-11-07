@@ -4,6 +4,7 @@ import type { SubscriptionPlan } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { todayInBangladesh } from "../../shared/scheduleSchemas";
+import { activeStudents, priceOf } from "../package/package.service";
 import type { PaymentInput, SubscriptionListQuery } from "./subscription.validation";
 
 type Db = Prisma.TransactionClient | typeof prisma;
@@ -97,7 +98,7 @@ export const recordPayment = async (db: Db, schoolId: string, plan: Subscription
 const findSchool = async (schoolId: string) => {
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    // the fees and discount fill in a new payment's amount
+    // the package's price and the discount fill in a new payment's amount
     select: {
       id: true,
       nameEn: true,
@@ -105,10 +106,9 @@ const findSchool = async (schoolId: string) => {
       subdomain: true,
       status: true,
       activationDate: true,
-      monthlyFee: true,
-      yearlyFee: true,
       discount: true,
       subscriptionPlan: true,
+      package: { select: { id: true, code: true, name: true, maxStudents: true, monthlyPrice: true } },
     },
   });
   if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
@@ -170,6 +170,7 @@ const listSchools = async ({ search, page, limit }: SubscriptionListQuery) => {
         status: true,
         activationDate: true,
         subscriptionPlan: true,
+        package: { select: { id: true, name: true, maxStudents: true } },
         _count: { select: { subscriptionPayments: true } },
         // enough to know the last period and whether this month / year is paid
         subscriptionPayments: { orderBy: newestFirst, take: 13, select: { plan: true, year: true, month: true, period: true } },
@@ -188,17 +189,46 @@ const listSchools = async ({ search, page, limit }: SubscriptionListQuery) => {
   };
 };
 
-/* One school's plan, standing and every recorded payment (newest first). */
+/*
+ * One school's plan, standing and every recorded payment (newest first), with its package: the
+ * price of a period now (after the discount: a new payment's amount) and its active students.
+ */
 const getSchoolSubscription = async (schoolId: string) => {
   const school = await findSchool(schoolId);
-  const payments = await prisma.subscriptionPayment.findMany({ where: { schoolId }, orderBy: newestFirst, select: paymentSelect });
-  return { school, plan: school.subscriptionPlan, ...standing(school.subscriptionPlan, payments), payments };
+  const [payments, students] = await Promise.all([
+    prisma.subscriptionPayment.findMany({ where: { schoolId }, orderBy: newestFirst, select: paymentSelect }),
+    activeStudents(prisma, schoolId),
+  ]);
+  const { package: pkg, ...rest } = school;
+  return {
+    school: rest,
+    plan: school.subscriptionPlan,
+    package: pkg && {
+      id: pkg.id,
+      code: pkg.code,
+      name: pkg.name,
+      maxStudents: pkg.maxStudents,
+      monthlyPrice: pkg.monthlyPrice.toFixed(2),
+    },
+    price: pkg ? priceOf(pkg, school.subscriptionPlan, school.discount) : null,
+    students: { active: students, max: pkg?.maxStudents ?? null },
+    ...standing(school.subscriptionPlan, payments),
+    payments,
+  };
 };
 
 /* For the school's super admin: the same, without the platform's own details. */
 const mySubscription = async (schoolId: string) => {
-  const { plan, paidThrough, currentPaid, payments } = await getSchoolSubscription(schoolId);
-  return { plan, paidThrough, currentPaid, payments: payments.map(({ id, plan, year, month, period, amount, paidOn }) => ({ id, plan, year, month, period, amount, paidOn })) };
+  const { plan, paidThrough, currentPaid, payments, package: pkg, price, students } = await getSchoolSubscription(schoolId);
+  return {
+    plan,
+    package: pkg && { name: pkg.name, maxStudents: pkg.maxStudents },
+    price,
+    students,
+    paidThrough,
+    currentPaid,
+    payments: payments.map(({ id, plan, year, month, period, amount, paidOn }) => ({ id, plan, year, month, period, amount, paidOn })),
+  };
 };
 
 export const SubscriptionService = { addPayment, removePayment, setPlan, listSchools, getSchoolSubscription, mySubscription };

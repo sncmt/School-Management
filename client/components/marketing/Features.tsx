@@ -9,7 +9,8 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { withSign } from "@/lib/i18n/currency";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { MkHeading } from "./MkHeading";
@@ -20,6 +21,7 @@ import { MkHeading } from "./MkHeading";
  */
 export async function Features() {
   const t = await getTranslations("marketing.features");
+  const locale = await getLocale();
 
   return (
     <section id="features" className="relative scroll-mt-16 bg-background py-20 sm:py-28">
@@ -34,7 +36,7 @@ export async function Features() {
             <ResultArt gpaLabel={t("results.gpa")} />
           </FeatureCard>
           <FeatureCard className="lg:col-span-2" icon={Wallet} title={t("fees.title")} body={t("fees.body")}>
-            <ReceiptArt receipt={t("fees.receipt")} total={t("fees.total")} paid={t("fees.paid")} />
+           <ReceiptArt receipt={t("fees.receipt")} total={t("fees.total")} paid={t("fees.paid")} amount={withSign(locale, "2,500")} />
           </FeatureCard>
           <FeatureCard className="lg:col-span-2" icon={MessageSquareText} title={t("sms.title")} body={t("sms.body")}>
             <SmsArt first={t("sms.first")} second={t("sms.second")} />
@@ -166,7 +168,7 @@ function ResultArt({ gpaLabel }: { gpaLabel: string }) {
   );
 }
 
-function ReceiptArt({ receipt, total, paid }: { receipt: string; total: string; paid: string }) {
+function ReceiptArt({ receipt, total, paid, amount }: { receipt: string; total: string; paid: string; amount: string }) {
   return (
     <div className="relative mx-auto w-full max-w-60 rounded-2xl border bg-background p-4 shadow-sm">
       <p className="text-[11px] font-semibold text-muted-foreground">{receipt} #1024</p>
@@ -180,7 +182,7 @@ function ReceiptArt({ receipt, total, paid }: { receipt: string; total: string; 
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-dashed pt-3">
         <span className="text-xs font-semibold">{total}</span>
-        <span className="text-base font-bold">৳2,500</span>
+        <span className="text-base font-bold">{amount}</span>
       </div>
       <span className="absolute top-3 right-3 rotate-[-12deg] rounded-md border-2 border-emerald-500 px-2 py-0.5 text-[11px] font-black tracking-widest text-emerald-600 uppercase dark:text-emerald-400">
         {paid}

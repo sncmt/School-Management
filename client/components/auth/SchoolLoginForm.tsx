@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -61,11 +60,10 @@ export function SchoolLoginForm() {
           name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel required>{t("emailOrPhone")}</FormLabel>
+              <FormLabel>{t("emailOrPhone")}</FormLabel>
               <FormControl>
-                <Input autoComplete="username" autoFocus {...field} />
+                <Input autoComplete="username" autoFocus placeholder={t("identifierPlaceholder")} title={t("emailOrPhoneHint")} className="h-11" {...field} />
               </FormControl>
-              <FormDescription>{t("emailOrPhoneHint")}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -76,16 +74,16 @@ export function SchoolLoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel required>{t("password")}</FormLabel>
+              <FormLabel>{t("password")}</FormLabel>
               <FormControl>
-                <PasswordInput autoComplete="current-password" {...field} />
+                <PasswordInput autoComplete="current-password" placeholder={t("passwordPlaceholder")} className="h-11" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={login.isPending || login.isSuccess}>
+        <Button type="submit" className="h-11 w-full text-base font-semibold" disabled={login.isPending || login.isSuccess}>
           {login.isPending ? t("loggingIn") : t("logIn")}
         </Button>
       </form>

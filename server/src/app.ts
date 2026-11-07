@@ -30,7 +30,7 @@ app.get("/", (req, res) => {
 
 // for Docker and uptime checks: the process is up and answering
 app.get("/health", (_req, res) => {
-    res.json({ status: "ok" });
+    res.json({ status: "ok" }); 
 });
 
 app.use("/api/v1", router);

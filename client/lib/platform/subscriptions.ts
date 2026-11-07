@@ -4,6 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { useFormatter } from "next-intl";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
+import { packagePrice } from "./packages";
 import type { SchoolStatus } from "./schools";
 
 // Mirrors server/src/app/modules/subscription. Dates arrive as ISO strings, amounts as strings.
@@ -34,6 +35,7 @@ export type SubscriptionSchoolRow = Standing & {
   status: SchoolStatus;
   activationDate: string | null;
   subscriptionPlan: SubscriptionPlan | null;
+  package: { id: string; name: string; maxStudents: number | null } | null;
   payments: number;
 };
 
@@ -45,12 +47,14 @@ export type SchoolSubscription = Standing & {
     subdomain: string;
     status: SchoolStatus;
     activationDate: string | null;
-    monthlyFee: string | null;
-    yearlyFee: string | null;
     discount: string;
     subscriptionPlan: SubscriptionPlan | null;
   };
   plan: SubscriptionPlan | null;
+  // the package now, and the price of a period after the discount (a new payment's amount)
+  package: { id: string; code: string; name: string; maxStudents: number | null; monthlyPrice: string } | null;
+  price: { monthly: string; yearly: string; discount: string; due: string | null } | null;
+  students: { active: number; max: number | null };
   payments: SubscriptionPayment[];
 };
 
@@ -99,22 +103,17 @@ export const useAddSubscriptionPayment = () => useSubscriptionMutation(subscript
 export const useRemoveSubscriptionPayment = () => useSubscriptionMutation(subscriptionsApi.removePayment);
 export const useSetSubscriptionPlan = () => useSubscriptionMutation(subscriptionsApi.setPlan);
 
-/* What a payment needs to know about its school: its plan, fees and discount. */
+/* What a payment needs to know about its school: its plan, package price and discount. */
 export type PayingSchool = {
   id: string;
   subscriptionPlan: SubscriptionPlan | null;
-  monthlyFee: string | null;
-  yearlyFee: string | null;
+  package: { monthlyPrice: string } | null;
   discount: string;
 };
 
-/** What the school pays for one period of a plan, after its discount ("2250"), or "" when no fee is set. */
-export const planFee = (school: Pick<PayingSchool, "monthlyFee" | "yearlyFee" | "discount">, plan: SubscriptionPlan) => {
-  const fee = plan === "MONTHLY" ? school.monthlyFee : school.yearlyFee;
-  if (fee == null) return "";
-  const amount = Number(fee) * (1 - Number(school.discount || 0) / 100);
-  return String(Math.round(amount * 100) / 100);
-};
+/** What the school pays for one period of a plan (its package's price), after its discount ("2250"), or "" without a package. */
+export const planFee = (school: Pick<PayingSchool, "package" | "discount">, plan: SubscriptionPlan) =>
+  packagePrice(school.package?.monthlyPrice, plan, school.discount);
 
 /** `period(p)` -> "October 2026" for a month, "2026" for a year, in the current language. */
 export const usePeriodLabel = () => {

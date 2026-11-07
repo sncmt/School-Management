@@ -21,6 +21,7 @@ import { useFeeTypes, useMonthName, useSaveFeeStructure, type FeeStructure } fro
 import { feeStructureFormSchema, type FeeStructureFormInput, type FeeStructureFormValues } from "@/zod/finance";
 import { cn } from "@/lib/utils";
 import { useSyncToast, yearMonths } from "./FeeStructuresTab";
+import { useCurrencySign } from "@/lib/i18n/useCurrency";
 
 /** Set one fee for a class and year, or change its amounts. */
 export function FeeStructureDialog({
@@ -43,6 +44,7 @@ export function FeeStructureDialog({
   onOpenFeeTypes?: () => void;
 }) {
   const t = useTranslations("school.finance.structures.form");
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
@@ -98,6 +100,7 @@ function FeeStructureForm({
   const syncToast = useSyncToast();
   const [formError, setFormError] = useState<string | null>(null);
   const months = yearMonths(year);
+  const {sign, pad, padSm} = useCurrencySign();
 
   const options = (feeTypes.data ?? []).filter((f) => (f.isActive && !taken.includes(f.id)) || f.id === structure?.feeTypeId);
   // nothing to choose: no active fee type at all yet, or the class already has every one
@@ -250,7 +253,7 @@ function FeeStructureForm({
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-32">
                 <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">৳</span>
-                <Input inputMode="decimal" className="h-8 pl-7" value={fill} onChange={(e) => setFill(e.target.value)} aria-label={t("fillAmount")} placeholder={t("fillAmount")} />
+                <Input inputMode="decimal" className={cn("pl-8", pad)} value={fill} onChange={(e) => setFill(e.target.value)} aria-label={t("fillAmount")} placeholder={t("fillAmount")} />
               </div>
               <Button type="button" variant="outline" size="sm" onClick={fillTicked} disabled={!fill.trim() || ticked === 0}>
                 {t("fillTicked")}
@@ -292,7 +295,7 @@ function FeeStructureForm({
                             <span className="absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">৳</span>
                             <Input
                               inputMode="decimal"
-                              className={cn("h-8 pl-6 text-right tabular-nums", fieldState.error && "border-destructive")}
+                              className={cn("h-8 text-right tabular-nums padSm", fieldState.error && "border-destructive")}
                               disabled={!rows[i]?.on}
                               aria-label={t("amountOf", { month: monthName(month) })}
                               {...field}

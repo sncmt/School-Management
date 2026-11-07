@@ -31,11 +31,13 @@ export type School = {
   favicon: string | null;
   status: SchoolStatus;
   activationDate: string | null;
-  monthlyFee: string | null; // Prisma Decimal arrives as a string
-  yearlyFee: string | null;
+  // a percentage off the package's price; Prisma Decimal arrives as a string
   discount: string;
-  // monthly or yearly, set at activation; null for schools activated before plans
+  // monthly or yearly; null for schools activated before plans
   subscriptionPlan: SubscriptionPlan | null;
+  // the subscription package (student limit and price); null for schools made before packages
+  packageId: string | null;
+  package: { id: string; code: string; name: string; maxStudents: number | null; monthlyPrice?: string; isActive?: boolean } | null;
   createdAt: string;
 };
 
@@ -70,8 +72,7 @@ export type CreateSchoolBody = {
   address?: string;
   language: SchoolLanguage;
   subscriptionPlan: SubscriptionPlan;
-  monthlyFee?: number;
-  yearlyFee?: number;
+  packageId: string;
   discount?: number;
 };
 
@@ -91,6 +92,9 @@ export type SchoolDetail = School & {
   } | null;
   stats: { activeStudents: number; activeTeachers: number };
   modules: { code: string; name: string; type: "FREE" | "PAID" }[];
+  // the package's price for the school's plan (due: after the discount), and whether it has more
+  // active students than the package allows; null without a package
+  subscription: { price: { monthly: string; yearly: string; discount: string; due: string | null }; overLimit: boolean } | null;
 };
 
 // subdomain can't change; null clears an optional field
@@ -104,8 +108,7 @@ export type UpdateSchoolBody = Partial<{
   address: string | null;
   language: SchoolLanguage;
   subscriptionPlan: SubscriptionPlan;
-  monthlyFee: number | null;
-  yearlyFee: number | null;
+  packageId: string;
   discount: number;
 }>;
 

@@ -149,7 +149,8 @@
     "fullMarksInvalid": "Enter full marks between 0.5 and 1000",
     "monthsRequired": "Tick at least one month",
     "schoolNameRequired": "Enter your school's name",
-    "max1000": "At most 1000 characters"
+    "max1000": "At most 1000 characters",
+    "packageRequired": "Choose a package"
   },
   "auth": {
     "email": "Email",
@@ -210,7 +211,11 @@
       "submit": "Change password",
       "done": "Password changed for {name}."
     },
-    "noticeBoardLink": "School notice board"
+    "noticeBoardLink": "School notice board",
+    "backToHome": "Back to home",
+    "identifierPlaceholder": "name@school.edu or 01XXXXXXXXX",
+    "passwordPlaceholder": "Enter your password",
+    "emailPlaceholder": "you@example.com"
   },
   "roles": {
     "SCHOOL_SUPER_ADMIN": "School super admin",
@@ -246,7 +251,8 @@
     "sms": "SMS",
     "homework": "Homework",
     "idCards": "ID cards",
-    "fees": "Fees"
+    "fees": "Fees",
+    "packages": "Packages"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -314,10 +320,6 @@
       "address": "Address",
       "language": "Default language",
       "languageHint": "The language the school's site opens in.",
-      "monthlyFee": "Monthly fee (৳)",
-      "monthlyFeeHint": "What the school pays each month (before the discount).",
-      "yearlyFee": "Yearly fee (৳)",
-      "yearlyFeeHint": "What the school pays for a year (before the discount).",
       "subscriptionPlan": "Subscription type",
       "choosePlan": "Choose monthly or yearly",
       "subscriptionPlanHint": "How the school pays the platform. The first month or year is recorded when the school is activated.",
@@ -332,7 +334,16 @@
       "saved": "School updated.",
       "subdomainLocked": "The address can't be changed.",
       "emailLocked": "This is the super admin's login, so it can't change after activation.",
-      "brandingAfterCreate": "You can add the logo and favicon on the school's page once it is created."
+      "brandingAfterCreate": "You can add the logo and favicon on the school's page once it is created.",
+      "package": "Package",
+      "choosePackage": "Choose a package",
+      "loadingPackages": "Loading packages…",
+      "packageOption": "{name} · {students} · {monthly} a month ({yearly} a year)",
+      "unlimitedStudents": "unlimited students",
+      "upToStudents": "up to {count} students",
+      "packageHint": "Every package includes all the free modules. Yearly is the monthly price times 12.",
+      "paysMonthly": "Pays a month",
+      "paysYearly": "Pays a year"
     },
     "schoolDetail": {
       "back": "Back to schools",
@@ -359,12 +370,13 @@
         "phone": "Phone",
         "website": "Website",
         "address": "Address",
-        "monthlyFee": "Monthly fee",
         "subscriptionPlan": "Subscription type",
-        "yearlyFee": "Yearly fee",
         "discount": "Discount",
         "name": "Name",
-        "account": "Account"
+        "account": "Account",
+        "package": "Package",
+        "price": "Price",
+        "studentsUsed": "Students"
       },
       "notSet": "Not set",
       "notActivated": "Not activated yet",
@@ -431,7 +443,14 @@
         "faviconHint": "The small icon in the browser tab.",
         "saved": "Saved.",
         "removed": "Removed."
-      }
+      },
+      "unlimitedStudents": "unlimited students",
+      "upToStudents": "up to {count} students",
+      "perMonth": "a month",
+      "perYear": "a year",
+      "studentsOf": "{count} of {max} active",
+      "overLimit": "More than the package allows: it can't admit more until under the limit.",
+      "users": "Users & passwords"
     },
     "subjects": {
       "title": "NCTB subjects",
@@ -557,7 +576,11 @@
         "paidOn": "Paid on",
         "note": "Note",
         "notePlaceholder": "e.g. bKash TrxID, or who paid"
-      }
+      },
+      "package": "Package",
+      "price": "Price now",
+      "students": "Students",
+      "studentsOf": "{count} of {max}"
     },
     "holidays": {
       "title": "National holidays",
@@ -601,6 +624,105 @@
         "confirm": "Delete",
         "deleting": "Deleting…",
         "deleted": "{name} deleted."
+      }
+    },
+    "packages": {
+      "title": "Packages",
+      "description": "What schools pay: each package has a student limit and a price a month. A year is twelve months. Every package includes all the free modules.",
+      "add": "Add package",
+      "columns": {
+        "name": "Package",
+        "students": "Students",
+        "monthly": "A month",
+        "yearly": "A year",
+        "schools": "Schools"
+      },
+      "off": "Off",
+      "unlimited": "Unlimited",
+      "upTo": "Up to {count}",
+      "edit": "Edit",
+      "note": "Changing a price changes what schools on the package pay from the next payment recorded; payments already recorded keep their amount.",
+      "addTitle": "Add a package",
+      "editTitle": "Edit {name}",
+      "dialogHint": "The student limit counts active students. A school at its limit can't admit more.",
+      "code": "Code",
+      "codeHint": "A short key that never changes, e.g. GOLD.",
+      "codeInvalid": "Use capital letters, digits and _ (e.g. GOLD)",
+      "name": "Name",
+      "nameRequired": "Name is required",
+      "maxStudents": "Most active students",
+      "limitInvalid": "Enter a whole number of students, or turn on Unlimited",
+      "monthlyPrice": "Price a month (TK)",
+      "priceInvalid": "Enter a price like 500 or 499.50",
+      "yearlyIs": "A year: {amount}",
+      "active": "Can be chosen",
+      "activeHint": "Switched off, it can't be chosen for a school; schools already on it stay on it.",
+      "changeNote": "{count, plural, one {# school is} other {# schools are}} on this package: a new price applies to their next payment.",
+      "cancel": "Cancel",
+      "save": "Save",
+      "addButton": "Add",
+      "saving": "Saving…",
+      "saved": "{name} saved.",
+      "added": "{name} added."
+    },
+    "schoolUsers": {
+      "back": "Back to the school",
+      "title": "Users & passwords",
+      "description": "Everyone with a login at {school}: give anyone a new password. Every change is recorded.",
+      "tabs": {
+        "users": "Users",
+        "log": "Password changes"
+      },
+      "role": "Role",
+      "allRoles": "All roles",
+      "roles": {
+        "SUPER_ADMIN": "Super admin",
+        "TEACHER": "Teacher",
+        "STAFF": "Staff",
+        "GUARDIAN": "Guardian"
+      },
+      "search": "Name, phone or email",
+      "columns": {
+        "name": "Name",
+        "login": "Login",
+        "roles": "Roles"
+      },
+      "empty": "No one here.",
+      "inactive": "No longer at the school",
+      "otherSchools": "{count, plural, one {Also at # other school} other {Also at # other schools}}",
+      "platformAccount": "Platform account",
+      "change": "Change password",
+      "dialog": {
+        "title": "New password for {name}",
+        "description": "Type one, or make one up. They are logged out everywhere and log in with the new password.",
+        "sharedWarning": "This login is also used at {count, plural, one {# other school} other {# other schools}}: the new password works there too.",
+        "newPassword": "New password",
+        "rule": "At least 8 characters.",
+        "tooShort": "At least 8 characters",
+        "generate": "Make one up",
+        "save": "Set this password",
+        "saving": "Saving…",
+        "done": "{name}'s password changed.",
+        "generatedNote": "Pass these on now: the password is shown only this once.",
+        "email": "Email",
+        "phone": "Mobile number",
+        "otherSchoolsNote": "It works at {count, plural, one {# other school} other {# other schools}} too.",
+        "doneButton": "Done"
+      },
+      "log": {
+        "when": "When",
+        "whose": "Whose password",
+        "by": "Changed by",
+        "how": "How",
+        "sources": {
+          "PLATFORM": "Platform admin",
+          "SCHOOL_SUPER_ADMIN": "School super admin"
+        },
+        "typed": "Typed in",
+        "generated": "Made up",
+        "empty": "No password has been changed for anyone here yet.",
+        "newer": "Newer",
+        "older": "Older"
       }
     }
   },
@@ -3196,8 +3318,21 @@
         "receivedBy": "Received by",
         "cancelledStamp": "CANCELLED",
         "print": "Print",
-        "printHint": "Prints a student copy and an office copy on one A4 page.",
-        "receivedOnline": "Paid online"
+        "receivedOnline": "Paid online",
+        "size": "Receipt size",
+        "sizes": {
+          "A4": "A4 · 2 copies",
+          "A6": "Quarter A4 (A6)",
+          "TOKEN80": "Token 80 mm",
+          "TOKEN58": "Token 58 mm"
+        },
+        "sizeHints": {
+          "A4": "Prints a student copy and an office copy on one A4 page.",
+          "A6": "One copy on A6 paper (105 × 148 mm). Choose A6 as the paper size if the printer asks.",
+          "TOKEN80": "For an 80 mm thermal printer: choose it as the printer, margins none.",
+          "TOKEN58": "For a 58 mm thermal printer: choose it as the printer, margins none."
+        },
+        "thanks": "Thank you"
       },
       "range": {
         "from": "From",
@@ -3384,7 +3519,7 @@
         "passwordHint": "As SSLCommerz gave it with the Store ID. It is kept encrypted.",
         "needStore": "Enter the Store ID and password to switch online payment on",
         "charge": "Convenience charge for guardians",
-        "chargeExample": "A ৳1,000 payment costs the guardian ৳{charge} more (it covers SSLCommerz's charge).",
+        "chargeExample": "A TK 1,000 payment costs the guardian TK {charge} more (it covers SSLCommerz's charge).",
         "chargeNone": "0: the school pays SSLCommerz's charge; guardians pay exactly the fees.",
         "chargeInvalid": "Enter a charge from 0 to 5 (at most 2 decimals)",
         "save": "Save",
@@ -3683,7 +3818,11 @@
         "amount": "Amount",
         "paidOn": "Paid on"
       },
-      "hint": "Payments are recorded by the platform. Only you (the super admin) see this."
+      "hint": "Payments are recorded by the platform. Only you (the super admin) see this.",
+      "package": "Package",
+      "price": "Price",
+      "students": "Students",
+      "studentsOf": "{count} of {max}"
     },
     "roles": {
       "title": "Roles and staff",
@@ -4519,7 +4658,7 @@
       "float": {
         "attendance": "Attendance today",
         "attendanceValue": "1,198 of 1,248 present",
-        "fee": "Fee received · ৳2,500",
+        "fee": "Fee received · TK 2,500",
         "feeSms": "SMS sent to guardian",
         "result": "Result published",
         "resultValue": "Class 10 · 42 got GPA 5.00"
@@ -4600,7 +4739,7 @@
         "title": "SMS & notices",
         "body": "Reach every guardian in seconds: fee reminders, results, holidays and notices.",
         "first": "Dear guardian, the half-yearly exam starts on Sunday at 10 am.",
-        "second": "Fee received: ৳1,500 for October. Thank you!"
+        "second": "Fee received: TK 1,500 for October. Thank you!"
       },
       "app": {
         "title": "Guardian & teacher app",
@@ -4640,7 +4779,7 @@
       "perYear": "/ year",
       "billedMonthly": "Billed every month",
       "billedYearly": "Billed once a year",
-      "save": "You save ৳{amount} a year",
+      "save": "You save TK {amount} a year",
       "choose": "Choose {name}",
       "everythingIn": "Everything in {name}, plus",
       "note": "Prices are in Bangladeshi Taka. A very large school or something special in mind? <link>Talk to us</link>.",
@@ -4700,7 +4839,7 @@
         "email": "Email (optional)",
         "package": "Package",
         "notSure": "Not sure yet",
-        "packageOption": "{name} · {billing} · ৳{price}",
+        "packageOption": "{name} · {billing} · TK {price}",
         "message": "Message (optional)",
         "messagePlaceholder": "How many students do you have? Anything you'd like to know?",
         "privacy": "We only use these details to get back to you.",
@@ -4963,5 +5102,16 @@
     "back": "All notices",
     "posted": "Posted {date}",
     "until": "until {date}"
+  },
+  "export": {
+    "button": "Export",
+    "excel": "Excel (.xlsx)",
+    "pdf": "PDF (print)",
+    "preparing": "Preparing…",
+    "failed": "Couldn't export the list",
+    "empty": "Nothing to list.",
+    "made": "Made on {date}",
+    "count": "{count, plural, one {# row} other {# rows}}",
+    "filtered": "Filtered list"
   }
 }

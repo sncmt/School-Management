@@ -52,9 +52,9 @@ export function PlatformLoginForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel required>{t("email")}</FormLabel>
+              <FormLabel>{t("email")}</FormLabel>
               <FormControl>
-                <Input type="email" autoComplete="username" autoFocus {...field} />
+                <Input type="email" autoComplete="username" autoFocus placeholder={t("emailPlaceholder")} className="h-11" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -66,16 +66,16 @@ export function PlatformLoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel required>{t("password")}</FormLabel>
+              <FormLabel>{t("password")}</FormLabel>
               <FormControl>
-                <PasswordInput autoComplete="current-password" {...field} />
+                <PasswordInput autoComplete="current-password" placeholder={t("passwordPlaceholder")} className="h-11" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={login.isPending || login.isSuccess}>
+        <Button type="submit" className="h-11 w-full text-base font-semibold" disabled={login.isPending || login.isSuccess}>
           {login.isPending ? t("loggingIn") : t("logIn")}
         </Button>
       </form>

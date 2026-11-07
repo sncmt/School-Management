@@ -16,7 +16,7 @@ router.get(
 );
 
 // every other school route is for the platform admin only
-router.use(authenticate("PLATFORM"));
+router.use(authenticate("PLATFORM"));    
 
 router.post(
   "/create",
@@ -60,6 +60,23 @@ router.post(
   "/:schoolId/super-admin/reset-password",
   validateRequest({ params: SchoolValidation.schoolIdParamsSchema }),
   SchoolController.resetSuperAdminPassword,
+);
+
+// the school's people: list, a new password for any one of them, and the record of changes
+router.get(
+  "/:schoolId/users",
+  validateRequest({ params: SchoolValidation.schoolIdParamsSchema, query: SchoolValidation.schoolUsersQuery }),
+  SchoolController.listUsers,
+);
+router.post(
+  "/:schoolId/users/:userId/password",
+  validateRequest({ params: SchoolValidation.schoolUserParams, body: SchoolValidation.setUserPassword }),
+  SchoolController.setUserPassword,
+);
+router.get(
+  "/:schoolId/password-log",
+  validateRequest({ params: SchoolValidation.schoolIdParamsSchema, query: SchoolValidation.pageQuery }),
+  SchoolController.passwordLog,
 );
 
 // branding: one image in the "file" field (multipart); logo 512 px WebP, favicon 64 px PNG

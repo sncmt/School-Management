@@ -14,6 +14,8 @@ import { Prisma } from "../../../../generated/prisma/client";
 import { PasswordUtils } from "../../utils/password";
 import { processImage } from "../../shared/imageUpload";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
+import { activeStudents as countActiveStudents, assertChoosablePackage, priceOf } from "../package/package.service";
+import { logPasswordChange } from "../auth/passwordLog";
 
 
 const createSchool = async (data: CreateSchoolPayload) => {
@@ -45,6 +47,9 @@ const createSchool = async (data: CreateSchoolPayload) => {
       "This email already belongs to a user account. Every school needs its own email address",
       httpStatus.CONFLICT,
     );
+
+  // only a package that is switched on
+  await assertChoosablePackage(prisma, data.packageId);
 
   let schoolCode = generateSchoolCode();
   while (await prisma.school.findUnique({ where: { schoolCode } })) {
@@ -237,7 +242,8 @@ const getAllSchools = async (query: GetAllSchoolsQuery) => {
   const result = await paginate(
     (args) => prisma.school.findMany(args),
     (args) => prisma.school.count(args),
-    { where, orderBy, skip, take } as Prisma.SchoolFindManyArgs,
+    // the package's name and limit, for the list
+    { where, orderBy, skip, take, include: { package: { select: { id: true, code: true, name: true, maxStudents: true } } } } as Prisma.SchoolFindManyArgs,
     page,
     limit,
   );
@@ -320,12 +326,15 @@ const findSuperAdmin = (schoolId: string) =>
 
 /** A school with its super admin, how many are using it, and its enabled modules. */
 const getSchoolById = async (schoolId: string) => {
-  const school = await prisma.school.findUnique({ where: { id: schoolId } });
+  const school = await prisma.school.findUnique({
+    where: { id: schoolId },
+    include: { package: { select: { id: true, code: true, name: true, maxStudents: true, monthlyPrice: true, isActive: true } } },
+  });
   if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
 
   const [superAdmin, activeStudents, activeTeachers, schoolModules] = await Promise.all([
     findSuperAdmin(schoolId),
-    prisma.student.count({ where: { schoolId, status: "ACTIVE" } }),
+    countActiveStudents(prisma, schoolId),
     prisma.teacherProfile.count({ where: { schoolId, status: { in: ["ACTIVE", "ON_LEAVE"] } } }),
     prisma.schoolModule.findMany({
       where: { schoolId, isEnabled: true },
@@ -339,15 +348,26 @@ const getSchoolById = async (schoolId: string) => {
     superAdmin,
     stats: { activeStudents, activeTeachers },
     modules: schoolModules.map((sm) => sm.module),
+    // the package's price for the school's plan (after its discount), and whether it has more
+    // active students than the package allows (a downgrade: it can't admit more until under it)
+    subscription: school.package
+      ? {
+          price: priceOf(school.package, school.subscriptionPlan, school.discount),
+          overLimit: school.package.maxStudents !== null && activeStudents > school.package.maxStudents,
+        }
+      : null,
   };
 };
 
 const updateSchool = async (schoolId: string, data: UpdateSchoolPayload) => {
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    select: { id: true, email: true, activationDate: true },
+    select: { id: true, email: true, activationDate: true, packageId: true },
   });
   if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  // another package: one that is switched on (staying on a switched-off one is fine)
+  if (data.packageId && data.packageId !== school.packageId) await assertChoosablePackage(prisma, data.packageId);
 
   if (data.email && data.email !== school.email) {
     // the super admin logs in with this email; changing only the school's copy would split them
@@ -424,7 +444,7 @@ const changeSchoolStatus = async (schoolId: string, status: ChangeableSchoolStat
 /**
  * A new password for the school's super admin. Every session they have is ended.
  */
-const resetSuperAdminPassword = async (schoolId: string) => {
+const resetSuperAdminPassword = async (schoolId: string, adminId: string) => {
   const school = await prisma.school.findUnique({ where: { id: schoolId }, select: { id: true } });
   if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
 
@@ -443,6 +463,7 @@ const resetSuperAdminPassword = async (schoolId: string) => {
     }),
     prisma.refreshToken.deleteMany({ where: { userId: superAdmin.id } }),
   ]);
+  await logPasswordChange(prisma, { targetUserId: superAdmin.id, schoolId, source: "PLATFORM", changedById: adminId, generated: true });
 
   return {
     superAdmin: { id: superAdmin.id, fullname: superAdmin.fullname, email: superAdmin.email },

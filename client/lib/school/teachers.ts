@@ -105,6 +105,15 @@ export const teachersApi = {
     (await httpClient.delete<ApiResponse<Teacher>>(`/teacher/${teacherId}/photo`)).data.data,
 };
 
+/** Every teacher under these filters, page by page (for exports). */
+export async function listAllTeachers(query: Omit<TeacherListQuery, "page" | "limit">) {
+  const limit = 100;
+  const first = await teachersApi.list({ ...query, page: 1, limit });
+  const items = [...first.items];
+  for (let page = 2; page <= first.meta.totalPages; page++) items.push(...(await teachersApi.list({ ...query, page, limit })).items);
+  return items;
+}
+
 const teachersKey = ["school", "teachers"] as const;
 
 export const useTeachers = (query: TeacherListQuery) =>

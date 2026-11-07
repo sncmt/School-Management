@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { MAX_ADMISSION_ROWS, useAdmission, useSaveAdmission } from "@/lib/school/settings";
 import type { Admission } from "@/lib/site";
+import { useCurrencySign } from "@/lib/i18n/useCurrency";
 
 // what the form holds: the amounts as typed, turned into numbers on save
 type Draft = {
@@ -29,6 +30,7 @@ export function AdmissionCard() {
   const t = useTranslations("school.settings.admission");
   const describeError = useErrorMessage();
   const admission = useAdmission();
+  
 
   return (
     <section className="rounded-2xl border border-border/70 bg-card">
@@ -61,6 +63,7 @@ function AdmissionForm({ saved }: { saved: Admission }) {
   const save = useSaveAdmission();
   const [draft, setDraft] = useState<Draft>(() => toDraft(saved));
   const changed = JSON.stringify(draft) !== JSON.stringify(toDraft(saved));
+  const {pad} = useCurrencySign(); 
 
   const set = <K extends keyof Draft>(key: K, rows: Draft[K]) => setDraft((d) => ({ ...d, [key]: rows }));
 
@@ -123,7 +126,7 @@ function AdmissionForm({ saved }: { saved: Admission }) {
                 inputMode="numeric"
                 placeholder="0"
                 aria-label={t("amount")}
-                className="pl-7 tabular-nums"
+                className={`${pad} tabular-nums`}
               />
             </div>
           </div>

@@ -9,6 +9,10 @@ import type { Standing, SubscriptionPayment, SubscriptionPlan } from "@/lib/plat
 
 export type MySubscription = Standing & {
   plan: SubscriptionPlan | null;
+  // the package (null for a school made before packages) and the price of a period now
+  package: { name: string; maxStudents: number | null } | null;
+  price: { monthly: string; yearly: string; discount: string; due: string | null } | null;
+  students: { active: number; max: number | null };
   payments: Omit<SubscriptionPayment, "note" | "createdAt">[];
 };
 

@@ -15,6 +15,8 @@ import {
 import { jumpToSection } from "@/lib/useSectionNav";
 import { cn } from "@/lib/utils";
 import { MkHeading } from "./MkHeading";
+import { withSign } from "@/lib/i18n/currency";
+import { useLocale } from "next-intl";
 
 const BILLINGS: Billing[] = ["MONTHLY", "YEARLY"];
 
@@ -91,6 +93,7 @@ function PackageCard({ pkg, billing, previous }: { pkg: Package; billing: Billin
   const price = pkg.price[billing];
   const saving = billing === "YEARLY" ? yearlySaving(pkg) : 0;
   const name = t(`packages.${pkg.id}.name`);
+  const locale = useLocale();
 
   // tell the contact form, then go there
   const choose = () => {
@@ -119,7 +122,7 @@ function PackageCard({ pkg, billing, previous }: { pkg: Package; billing: Billin
       {/* keyed by the billing, so a switch plays the entrance again */}
       <div key={billing} className="animate-in fade-in slide-in-from-bottom-1 mt-7 duration-300">
         <p className="flex items-baseline gap-1.5">
-          <span className="text-5xl font-extrabold tracking-tight tabular-nums">৳{format.number(price)}</span>
+          <span className="text-5xl font-extrabold tracking-tight tabular-nums">withSign(locale, format.number(f.amount))</span>
           <span className={cn("text-sm font-medium", pkg.popular ? "text-slate-500" : "text-white/55")}>
             {t(billing === "MONTHLY" ? "perMonth" : "perYear")}
           </span>

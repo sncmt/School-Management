@@ -28,8 +28,12 @@ model School {
   discount       Decimal      @default(0) @db.Decimal(5, 2)
   // monthly or yearly: chosen when the school is activated; null for schools activated before plans
   subscriptionPlan SubscriptionPlan?
+  // the package (student limit and price) the school is on; null for schools created before
+  // packages, which have no student limit until one is assigned
+  packageId String?
+  package   SubscriptionPackage? @relation(fields: [packageId], references: [id], onDelete: Restrict)
 
-  memberships       SchoolMembership[] 
+  memberships       SchoolMembership[]
   slides            SchoolSlide[]
   admissionInfo     AdmissionInfo?
   about             SchoolAbout?
@@ -90,6 +94,30 @@ model School {
 
   @@index([subdomain])
   @@index([status])
+  @@index([packageId])
+}
+
+model SubscriptionPackage {
+  id   String @id @default(cuid())
+  // stable key for code and seeds: BASIC, STANDARD, PREMIUM
+  code String @unique
+  name String
+
+  // the most ACTIVE students a school on this package may have; null = unlimited
+  maxStudents Int?
+  // taka per month
+  monthlyPrice Decimal @db.Decimal(10, 2)
+
+  // a package that is off cannot be chosen for a school; schools already on it stay on it
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  schools School[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
 }
 
 /*

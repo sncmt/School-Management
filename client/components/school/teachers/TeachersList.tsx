@@ -20,7 +20,10 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useCan } from "@/lib/auth/hooks";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useLocalizedName } from "@/lib/i18n/names";
-import { TEACHER_STATUSES, useTeachers, type Teacher, type TeacherStatus } from "@/lib/school/teachers";
+import { ExportMenu } from "@/components/data/ExportMenu";
+import { useSchoolMe } from "@/lib/auth/hooks";
+import { datedFileName, type ListExport } from "@/lib/export/listExport";
+import { listAllTeachers, TEACHER_STATUSES, useTeachers, type Teacher, type TeacherStatus } from "@/lib/school/teachers";
 import { cn } from "@/lib/utils";
 import { TeacherCredentialsDialog, type TeacherCredentials } from "./TeacherCredentialsDialog";
 import { TeacherFormDialog } from "./TeacherFormDialog";
@@ -64,11 +67,14 @@ export function TeachersList() {
           <h1 className="page-title">{t("title")}</h1>
           <p className="page-subtitle">{t("description")}</p>
         </div>
-        {can("teacher:create") && (
-          <Button onClick={() => setAdding(true)}>
-            <Plus /> {t("add")}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <TeachersExport query={{ search: search || undefined, status }} filtered={filtering} />
+          {can("teacher:create") && (
+            <Button onClick={() => setAdding(true)}>
+              <Plus /> {t("add")}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
@@ -244,4 +250,57 @@ function TeacherRow({ teacher, canUpdate, onEdit }: { teacher: Teacher; canUpdat
       </TableCell>
     </TableRow>
   );
+}
+
+/** Saves (Excel) or prints (PDF) the teachers under the current filters. */
+function TeachersExport({ query, filtered }: { query: { search?: string; status?: TeacherStatus }; filtered: boolean }) {
+  const t = useTranslations("school.teachers");
+  const tStatus = useTranslations("teacherStatuses");
+  const tGender = useTranslations("genders");
+  const tExport = useTranslations("export");
+  const name = useLocalizedName();
+  const format = useFormatter();
+  const me = useSchoolMe();
+  const day = (iso: string | null) => (iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeZone: "UTC" }) : "");
+  const phone = (p: string | null) => (p ?? "").replace(/^\+?880/, "0");
+
+  const load = async (): Promise<ListExport> => {
+    const teachers = await listAllTeachers(query);
+    return {
+      fileName: datedFileName("teachers"),
+      school: me ? name(me.school) : "",
+      title: t("title"),
+      subtitle: [
+        tExport("made", { date: format.dateTime(new Date(), { dateStyle: "medium", timeZone: "Asia/Dhaka" }) }),
+        tExport("count", { count: teachers.length }),
+        filtered ? tExport("filtered") : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      columns: [
+        { header: t("form.nameEn") },
+        { header: t("form.nameBn") },
+        { header: t("form.designation") },
+        { header: t("form.phone") },
+        { header: t("form.joiningDate") },
+        { header: t("form.qualification") },
+        { header: t("form.mpoIndex") },
+        { header: t("form.gender") },
+        { header: t("columns.status") },
+      ],
+      rows: teachers.map((teacher) => [
+        teacher.nameEn,
+        teacher.nameBn,
+        teacher.designation,
+        phone(teacher.membership.user.phone),
+        day(teacher.joiningDate),
+        teacher.qualification,
+        teacher.mpoIndex,
+        teacher.gender ? tGender(teacher.gender) : "",
+        tStatus(teacher.status),
+      ]),
+    };
+  };
+
+  return <ExportMenu load={load} />;
 }

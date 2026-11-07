@@ -10,14 +10,6 @@
   /* English in Times New Roman (Tinos where it isn't installed); Bangla glyphs from Anek Bangla (drawn at 88%, app/layout.tsx) */
   --font-sans: "Times New Roman", var(--font-tinos), var(--font-bangla), Times, serif;
   --font-mono: var(--font-geist-mono);
-  /* Times New Roman reads small: every text size two steps up from Tailwind's (xs 12 -> 14px ...) */
-  --text-xs: 0.875rem;
-  --text-sm: 1rem;
-  --text-base: 1.125rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.375rem;
-  --text-2xl: 1.625rem;
-  --text-3xl: 2rem;
   /* the accent (teal): the logo block, the current tab, badges and highlights */
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
@@ -75,6 +67,28 @@
   --radius-2xl: 8px;
   --radius-3xl: 10px;
   --radius-4xl: 12px;
+}
+
+/* Bangla (and the default): the current sizes, unchanged */
+@theme {
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.625rem;
+  --text-3xl: 2rem;
+}
+
+/* English (Geist): smaller */
+:root:lang(en) {
+  --text-xs: 0.6875rem;   /* 11px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.875rem;  /* 14px */
+  --text-lg: 1rem;        /* 16px */
+  --text-xl: 1.125rem;    /* 18px */
+  --text-2xl: 1.375rem;   /* 22px */
+  --text-3xl: 1.75rem;    /* 28px */
 }
 
 :root {
@@ -385,6 +399,21 @@
   .print-landscape {
     page: landscape;
   }
+  /* money receipts: a quarter of A4 (A6), and tokens on a thermal roll (the printer's own paper) */
+  @page receipt-a6 {
+    size: A6;
+    margin: 4mm;
+  }
+  @page receipt-token {
+    size: auto;
+    margin: 1mm;
+  }
+  .print-receipt-a6 {
+    page: receipt-a6;
+  }
+  .print-receipt-token {
+    page: receipt-token;
+  }
   /* keep backgrounds and colours (headers, grade cells) as on screen */
   * {
     -webkit-print-color-adjust: exact;
@@ -482,4 +511,10 @@
   .page-title::before {
     display: none;
   }
+}
+
+:lang(en) .page-title { font-size: 1.5rem; }
+:lang(en) .page-subtitle { font-size: 0.875rem; }
+@media (min-width: 640px) {
+  :lang(en) .page-title { font-size: 1.625rem; }
 }

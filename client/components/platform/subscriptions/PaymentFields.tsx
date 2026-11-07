@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toAsciiDigits } from "@/lib/i18n/digits";
 import type { PaymentBody, SubscriptionPlan } from "@/lib/platform/subscriptions";
 import { cn } from "@/lib/utils";
+import { useCurrencySign } from "@/lib/i18n/useCurrency";
 
 /* What the fields hold while being filled in (text boxes keep text). */
 export type PaymentDraft = { year: string; month: string; amount: string; paidOn: string; note: string };
@@ -67,6 +68,7 @@ export function PaymentFields({ plan, draft, onChange }: { plan: SubscriptionPla
   const format = useFormatter();
   const set = (patch: Partial<PaymentDraft>) => onChange({ ...draft, ...patch });
   const monthName = (m: number) => format.dateTime(new Date(Date.UTC(2026, m - 1, 1)), { month: "long", timeZone: "UTC" });
+  const {sign} = useCurrencySign();
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -100,7 +102,7 @@ export function PaymentFields({ plan, draft, onChange }: { plan: SubscriptionPla
       <div className="space-y-1.5">
         <Label htmlFor="sub-amount">{t("amount")}</Label>
         <div className="relative">
-          <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">৳</span>
+          <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">{sign}</span>
           <Input id="sub-amount" inputMode="decimal" className="pl-7" value={draft.amount} onChange={(e) => set({ amount: e.target.value })} />
         </div>
       </div>

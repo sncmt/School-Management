@@ -33,10 +33,10 @@ export const createSchoolSchema = z.object({
     website: websiteSchema.optional(),
     address: z.string().optional(),
     language: z.enum(["EN", "BN"]).optional(),
-    // monthly or yearly; activation records the first period in this plan
-    subscriptionPlan: z.enum(SubscriptionPlan).optional(),
-    monthlyFee: z.number().nonnegative().optional(),
-    yearlyFee: z.number().nonnegative().optional(),
+    // monthly or yearly, and the package (student limit and price a month: yearly is twelve times it)
+    subscriptionPlan: z.enum(SubscriptionPlan, { error: "Choose monthly or yearly" }),
+    packageId: z.string({ error: "Choose a package" }).trim().min(1, "Choose a package"),
+    // a percentage off the package's price
     discount: z.number().min(0).max(100).optional(),
 });
 
@@ -85,10 +85,9 @@ const updateSchoolSchema = z
     website: websiteSchema.nullable().optional(),
     address: z.string().trim().max(500).nullable().optional(),
     language: z.enum(["EN", "BN"]).optional(),
-    // can change, not be cleared (payments already recorded keep their own plan)
+    // can change, not be cleared (payments already recorded keep their own plan and amount)
     subscriptionPlan: z.enum(SubscriptionPlan).optional(),
-    monthlyFee: z.number().nonnegative().nullable().optional(),
-    yearlyFee: z.number().nonnegative().nullable().optional(),
+    packageId: z.string().trim().min(1).optional(),
     discount: z.number().min(0).max(100).optional(),
   })
   .strict()
@@ -99,7 +98,34 @@ const changeSchoolStatusSchema = z.object({
   status: z.enum(["ACTIVE", "SUSPENDED", "INACTIVE"]),
 });
 
+// the platform admin and a school's people
+const schoolUsersQuery = z.object({
+  search: z.string().trim().min(1).max(100).optional(),
+  role: z.enum(["SUPER_ADMIN", "TEACHER", "STAFF", "GUARDIAN"]).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+const schoolUserParams = z.object({
+  schoolId: z.string().min(1, "School id is required!").max(64),
+  userId: z.string().trim().min(1).max(64),
+});
+// left out: one is made up (and shown once); 72 is bcrypt's limit
+const setUserPassword = z.strictObject({
+  newPassword: z.string().min(8, "Password must be at least 8 characters").max(72, "Password must be at most 72 characters").optional(),
+});
+const pageQuery = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type SchoolUsersQuery = z.infer<typeof schoolUsersQuery>;
+export type SetUserPasswordPayload = z.infer<typeof setUserPassword>;
+
 export const SchoolValidation = {
+  schoolUsersQuery,
+  schoolUserParams,
+  setUserPassword,
+  pageQuery,
   createSchoolSchema,
   activateSchoolSchema,
   createSchoolSuperAdminSchema,

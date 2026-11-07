@@ -26,7 +26,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { applyServerErrors } from "@/lib/auth/formErrors";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useCreateSchool, useUpdateSchool, type SchoolDetail } from "@/lib/platform/schools";
+import { packagePrice, usePackages } from "@/lib/platform/packages";
 import { SUBSCRIPTION_PLANS } from "@/lib/platform/subscriptions";
+import { useTaka } from "@/lib/i18n/useCurrency";
 import { ROOT_DOMAIN } from "@/lib/tenant";
 import {
   createSchoolSchema,
@@ -42,7 +44,7 @@ type Props = { mode: "create" } | { mode: "edit"; school: SchoolDetail };
 type SchoolFormValues = CreateSchoolValues | UpdateSchoolValues;
 
 const FIELDS: FieldPath<SchoolFormInput>[] = [
-  "nameEn", "nameBn", "subdomain", "email", "publicEmail", "phone", "website", "address", "language", "subscriptionPlan", "monthlyFee", "yearlyFee", "discount",
+  "nameEn", "nameBn", "subdomain", "email", "publicEmail", "phone", "website", "address", "language", "subscriptionPlan", "packageId", "discount",
 ];
 
 // the form edits text; the server's Decimal values arrive as strings like "2500.00"
@@ -60,8 +62,7 @@ const initialValues = (school?: SchoolDetail): SchoolFormInput => ({
   language: school?.language ?? "BN",
   // a new school starts on monthly; one activated before plans has none ("")
   subscriptionPlan: school ? (school.subscriptionPlan ?? "") : "MONTHLY",
-  monthlyFee: decimalText(school?.monthlyFee ?? null),
-  yearlyFee: decimalText(school?.yearlyFee ?? null),
+  packageId: school?.packageId ?? "",
   discount: school ? decimalText(school.discount) : "",
 });
 
@@ -95,8 +96,16 @@ export function SchoolForm(props: Props) {
   });
 
   const subdomain = form.watch("subdomain").trim().toLowerCase() || "yourschool";
-  // the billing section shows the fee of this plan
+  // the billing section shows the price of this plan and package
   const plan = form.watch("subscriptionPlan");
+  const packageId = form.watch("packageId");
+  const discount = form.watch("discount");
+  const packages = usePackages();
+  const taka = useTaka();
+  // switched-off packages can't be chosen, but a school already on one keeps showing it
+  const choosable = (packages.data ?? []).filter((p) => p.isActive || p.id === school?.packageId);
+  const chosen = choosable.find((p) => p.id === packageId);
+  const due = chosen && (plan === "MONTHLY" || plan === "YEARLY") ? packagePrice(chosen.monthlyPrice, plan, discount.trim() === "" ? 0 : Number(discount)) : "";
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
@@ -310,26 +319,36 @@ export function SchoolForm(props: Props) {
                   </FormItem>
                 )}
               />
-              {/* the fee of the chosen plan (both while a school has no plan yet) */}
-              {(["monthlyFee", "yearlyFee"] as const)
-                .filter((name) => !plan || (plan === "YEARLY") === (name === "yearlyFee"))
-                .map((name) => (
-                  <FormField
-                    key={name}
-                    control={form.control}
-                    name={name}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t(name)}</FormLabel>
-                        <FormControl>
-                          <Input inputMode="decimal" {...field} />
-                        </FormControl>
-                        <FormDescription>{t(`${name}Hint`)}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
+              <FormField
+                control={form.control}
+                name="packageId"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel required={!isEdit}>{t("package")}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={!packages.isSuccess || choosable.length === 0}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t(packages.isSuccess ? "choosePackage" : "loadingPackages")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {choosable.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {t("packageOption", {
+                              name: p.name,
+                              students: p.maxStudents === null ? t("unlimitedStudents") : t("upToStudents", { count: p.maxStudents }),
+                              monthly: taka(Number(p.monthlyPrice)),
+                              yearly: taka(Number(p.yearlyPrice)),
+                            })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>{t("packageHint")}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="discount"
@@ -343,6 +362,13 @@ export function SchoolForm(props: Props) {
                   </FormItem>
                 )}
               />
+              {/* what the school pays, with this plan, package and discount */}
+              {due !== "" && !Number.isNaN(Number(due)) && (
+                <div className="self-end rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  <div className="text-xs text-muted-foreground">{t(plan === "YEARLY" ? "paysYearly" : "paysMonthly")}</div>
+                  <div className="text-lg font-semibold tabular-nums">{taka(Number(due))}</div>
+                </div>
+              )}
             </div>
           </Section>
 

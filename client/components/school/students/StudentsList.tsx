@@ -1,10 +1,9 @@
 "use client";
 
-import { Download, Eye, MoreHorizontal, Pencil, Plus, Search, Users, X } from "lucide-react";
+import { Eye, MoreHorizontal, Pencil, Plus, Search, Users, X } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
 import { TablePagination } from "@/components/data/TablePagination";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,9 @@ import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useAcademicYears } from "@/lib/school/academicYears";
 import { useClasses } from "@/lib/school/classes";
 import { useGroups } from "@/lib/school/groups";
-import { downloadCsv } from "@/lib/csv";
+import { ExportMenu } from "@/components/data/ExportMenu";
+import { useSchoolMe } from "@/lib/auth/hooks";
+import { datedFileName, type ListExport } from "@/lib/export/listExport";
 import {
   listAllStudents,
   localPhone,
@@ -217,7 +218,7 @@ export function StudentsList() {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ExportButton query={{ search: search || undefined, ...filters }} />
+          <ExportButton query={{ search: search || undefined, ...filters }} filtered={filtering} />
           {can("student:create") && (
             <Button asChild className="h-9 px-4 shadow-sm">
               <Link href="/students/new">
@@ -225,7 +226,7 @@ export function StudentsList() {
               </Link>
             </Button>
           )}
-        </div>
+        </div> 
       </div>
 
       <section className="overflow-hidden border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
@@ -486,57 +487,60 @@ function StudentRow({ student, canUpdate }: { student: StudentListItem; canUpdat
   );
 }
 
-/** Saves the students under the current filters and tab as a CSV file. */
-function ExportButton({ query }: { query: StudentFilterQuery }) {
+/** Saves (Excel) or prints (PDF) the students under the current filters and tab. */
+function ExportButton({ query, filtered }: { query: StudentFilterQuery; filtered: boolean }) {
   const t = useTranslations("school.students");
   const tStatus = useTranslations("studentStatuses");
+  const tGender = useTranslations("genders");
+  const tExport = useTranslations("export");
   const name = useLocalizedName();
-  const describeError = useErrorMessage();
-  const [busy, setBusy] = useState(false);
+  const format = useFormatter();
+  const me = useSchoolMe();
 
-  const run = async () => {
-    setBusy(true);
-    try {
-      const students = await listAllStudents(query);
-      downloadCsv(`students-${new Date().toISOString().slice(0, 10)}.csv`, [
-        [
-          t("form.admissionNo"),
-          t("form.nameEn"),
-          t("form.nameBn"),
-          t("form.class"),
-          t("form.section"),
-          t("form.group"),
-          t("form.rollNumber"),
-          t("form.fatherName"),
-          t("columns.family"),
-          t("columns.status"),
-        ],
-        ...students.map((s) => {
-          const e = s.enrollment;
-          return [
-            s.admissionNo,
-            s.nameEn,
-            s.nameBn,
-            e?.class.name,
-            e && !e.section.isDefault ? e.section.name : "",
-            e?.group ? name(e.group) : "",
-            e?.rollNumber,
-            s.fatherName,
-            s.phone ? localPhone(s.phone) : "",
-            tStatus(s.status),
-          ];
-        }),
-      ]);
-    } catch (error) {
-      toast.error(t("exportFailed"), { description: describeError(error) });
-    } finally {
-      setBusy(false);
-    }
+  const load = async (): Promise<ListExport> => {
+    const students = await listAllStudents(query);
+    return {
+      fileName: datedFileName("students"),
+      school: me ? name(me.school) : "",
+      title: t("title"),
+      subtitle: [
+        tExport("made", { date: format.dateTime(new Date(), { dateStyle: "medium", timeZone: "Asia/Dhaka" }) }),
+        tExport("count", { count: students.length }),
+        filtered ? tExport("filtered") : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      columns: [
+        { header: t("form.admissionNo") },
+        { header: t("form.nameEn") },
+        { header: t("form.nameBn") },
+        { header: t("form.class") },
+        { header: t("form.section") },
+        { header: t("form.group") },
+        { header: t("form.rollNumber"), align: "right" },
+        { header: t("form.fatherName") },
+        { header: t("form.gender") },
+        { header: t("columns.family") },
+        { header: t("columns.status") },
+      ],
+      rows: students.map((s) => {
+        const e = s.enrollment;
+        return [
+          s.admissionNo,
+          s.nameEn,
+          s.nameBn,
+          e?.class.name,
+          e && !e.section.isDefault ? e.section.name : "",
+          e?.group ? name(e.group) : "",
+          e?.rollNumber,
+          s.fatherName,
+          s.gender ? tGender(s.gender) : "",
+          s.phone ? localPhone(s.phone) : "",
+          tStatus(s.status),
+        ];
+      }),
+    };
   };
 
-  return (
-    <Button variant="outline" onClick={run} disabled={busy} className="h-9 px-4 shadow-sm">
-      <Download /> {busy ? t("exporting") : t("export")}
-    </Button>
-  );
+  return <ExportMenu load={load} />;
 }
