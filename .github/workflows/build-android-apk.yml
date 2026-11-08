@@ -3,17 +3,25 @@ name: Build Android APK
 # Run it: GitHub repo -> Actions tab -> "Build Android APK" -> Run workflow.
 #
 # It checks the code, runs the tests, builds the app signed with YOUR key, and publishes it as
-# a GitHub Release. The newest one is always at:
-#   https://github.com/sncmt/School-Management/releases/latest/download/sncmt.apk
-# (the website's /app page and the app's "Update available" prompt use that link).
+# a release of the public repo sncmt/sncmt-app, which holds only the app files (this code repo
+# can stay private). The newest one is always at:
+#   https://github.com/sncmt/sncmt-app/releases/latest/download/sncmt.apk
+# and the website's sncmt.com/app/download leads there; the app's "Update available" prompt
+# reads the same releases.
+#
+# Secrets: the 4 ANDROID_* signing secrets, and RELEASES_TOKEN (a fine-grained token of the
+# sncmt account: only the sncmt-app repo, Contents: Read and write).
 #
 # Versions: the name (1.0.0) comes from mobile/pubspec.yaml; the build number is this
 # workflow's run number, so it always goes up and phones accept every new APK as an update.
 on:
   workflow_dispatch:
 
+env:
+  RELEASE_REPO: sncmt/sncmt-app
+
 permissions:
-  contents: write # to publish the release
+  contents: read # the release goes to the other repo, with RELEASES_TOKEN
 
 jobs:
   build:
@@ -22,6 +30,22 @@ jobs:
       run:
         working-directory: mobile
     steps:
+      # before ten minutes of building: can the release be published at all?
+      - name: Check the release token
+        working-directory: .
+        env:
+          TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::Add the RELEASES_TOKEN secret (Settings > Secrets and variables > Actions): a fine-grained token for $RELEASE_REPO with Contents: Read and write."
+            exit 1
+          fi
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" "https://api.github.com/repos/$RELEASE_REPO")
+          if [ "$code" != "200" ]; then
+            echo "::error::RELEASES_TOKEN can't reach $RELEASE_REPO (HTTP $code): it may have expired, or not include that repo. Make a new one and update the secret."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
@@ -96,10 +120,14 @@ jobs:
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
+          repository: ${{ env.RELEASE_REPO }}
+          token: ${{ secrets.RELEASES_TOKEN }}
+          # the tag goes on that repo's own branch (it holds only a README)
+          target_commitish: main
           tag_name: app-v${{ steps.version.outputs.name }}-b${{ steps.version.outputs.build }}
           name: SNCMT app ${{ steps.version.outputs.name }} (build ${{ steps.version.outputs.build }})
           body: |
             Android app, version ${{ steps.version.outputs.name }}, build ${{ steps.version.outputs.build }}.
-            Download: https://github.com/sncmt/School-Management/releases/latest/download/sncmt.apk
+            Download: https://sncmt.com/app
           files: mobile/build/sncmt.apk
           make_latest: true

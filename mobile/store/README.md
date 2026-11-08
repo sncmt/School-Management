@@ -34,9 +34,11 @@ support can reset it, but it takes days.
 2. Push to GitHub, then **Actions → Build Android APK → Run workflow**. It checks the code,
    runs the tests, signs with your key (secrets: `ANDROID_KEYSTORE_BASE64`,
    `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`) and publishes a
-   GitHub Release. The newest APK is always at
-   `https://github.com/sncmt/School-Management/releases/latest/download/sncmt.apk`, which the
-   website's `/app` page links to; installed apps show "Update available".
+   release of the public repo `sncmt/sncmt-app` (secret `RELEASES_TOKEN`: a fine-grained token
+   of the `sncmt` account for that repo only, Contents: Read and write, renewed yearly). The
+   code repo can stay private. The newest APK is always at
+   `https://github.com/sncmt/sncmt-app/releases/latest/download/sncmt.apk`, reached through
+   the website's short link `sncmt.com/app/download`; installed apps show "Update available".
 3. For Google Play later: the same key, and `flutter build appbundle --release` instead of
    `apk` (an `.aab` for Play Console, Testing > Internal testing first).
 

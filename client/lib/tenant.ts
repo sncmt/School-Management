@@ -41,6 +41,9 @@ const protocol = process.env.NEXT_PUBLIC_SITE_PROTOCOL ?? (process.env.NODE_ENV 
 export const schoolSiteUrl = (subdomain: string, path = "/") =>
   `${protocol}://${subdomain}.${ROOT_DOMAIN}${path}`;
 
+/** The marketing site, e.g. https://sncmt.com/app */
+export const marketingSiteUrl = (path = "/") => `${protocol}://${ROOT_DOMAIN}${path}`;
+
 /** Browser only: the session type of the site this page is on (none on the marketing site). */
 export const currentSessionType = (): SessionType | null => {
   const site = getSiteFromHost(window.location.host);

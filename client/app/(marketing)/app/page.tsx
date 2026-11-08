@@ -2,14 +2,15 @@ import { Download, GraduationCap, QrCode, ShieldCheck, Smartphone } from "lucide
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import QRCode from "qrcode";
+import { APP_DOWNLOAD_PATH } from "@/lib/marketing/appRelease";
+import { marketingSiteUrl } from "@/lib/tenant";
 
 /*
  * The mobile app's download page (sncmt.com/app): until the app is on Google Play, it is
- * installed from the APK that .github/workflows/build-android-apk.yml publishes as a GitHub
- * Release. The link always points at the newest one; the app itself offers later updates.
+ * installed from the APK published as a GitHub release (lib/marketing/appRelease.ts). The
+ * button and the QR code use our own short link, which always leads to the newest one; the
+ * app itself offers later updates.
  */
-
-const APK_URL = "https://github.com/sncmt/School-Management/releases/latest/download/sncmt.apk";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("marketing.app");
@@ -19,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AppDownloadPage() {
   const t = await getTranslations("marketing.app");
   // drawn here, on our own server: no outside QR service sees the link
-  const qr = await QRCode.toString(APK_URL, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#0b1020", light: "#ffffff" } });
+  const qr = await QRCode.toString(marketingSiteUrl(APP_DOWNLOAD_PATH), { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#0b1020", light: "#ffffff" } });
 
   const steps = [
     { icon: Download, title: t("step1Title"), body: t("step1Body") },
@@ -46,7 +47,7 @@ export default async function AppDownloadPage() {
             </p>
             <div className="animate-in fade-in slide-in-from-bottom-4 mt-9 flex flex-col items-center gap-3 duration-1000 sm:flex-row sm:justify-center lg:justify-start">
               <a
-                href={APK_URL}
+                href={APP_DOWNLOAD_PATH}
                 className="group inline-flex h-13 w-full items-center justify-center gap-2.5 rounded-full bg-mk-amber px-8 text-base font-semibold text-mk-ink shadow-[0_10px_40px_-10px_var(--mk-amber)] transition-all hover:bg-white sm:w-auto"
               >
                 <Download className="size-5 transition-transform group-hover:translate-y-0.5" />

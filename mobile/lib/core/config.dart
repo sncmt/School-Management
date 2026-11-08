@@ -22,10 +22,11 @@ class ApiConfig {
   static String website(String schoolCode) => '$schoolCode.$rootDomain';
 }
 
-/// Where the app itself is published until it is on Google Play: the project's GitHub Releases
-/// (.github/workflows/build-android-apk.yml). The website's /app page links here too.
+/// Where the app itself is published until it is on Google Play: the releases of the public repo
+/// sncmt/sncmt-app, which holds only the app files (.github/workflows/build-android-apk.yml).
+/// The website's /app page links here too.
 class AppRelease {
-  static const repo = 'sncmt/School-Management';
+  static const repo = 'sncmt/sncmt-app';
   static const latestApi = 'https://api.github.com/repos/$repo/releases/latest';
   static const downloadUrl = 'https://github.com/$repo/releases/latest/download/sncmt.apk';
 }
