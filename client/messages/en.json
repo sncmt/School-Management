@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "School Management",
+    "appName": "School & College Management",
     "loading": "Loading",
     "tryAgain": "Try again",
     "logIn": "Log in",
@@ -4985,7 +4985,7 @@
     "darkMode": "Dark mode",
     "lightMode": "Light mode",
     "welcome": "Welcome to <b>{name}</b>",
-    "appTagline": "· School Management System",
+    "appTagline": "· School & College Management System",
     "home": "Home",
     "workspace": "Workspace",
     "openMenu": "Open menu",

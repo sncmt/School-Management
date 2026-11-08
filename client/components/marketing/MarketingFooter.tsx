@@ -18,7 +18,7 @@ export async function MarketingFooter() {
       {/* the name, huge and faint, behind everything */}
       <p
         aria-hidden
-        className="pointer-events-none absolute -bottom-6 left-1/2 -z-10 -translate-x-1/2 text-[18vw] leading-none font-black tracking-tighter whitespace-nowrap text-white/[0.03] select-none"
+        className="pointer-events-none absolute -bottom-6 left-1/2 -z-10 -translate-x-1/2 text-[9vw] leading-none font-black tracking-tighter whitespace-nowrap text-white/[0.03] select-none"
       >
         {name}
       </p>
