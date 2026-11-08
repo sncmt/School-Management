@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, MoreHorizontal, Pencil, Plus, Search, Users, X } from "lucide-react";
+import { Ban, Check, Eye, GraduationCap, MoreHorizontal, Pencil, Plus, Search, UserCheck, UserMinus, Users, X, type LucideIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useCan } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
@@ -207,12 +206,12 @@ export function StudentsList() {
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex min-w-0 items-end gap-2.5">
           <h1 className="page-title">{t("title")}</h1>
           {data && (
-            <span className="mb-1 rounded-full bg-navy-soft px-2 py-0.5 text-xs font-semibold text-navy tabular-nums">
+            <span className="mb-1 rounded-full bg-navy-soft px-2 py-0.5 text-xs font-semibold text-navy tabular-nums animate-in fade-in-0 zoom-in-90 duration-300">
               {format.number(data.meta.total)}
             </span>
           )}
@@ -220,47 +219,41 @@ export function StudentsList() {
         <div className="flex flex-wrap items-center gap-2">
           <ExportButton query={{ search: search || undefined, ...filters }} filtered={filtering} />
           {can("student:create") && (
-            <Button asChild className="h-9 px-4 shadow-sm">
+            <Button asChild className="h-9 px-4 shadow-sm transition-all duration-200 hover:-translate-y-px hover:shadow-md">
               <Link href="/students/new">
                 <Plus /> {t("add")}
               </Link>
             </Button>
           )}
-        </div> 
+        </div>
+      </div>
+
+      {/* the statuses as cards, like the dashboard's: each one picks its students (All clears it) */}
+      <div role="group" aria-label={t("columns.status")} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {([ALL, ...STATUS_TABS] as const).map((s) => {
+          const counts = data?.statusCounts;
+          const all = counts ? Object.values(counts).reduce((sum, n) => sum + n, 0) : 0;
+          const count = counts ? (s === ALL ? all : counts[s]) : undefined;
+          return (
+            <StatusCard
+              key={s}
+              status={s}
+              label={s === ALL ? t("filters.all") : tStatus(s)}
+              count={count === undefined ? undefined : format.number(count)}
+              share={count === undefined || all === 0 ? 0 : (count / all) * 100}
+              percent={count === undefined || all === 0 ? "" : format.number(count / all, { style: "percent" })}
+              selected={(filters.status ?? ALL) === s}
+              onSelect={() => setFilter({ status: s === ALL ? undefined : s })}
+            />
+          );
+        })}
       </div>
 
       <section className="overflow-hidden border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
-        <Tabs
-          value={filters.status ?? ALL}
-          onValueChange={(v) => setFilter({ status: v === ALL ? undefined : (v as StudentStatus) })}
-        >
-          <TabsList className="px-4 pt-3" aria-label={t("columns.status")}>
-            {STATUS_TABS.map((s) => (
-              <TabsTrigger key={s} value={s}>
-                {tStatus(s)}
-                {data?.statusCounts && (
-                  <span className="ml-1.5 text-xs font-normal text-muted-foreground tabular-nums">
-                    {format.number(data.statusCounts[s])}
-                  </span>
-                )}
-              </TabsTrigger>
-            ))}
-            <TabsTrigger value={ALL}>{t("filters.all")}</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* the filters, each named; the search on the right */}
-        <div className="flex flex-wrap items-end gap-3 px-4 py-3">
-          {fields.map((field) => (
-            <FilterSelect key={field.key} field={field} />
-          ))}
-          {canClear && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-muted-foreground">
-              <X /> {t("filters.clear")}
-            </Button>
-          )}
-          <div className="relative w-full min-w-0 sm:ml-auto sm:w-60">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        {/* one toolbar: the search, then the filters (each names itself inside its box), then "clear" */}
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-3 bg-muted/25 px-5 py-3">
+          <div className="group/search relative w-full min-w-0 sm:w-64">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground transition-colors duration-200 group-focus-within/search:text-navy" />
             <Input
               value={searchInput}
               onChange={(e) => {
@@ -269,12 +262,42 @@ export function StudentsList() {
               }}
               placeholder={t("searchPlaceholder")}
               aria-label={tCommon("search")}
-              className="h-9 bg-muted/40 pl-9 shadow-none"
+              className="h-9 rounded-lg bg-card pr-8 pl-9 shadow-none transition-[border-color,box-shadow] duration-200"
             />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput("");
+                  setPage(1);
+                }}
+                aria-label={t("filters.remove", { name: tCommon("search") })}
+                className="absolute top-1/2 right-2 flex size-5 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground animate-in fade-in-0 zoom-in-75 duration-150"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
           </div>
+
+          <span aria-hidden className="mx-1 hidden h-6 w-px bg-border sm:block" />
+
+          {fields.map((field) => (
+            <FilterSelect key={field.key} field={field} />
+          ))}
+
+          {canClear && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-9 rounded-lg text-muted-foreground transition-colors hover:text-destructive animate-in fade-in-0 slide-in-from-left-1 duration-200"
+            >
+              <X /> {t("filters.clear")}
+            </Button>
+          )}
         </div>
 
-        <div className={cn("border-t transition-opacity", isFetching && !isPending && "opacity-60")}>
+        <div className={cn("border-t transition-opacity duration-300", isFetching && !isPending && "opacity-60")}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -346,22 +369,117 @@ export function StudentsList() {
 const HEAD = "first:pl-5 last:pr-5";
 const CELL = "py-3 first:pl-5 last:pr-5";
 
-/** A compact dropdown in the filter row; its "all" choice (if any) clears it, and it is tinted while set. */
+// each status card's icon and colours: its icon box, its bar, and its outline when picked
+const STATUS_LOOK: Record<typeof ALL | (typeof STATUS_TABS)[number], { icon: LucideIcon; tint: string; bar: string; ring: string }> = {
+  ALL: { icon: Users, tint: "bg-brand-soft text-brand", bar: "bg-brand", ring: "border-brand/50 ring-brand/30" },
+  ACTIVE: {
+    icon: UserCheck,
+    tint: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    bar: "bg-emerald-500",
+    ring: "border-emerald-500/50 ring-emerald-500/30",
+  },
+  SUSPENDED: {
+    icon: Ban,
+    tint: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    bar: "bg-amber-500",
+    ring: "border-amber-500/50 ring-amber-500/30",
+  },
+  INACTIVE: {
+    icon: UserMinus,
+    tint: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    bar: "bg-rose-500",
+    ring: "border-rose-500/50 ring-rose-500/30",
+  },
+  GRADUATED: {
+    icon: GraduationCap,
+    tint: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+    bar: "bg-violet-500",
+    ring: "border-violet-500/50 ring-violet-500/30",
+  },
+};
+
+/** A status as a dashboard-style card: icon and name, the number, and a bar of its share of all the students. */
+function StatusCard({
+  status,
+  label,
+  count,
+  share,
+  percent,
+  selected,
+  onSelect,
+}: {
+  status: keyof typeof STATUS_LOOK;
+  label: string;
+  // undefined while loading
+  count: string | undefined;
+  share: number;
+  percent: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const { icon: Icon, tint, bar, ring } = STATUS_LOOK[status];
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={cn(
+        "group flex flex-col rounded-xl border border-border/70 bg-card px-3.5 py-3 text-left transition-all duration-200 outline-none hover:-translate-y-0.5 hover:border-border hover:shadow-[0_14px_34px_-18px_rgb(15_23_42/0.35)] focus-visible:ring-2 focus-visible:ring-ring/20",
+        selected && cn("ring-1 shadow-[0_10px_28px_-18px_rgb(15_23_42/0.35)]", ring),
+      )}
+    >
+      {/* one line: icon and name on the left, the number on the right */}
+      <span className="flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-2.5 text-[15px] font-medium text-muted-foreground">
+          <span className={cn("relative flex size-8 shrink-0 items-center justify-center rounded-lg", tint)}>
+            <Icon className="size-4" />
+            {/* a tick on the picked card's icon */}
+            <span
+              aria-hidden
+              className={cn(
+                "absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full text-white ring-2 ring-card transition-all duration-200",
+                bar,
+                selected ? "scale-100 opacity-100" : "scale-50 opacity-0",
+              )}
+            >
+              <Check className="size-2.5" strokeWidth={3.5} />
+            </span>
+          </span>
+          <span className={cn("truncate transition-colors", selected && "text-foreground")}>{label}</span>
+        </span>
+        {count === undefined ? (
+          <Skeleton className="h-6 w-8" />
+        ) : (
+          <span className="shrink-0 text-2xl leading-none font-semibold tracking-tight tabular-nums">{count}</span>
+        )}
+      </span>
+      <span aria-hidden className="mt-2.5 flex items-center gap-2">
+        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+          <span className={cn("block h-full rounded-full transition-[width] duration-500 ease-out", bar)} style={{ width: `${share}%` }} />
+        </span>
+        <span className="w-9 text-right text-xs text-muted-foreground tabular-nums">{percent}</span>
+      </span>
+    </button>
+  );
+}
+
+/** A compact dropdown in the toolbar, "Class: All": its name inside the box, its "all" choice (if any) clears it, and it is tinted while set. */
 function FilterSelect({ field }: { field: FilterField }) {
   const { label, value, allLabel, options, onChange } = field;
   const active = !!allLabel && value !== undefined;
   return (
     <Select value={value ?? (allLabel ? ALL : "")} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
       <SelectTrigger
-        label={label}
-        // no "all" choice (the year): one must be chosen
-        required={!allLabel}
+        aria-label={label}
         className={cn(
-          "h-9 w-36 bg-card shadow-none sm:w-40",
-          active && "border-navy/30 bg-navy-soft text-navy [&_svg:not([class*='text-'])]:text-navy",
+          "h-9 max-w-72 gap-1.5 rounded-lg bg-card pr-2.5 pl-3 shadow-none transition-[background-color,border-color,color,box-shadow] duration-200 hover:border-foreground/25 dark:bg-card",
+          active && "border-navy/30 bg-navy-soft text-navy hover:border-navy/50 dark:bg-navy-soft [&_svg:not([class*='text-'])]:text-navy",
         )}
       >
-        <SelectValue placeholder={label} />
+        <span className={cn("shrink-0 text-muted-foreground", active && "text-navy/70")}>{label}:</span>
+        <span className="min-w-0 truncate font-medium">
+          <SelectValue placeholder={allLabel} />
+        </span>
       </SelectTrigger>
       <SelectContent>
         {allLabel && <SelectItem value={ALL}>{allLabel}</SelectItem>}

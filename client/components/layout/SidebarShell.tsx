@@ -89,7 +89,7 @@ type Props = {
 const rowClass = (active: boolean) =>
   cn(
     // a little more room before the icon (20 px) than after the text
-    "relative flex h-10 w-full items-center gap-3 rounded-lg pr-3 pl-5 text-left text-[16.5px] transition-colors",
+    "relative flex h-10 w-full items-center gap-3 rounded-lg pr-3 pl-5 text-left text-[16.5px] transition-colors [&:lang(en)]:text-[15.5px]",
     "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
     active
       ? "bg-sidebar-accent font-semibold text-white ring-1 ring-white/15 ring-inset before:absolute before:top-2 before:bottom-2 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-sidebar-primary"
@@ -177,15 +177,15 @@ export function SidebarShell({
       </Sidebar>
 
       <SidebarInset className="canvas-grid min-w-0">
-        <header className="no-print sticky top-0 z-20 flex h-[72px] shrink-0 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur lg:px-8">
+        <header className="no-print sticky top-0 z-20 flex h-[72px] shrink-0 items-center gap-3 border-b bg-background/90 px-3 backdrop-blur md:px-4 lg:px-5">
           {/* on a phone the menu is hidden: its button lives here (the bottom bar's Menu opens it too) */}
           <MobileMenuButton />
           {/* the school's full name (the sidebar shows the short one) */}
-          <p className="min-w-0 truncate text-[17px] font-bold tracking-tight text-foreground sm:text-base">
+          <p className="min-w-0 truncate text-lg font-bold tracking-tight text-foreground sm:text-xl">
             {brand.title}
           </p>
           <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
-           
+
             {topBarItems}
             <LanguageMenu />
             <ThemeToggle />
@@ -199,13 +199,13 @@ export function SidebarShell({
         {/* on a phone with the bottom bar, room under the page so the bar never covers it */}
         <main
           className={cn(
-            "flex-1 p-4 md:p-6 lg:p-8",
-            bottomNav && "pb-28 md:pb-6 lg:pb-8",
+            "flex-1 p-3 md:p-4 lg:p-5",
+            bottomNav && "pb-28 md:pb-4 lg:pb-5",
           )}
         >
           <nav
             aria-label={tShell("home")}
-            className="no-print mb-4 flex flex-wrap items-center gap-2 font-mono text-xs"
+            className="no-print mb-3 flex flex-wrap items-center gap-2 font-mono text-xs"
           >
             <Link
               href={brand.home}
@@ -391,7 +391,7 @@ function Menu({
                         onClick={close}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "flex h-9 items-center rounded-lg px-3 text-[15.5px] transition-colors",
+                          "flex h-9 items-center rounded-lg px-3 text-[15.5px] transition-colors [&:lang(en)]:text-[14.5px]",
                           active
                             ? "bg-sidebar-accent font-semibold text-sidebar-primary ring-1 ring-white/15 ring-inset"
                             : "text-white/90 hover:bg-white/5 hover:text-white",
