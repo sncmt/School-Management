@@ -5,3 +5,5 @@ generated
 .env.*
 .git
 *.log
+# the Firebase service account key is a secret: mounted at runtime (docker-compose.yml), never baked into the image
+certs/firebase-*.json

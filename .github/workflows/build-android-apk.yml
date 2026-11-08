@@ -1,16 +1,26 @@
 name: Build Android APK
 
-# Run manually: GitHub repo -> Actions tab -> "Build Android APK" -> Run workflow.
-# The finished APK shows up at the bottom of the run page under "Artifacts".
+# Run it: GitHub repo -> Actions tab -> "Build Android APK" -> Run workflow.
+#
+# It checks the code, runs the tests, builds the app signed with YOUR key, and publishes it as
+# a GitHub Release. The newest one is always at:
+#   https://github.com/sncmt/School-Management/releases/latest/download/sncmt.apk
+# (the website's /app page and the app's "Update available" prompt use that link).
+#
+# Versions: the name (1.0.0) comes from mobile/pubspec.yaml; the build number is this
+# workflow's run number, so it always goes up and phones accept every new APK as an update.
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write # to publish the release
 
 jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: mobile   # folder that holds pubspec.yaml
+        working-directory: mobile
     steps:
       - uses: actions/checkout@v4
 
@@ -26,31 +36,59 @@ jobs:
 
       - run: flutter pub get
 
-      # Optional: sign with YOUR OWN key (recommended for website downloads, see guide).
-      # If the 4 secrets below are not set, the APK is signed with the debug key and still installs fine.
-      - name: Set up release signing (only if secrets exist)
+      - name: Check the code
+        run: flutter analyze
+
+      - name: Run the tests
+        run: flutter test
+
+      # Never publish a debug-signed APK: GitHub makes a new debug key on every run, and an
+      # APK signed with another key can't update the one already installed.
+      - name: Set up release signing
         env:
           KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -n "$KS_B64" ]; then
-            echo "$KS_B64" | base64 -d > "$GITHUB_WORKSPACE/upload.jks"
-            {
-              echo "storeFile=$GITHUB_WORKSPACE/upload.jks"
-              echo "storePassword=$KS_PASS"
-              echo "keyAlias=$KEY_ALIAS"
-              echo "keyPassword=$KEY_PASS"
-            } > android/key.properties
-            echo "Signing with custom key"
-          else
-            echo "No keystore secrets: using debug signing"
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then
+            echo "::error::Add the 4 signing secrets first (Settings > Secrets and variables > Actions): ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD"
+            exit 1
           fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/upload.jks"
+            echo "storePassword=$KS_PASS"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASS"
+          } > android/key.properties
 
-      - run: flutter build apk --release
+      - name: Read the version
+        id: version
+        run: |
+          name=$(grep '^version:' pubspec.yaml | sed -E 's/version:[[:space:]]*//; s/\+.*//')
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "Building version $name (build ${{ github.run_number }})"
+
+      - name: Build the APK
+        run: |
+          flutter build apk --release --build-number=${{ steps.version.outputs.build }}
+          cp build/app/outputs/flutter-apk/app-release.apk build/sncmt.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: sncmt-apk
-          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+          path: mobile/build/sncmt.apk
+
+      # the app reads the build number back from this tag ("app-v1.0.0-b42") to offer updates
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-v${{ steps.version.outputs.name }}-b${{ steps.version.outputs.build }}
+          name: SNCMT app ${{ steps.version.outputs.name }} (build ${{ steps.version.outputs.build }})
+          body: |
+            Android app, version ${{ steps.version.outputs.name }}, build ${{ steps.version.outputs.build }}.
+            Download: https://github.com/sncmt/School-Management/releases/latest/download/sncmt.apk
+          files: mobile/build/sncmt.apk
+          make_latest: true

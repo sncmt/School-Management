@@ -4,6 +4,8 @@
 
   "chooseLanguage": "আপনার ভাষা বেছে নিন",
   "appTagline": "আপনার স্কুল, হাতের মুঠোয়",
+  "updateAvailable": "নতুন সংস্করণ {version} এসেছে",
+  "updateNow": "আপডেট",
   "goodMorning": "শুভ সকাল",
   "goodAfternoon": "শুভ অপরাহ্ন",
   "goodEvening": "শুভ সন্ধ্যা",

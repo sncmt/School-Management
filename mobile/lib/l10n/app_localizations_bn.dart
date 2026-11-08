@@ -19,6 +19,14 @@ class AppLocalizationsBn extends AppLocalizations {
   String get appTagline => 'আপনার স্কুল, হাতের মুঠোয়';
 
   @override
+  String updateAvailable(String version) {
+    return 'নতুন সংস্করণ $version এসেছে';
+  }
+
+  @override
+  String get updateNow => 'আপডেট';
+
+  @override
   String get goodMorning => 'শুভ সকাল';
 
   @override

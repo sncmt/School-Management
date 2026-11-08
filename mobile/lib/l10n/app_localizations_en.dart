@@ -19,6 +19,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTagline => 'Your school, in your pocket';
 
   @override
+  String updateAvailable(String version) {
+    return 'Version $version is available';
+  }
+
+  @override
+  String get updateNow => 'Update';
+
+  @override
   String get goodMorning => 'Good morning';
 
   @override

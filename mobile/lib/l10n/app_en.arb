@@ -4,6 +4,9 @@
 
   "chooseLanguage": "Choose your language",
   "appTagline": "Your school, in your pocket",
+  "updateAvailable": "Version {version} is available",
+  "@updateAvailable": { "placeholders": { "version": { "type": "String" } } },
+  "updateNow": "Update",
   "goodMorning": "Good morning",
   "goodAfternoon": "Good afternoon",
   "goodEvening": "Good evening",

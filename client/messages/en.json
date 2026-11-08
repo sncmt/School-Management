@@ -4642,7 +4642,8 @@
       "contact": "Contact",
       "start": "Get started",
       "menu": "Open menu",
-      "close": "Close menu"
+      "close": "Close menu",
+      "app": "App"
     },
     "hero": {
       "badge": "New",
@@ -4858,6 +4859,23 @@
       "loginAddress": "yourschool.sncmt.com",
       "rights": "© {year} {name}. All rights reserved.",
       "made": "Made in Bangladesh"
+    },
+    "app": {
+      "metaTitle": "Mobile app",
+      "title": "The SNCMT app for guardians and teachers",
+      "subtitle": "Attendance, homework, results, fees and notices on your phone, with notifications the moment something happens. In Bangla and English.",
+      "download": "Download for Android",
+      "requirement": "Android 7.0 or newer · free",
+      "scan": "Scan with your phone's camera",
+      "howTitle": "Install in three steps",
+      "stepLabel": "Step {n}",
+      "step1Title": "Download",
+      "step1Body": "Tap “Download for Android”. The file is about 25 MB.",
+      "step2Title": "Allow and install",
+      "step2Body": "Open the file. If Android asks, allow installing apps from your browser once, then tap Install.",
+      "step3Title": "Log in",
+      "step3Body": "Enter your school’s code (abc for abc.sncmt.com) and the mobile number your school registered.",
+      "playProtect": "Until the app is on Google Play, Android may say it is from an unknown developer: tap “Install anyway”. The app tells you when a new version is out."
     }
   },
   "inbox": {

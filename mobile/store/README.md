@@ -26,19 +26,19 @@ Back up `sncmt-upload.jks` and the password (a password manager, a USB drive). W
 Signing (the default) Google keeps the real signing key; if this upload key is lost, Play
 support can reset it, but it takes days.
 
-## 2. Each release
+## 2. Each release (built by GitHub, not on your PC)
 
-1. Raise the version in `mobile/pubspec.yaml`: `version: 1.0.1+2`. The number after `+` must
-   go up on every upload; the part before it is what users see.
-2. Build the bundle (no `API_ORIGIN`: a release talks to `https://<code>.sncmt.com`):
-
-   ```powershell
-   cd mobile
-   flutter build appbundle --release
-   ```
-
-   The file: `mobile/build/app/outputs/bundle/release/app-release.aab`.
-3. Upload it in Play Console (Testing > Internal testing first).
+1. If users should see a new version name, change it in `mobile/pubspec.yaml`
+   (`version: 1.0.1+1`). The build number is set by the workflow (its run number), so it
+   always goes up by itself.
+2. Push to GitHub, then **Actions → Build Android APK → Run workflow**. It checks the code,
+   runs the tests, signs with your key (secrets: `ANDROID_KEYSTORE_BASE64`,
+   `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`) and publishes a
+   GitHub Release. The newest APK is always at
+   `https://github.com/sncmt/School-Management/releases/latest/download/sncmt.apk`, which the
+   website's `/app` page links to; installed apps show "Update available".
+3. For Google Play later: the same key, and `flutter build appbundle --release` instead of
+   `apk` (an `.aab` for Play Console, Testing > Internal testing first).
 
 Before the first release, the live server must answer on `https://<code>.sncmt.com/api/v1`
 (the website's own address: its Next.js server already forwards `/api/v1`), with the

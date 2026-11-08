@@ -116,6 +116,18 @@ abstract class AppLocalizations {
   /// **'Your school, in your pocket'**
   String get appTagline;
 
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is available'**
+  String updateAvailable(String version);
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get updateNow;
+
   /// No description provided for @goodMorning.
   ///
   /// In en, this message translates to:

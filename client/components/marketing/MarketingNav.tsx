@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, Smartphone, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { MARKETING_SECTIONS } from "@/lib/marketing/sections";
@@ -63,9 +64,27 @@ export function MarketingNav() {
     </a>
   );
 
+  // the mobile app's download page: a page of its own, not a section
+  const appLink = (
+    <Link
+      href="/app"
+      onClick={() => setOpen(false)}
+      className={cn(
+        "inline-flex items-center gap-1.5 text-[15px] font-medium text-white/70 transition-colors hover:text-white",
+        "max-md:border-l-2 max-md:border-transparent max-md:px-3 max-md:py-2.5 md:px-3.5 md:py-2",
+      )}
+    >
+      <Smartphone className="size-4" />
+      {t("app")}
+    </Link>
+  );
+
   return (
     <>
-      <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 md:flex">{links}</nav>
+      <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 md:flex">
+        {links}
+        {appLink}
+      </nav>
 
       <div className="hidden items-center gap-3 md:flex">
         <LanguageSwitcher className="rounded-full border-white/15 [&_button]:rounded-full" />
@@ -85,7 +104,10 @@ export function MarketingNav() {
 
       {open && (
         <div id="marketing-menu" className="absolute inset-x-0 top-full border-t border-white/10 bg-mk-ink shadow-2xl md:hidden">
-          <nav className="mx-auto flex max-w-6xl flex-col px-4 py-2">{links}</nav>
+          <nav className="mx-auto flex max-w-6xl flex-col px-4 py-2">
+            {links}
+            {appLink}
+          </nav>
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 border-t border-white/10 px-4 py-3">
             <LanguageSwitcher className="rounded-full border-white/15 [&_button]:rounded-full" />
             {cta}

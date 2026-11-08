@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/app_update.dart';
 import '../../core/config.dart';
+import '../../core/open_link.dart';
 import '../../core/format.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -85,11 +87,58 @@ class HomeScreen extends ConsumerWidget {
               )
             : null,
       ),
-      body: switch (role) {
-        Roles.guardian => GuardianHome(me: me),
-        Roles.teacher => TeacherHome(me: me),
-        _ => _NoAppRole(schoolCode: ref.watch(schoolProvider)?.code ?? ''),
-      },
+      body: Column(
+        children: [
+          const _UpdateBanner(),
+          Expanded(
+            child: switch (role) {
+              Roles.guardian => GuardianHome(me: me),
+              Roles.teacher => TeacherHome(me: me),
+              _ => _NoAppRole(schoolCode: ref.watch(schoolProvider)?.code ?? ''),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Version 1.0.1 is available": a newer APK has been published. Until the app is on Google
+/// Play, phones learn about updates only from this.
+class _UpdateBanner extends ConsumerWidget {
+  const _UpdateBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    final update = ref.watch(appUpdateProvider).value;
+    final show = update != null && !ref.watch(updateDismissedProvider);
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      child: !show
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+                decoration: BoxDecoration(color: primary.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(Radii.tile)),
+                child: Row(
+                  children: [
+                    Icon(Icons.system_update_rounded, color: primary),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(t.updateAvailable(update.version), style: const TextStyle(fontWeight: FontWeight.w600))),
+                    TextButton(onPressed: () => openLink(context, AppRelease.downloadUrl), child: Text(t.updateNow)),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: () => ref.read(updateDismissedProvider.notifier).dismiss(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 }
