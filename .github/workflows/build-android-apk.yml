@@ -82,7 +82,9 @@ jobs:
 
       - name: Build the APK
         run: |
-          flutter build apk --release --build-number=${{ steps.version.outputs.build }}
+          # real phones only: 64-bit and older 32-bit ARM (x86_64 is for PC emulators; leaving it
+          # out saves parents several MB of mobile data)
+          flutter build apk --release --target-platform android-arm,android-arm64 --build-number=${{ steps.version.outputs.build }}
           cp build/app/outputs/flutter-apk/app-release.apk build/sncmt.apk
 
       - uses: actions/upload-artifact@v4
