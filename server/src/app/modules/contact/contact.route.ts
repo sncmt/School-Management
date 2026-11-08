@@ -15,8 +15,6 @@ import { Mailer } from "../../utils/mailer";
  * the message is emailed to the platform (config.contactEmail) with the sender as reply-to.
  */
 
-const PACKAGES = ["BASIC", "STANDARD", "PREMIUM"] as const;
-
 const optionalText = (max: number) =>
   z
     .string()
@@ -30,7 +28,13 @@ const contactSchema = z.object({
   school: z.string({ error: "School name is required!" }).trim().min(2, "Enter your school's name").max(150),
   phone: bdPhoneSchema,
   email: optionalText(150).pipe(emailSchema.optional()),
-  package: z.enum(PACKAGES).optional(),
+  // a package's code (BASIC, STANDARD...), as the packages section lists them
+  package: z
+    .string()
+    .trim()
+    .max(40)
+    .regex(/^[A-Z0-9_]+$/, "Choose one of the packages")
+    .optional(),
   billing: z.enum(["MONTHLY", "YEARLY"]).optional(),
   message: optionalText(1000),
   // a field people never see: only bots fill it in

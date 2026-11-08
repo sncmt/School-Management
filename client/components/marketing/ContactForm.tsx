@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Send } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FormError } from "@/components/auth/AuthCard";
@@ -12,21 +12,30 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { applyServerErrors } from "@/lib/auth/formErrors";
+import { withSign } from "@/lib/i18n/currency";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useSendContact } from "@/lib/marketing/contact";
-import { CHOOSE_PACKAGE_EVENT, PACKAGES, type Billing, type ChoosePackageDetail } from "@/lib/marketing/packages";
+import {
+  CHOOSE_PACKAGE_EVENT,
+  packageChoice,
+  priceOf,
+  type Billing,
+  type ChoosePackageDetail,
+  type PublicPackage,
+} from "@/lib/marketing/packages";
 import { contactSchema, type ContactForm as ContactValues } from "@/zod/contact";
 
-// the package select's value: "STANDARD_YEARLY"; this one means "not sure yet"
+// the package select's value: packageChoice(), "STANDARD:YEARLY"; this one means "not sure yet"
 const NO_PACKAGE = "NONE";
 
 const EMPTY: ContactValues = { name: "", school: "", phone: "", email: "", plan: "", message: "", website: "" };
 
 /** The marketing contact form: a school's details and the package it likes, emailed to the platform. */
-export function ContactForm() {
+export function ContactForm({ packages }: { packages: PublicPackage[] }) {
   const t = useTranslations("marketing.contact.form");
   const tPricing = useTranslations("marketing.pricing");
   const format = useFormatter();
+  const locale = useLocale();
   const describeError = useErrorMessage();
   const send = useSendContact();
   const [formError, setFormError] = useState<string | null>(null);
@@ -37,27 +46,27 @@ export function ContactForm() {
   // a package card's button fills the package in
   useEffect(() => {
     const onChoose = (e: Event) => {
-      const { id, billing } = (e as CustomEvent<ChoosePackageDetail>).detail;
-      setValue("plan", `${id}_${billing}`);
+      const { code, billing } = (e as CustomEvent<ChoosePackageDetail>).detail;
+      setValue("plan", packageChoice(code, billing));
     };
     window.addEventListener(CHOOSE_PACKAGE_EVENT, onChoose);
     return () => window.removeEventListener(CHOOSE_PACKAGE_EVENT, onChoose);
   }, [setValue]);
 
-  const packageOptions = PACKAGES.flatMap((pkg) =>
+  const packageOptions = packages.flatMap((pkg) =>
     (["MONTHLY", "YEARLY"] as Billing[]).map((billing) => ({
-      value: `${pkg.id}_${billing}`,
+      value: packageChoice(pkg.code, billing),
       label: t("packageOption", {
-        name: tPricing(`packages.${pkg.id}.name`),
+        name: pkg.name,
         billing: tPricing(billing === "MONTHLY" ? "monthly" : "yearly"),
-        price: format.number(pkg.price[billing]),
+        price: withSign(locale, format.number(priceOf(pkg, billing))),
       }),
     })),
   );
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
-    const [pkg, billing] = values.plan ? values.plan.split("_") : [];
+    const [pkg, billing] = values.plan ? values.plan.split(":") : [];
     try {
       await send.mutateAsync({
         name: values.name,
@@ -209,7 +218,7 @@ export function ContactForm() {
           <Button
             type="submit"
             disabled={send.isPending}
-            className="group h-12 w-full rounded-full bg-mk-ink px-7 text-[15px] text-white hover:bg-mk-violet sm:w-auto dark:bg-mk-amber dark:text-mk-ink dark:hover:bg-white"
+            className="group h-12 w-full rounded-full bg-mk-ink px-7 text-[15px] text-white hover:bg-mk-blue sm:w-auto dark:bg-mk-gold dark:text-mk-ink dark:hover:bg-white"
           >
             {send.isPending ? t("sending") : t("send")}
             <Send className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

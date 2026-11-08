@@ -22,11 +22,11 @@
   --color-school-sidebar: var(--school-sidebar);
   /* the light-grey page behind the white cards */
   --color-canvas: var(--canvas);
-  /* the marketing site's own palette, the same in both modes: deep ink, violet, amber, mint */
+  /* the marketing site's palette, the same in both modes: the school dashboard's navy, blue and gold, with mint for ticks */
   --color-mk-ink: var(--mk-ink);
   --color-mk-ink-2: var(--mk-ink-2);
-  --color-mk-violet: var(--mk-violet);
-  --color-mk-amber: var(--mk-amber);
+  --color-mk-blue: var(--mk-blue);
+  --color-mk-gold: var(--mk-gold);
   --color-mk-mint: var(--mk-mint);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -125,10 +125,11 @@
   /* the sidebar's colour in both modes; a school's own choice replaces it (lib/theme/accents.ts) */
   --school-sidebar: oklch(0.285 0.11 263);
   --canvas: oklch(0.972 0.006 260);
-  --mk-ink: oklch(0.17 0.045 272);
-  --mk-ink-2: oklch(0.225 0.06 274);
-  --mk-violet: oklch(0.62 0.2 286);
-  --mk-amber: oklch(0.83 0.15 78);
+  /* the school dashboard's defaults: its navy sidebar, a brighter step of its blue accent, its gold */
+  --mk-ink: oklch(0.285 0.11 263);
+  --mk-ink-2: oklch(0.335 0.11 263);
+  --mk-blue: oklch(0.62 0.16 258);
+  --mk-gold: oklch(0.82 0.14 82);
   --mk-mint: oklch(0.86 0.13 168);
   /* the faint squared-paper lines on the canvas */
   --canvas-line: oklch(0.5 0.03 260 / 0.055);
@@ -434,7 +435,7 @@
 
 /* the highlighted words of a heading */
 .mk-gradient-text {
-  background: linear-gradient(100deg, var(--mk-amber) 0%, oklch(0.9 0.1 40) 45%, var(--mk-violet) 100%);
+  background: linear-gradient(100deg, var(--mk-gold) 0%, oklch(0.94 0.06 85) 45%, oklch(0.8 0.1 245) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 /*
  * The marketing header's menu: the sections in a row from md with the language and the call to
  * action at the end; below md a button opens them as a panel under the bar. A link scrolls to its
- * section and the amber mark follows the section in view.
+ * section and the gold mark follows the section in view.
  */
 export function MarketingNav() {
   const t = useTranslations("marketing.nav");
@@ -38,11 +38,11 @@ export function MarketingNav() {
       aria-current={active === section ? "location" : undefined}
       className={cn(
         "relative text-[15px] font-medium transition-colors",
-        // a row from md: an amber dot under the current one; the panel: a bar on the left
+        // a row from md: a gold dot under the current one; the panel: a bar on the left
         "max-md:border-l-2 max-md:px-3 max-md:py-2.5",
         "md:px-3.5 md:py-2 md:after:absolute md:after:-bottom-0.5 md:after:left-1/2 md:after:size-1 md:after:-translate-x-1/2 md:after:rounded-full",
         active === section
-          ? "text-white max-md:border-mk-amber md:after:bg-mk-amber"
+          ? "text-white max-md:border-mk-gold md:after:bg-mk-gold"
           : "text-white/70 hover:text-white max-md:border-transparent",
       )}
     >
@@ -57,7 +57,7 @@ export function MarketingNav() {
         setOpen(false);
         jumpToSection("contact", "/", e);
       }}
-      className="group inline-flex h-9 items-center gap-1.5 rounded-full bg-mk-amber px-4 text-sm font-semibold text-mk-ink transition-colors hover:bg-white"
+      className="group inline-flex h-9 items-center gap-1.5 rounded-full bg-mk-gold px-4 text-sm font-semibold text-mk-ink transition-colors hover:bg-white"
     >
       {t("start")}
       <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />

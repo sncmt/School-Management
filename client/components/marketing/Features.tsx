@@ -52,7 +52,7 @@ export async function Features() {
               {(["routine", "homework", "admit", "idCard", "seatPlan", "promotion", "expense", "roles", "bangla"] as const).map((key) => (
                 <li
                   key={key}
-                  className="rounded-full border bg-background px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors group-hover:border-mk-violet/30"
+                  className="rounded-full border bg-background px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors group-hover:border-mk-blue/30"
                 >
                   {t(`more.items.${key}`)}
                 </li>
@@ -81,17 +81,17 @@ function FeatureCard({
   return (
     <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-mk-violet/30 hover:shadow-[0_20px_50px_-20px_color-mix(in_oklch,var(--mk-violet)_35%,transparent)] sm:p-7",
+        "group relative flex flex-col overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-mk-blue/30 hover:shadow-[0_20px_50px_-20px_color-mix(in_oklch,var(--mk-blue)_35%,transparent)] sm:p-7",
         className,
       )}
     >
-      {/* a violet light that wakes up on hover */}
-      <span aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-56 rounded-full bg-mk-violet/0 blur-3xl transition-colors duration-500 group-hover:bg-mk-violet/15" />
+      {/* a blue light that wakes up on hover */}
+      <span aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-56 rounded-full bg-mk-blue/0 blur-3xl transition-colors duration-500 group-hover:bg-mk-blue/15" />
       <div aria-hidden className="relative mb-6 flex min-h-36 flex-1 items-center">
         {children}
       </div>
       <h3 className="relative flex items-center gap-2.5 text-lg font-bold tracking-tight">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-mk-ink text-mk-amber dark:bg-white/10">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-mk-ink text-mk-gold dark:bg-white/10">
           <Icon className="size-4" />
         </span>
         {title}
@@ -195,7 +195,7 @@ function SmsArt({ first, second }: { first: string; second: string }) {
   return (
     <div className="w-full space-y-2.5">
       <p className="max-w-[85%] rounded-2xl rounded-bl-md bg-muted px-3.5 py-2.5 text-xs leading-relaxed">{first}</p>
-      <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-mk-ink px-3.5 py-2.5 text-xs leading-relaxed text-white dark:bg-mk-violet/30">
+      <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-mk-ink px-3.5 py-2.5 text-xs leading-relaxed text-white dark:bg-mk-blue/30">
         {second}
       </p>
     </div>
@@ -206,7 +206,7 @@ function PhoneArt() {
   return (
     <div className="mx-auto h-40 w-24 rounded-[20px] border-4 border-mk-ink bg-background p-1.5 shadow-xl dark:border-white/20">
       <div className="mx-auto mb-2 h-1 w-8 rounded-full bg-mk-ink/80 dark:bg-white/30" />
-      <div className="rounded-md bg-[linear-gradient(135deg,var(--mk-violet),var(--mk-amber))] p-1.5">
+      <div className="rounded-md bg-[linear-gradient(135deg,var(--mk-blue),var(--mk-gold))] p-1.5">
         <span className="block h-1.5 w-8 rounded-full bg-white/70" />
         <span className="mt-1 block h-1 w-5 rounded-full bg-white/50" />
       </div>

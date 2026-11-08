@@ -4770,51 +4770,39 @@
     "pricing": {
       "eyebrow": "Packages",
       "title": "Simple prices that grow with your school",
-      "subtitle": "Pick a package, pay by the month or by the year. Move up whenever you need more.",
+      "subtitle": "Every package has every feature. Choose by the number of students, and pay by the month or by the year.",
       "billing": "Billing period",
       "monthly": "Monthly",
       "yearly": "Yearly",
-      "saveUpTo": "Save up to ৳{amount} with a yearly package",
+      "saveUpTo": "Save up to {amount} with a yearly package",
       "popular": "Most popular",
       "perMonth": "/ month",
       "perYear": "/ year",
       "billedMonthly": "Billed every month",
       "billedYearly": "Billed once a year",
-      "save": "You save TK {amount} a year",
+      "save": "You save {amount} a year",
       "choose": "Choose {name}",
-      "everythingIn": "Everything in {name}, plus",
       "note": "Prices are in Bangladeshi Taka. A very large school or something special in mind? <link>Talk to us</link>.",
-      "packages": {
-        "BASIC": {
-          "name": "Basic",
-          "blurb": "For a small school getting started"
-        },
-        "STANDARD": {
-          "name": "Standard",
-          "blurb": "For growing schools that want it all connected"
-        },
-        "PREMIUM": {
-          "name": "Premium",
-          "blurb": "For large schools that want every tool"
-        }
-      },
       "features": {
-        "students300": "Up to 300 students",
-        "students800": "Up to 800 students",
-        "studentsUnlimited": "Unlimited students",
         "core": "Students, teachers, classes & routines",
         "attendance": "Daily attendance & reports",
         "exams": "Exams, marks & result cards",
+        "fees": "Fees, receipts & accounts",
+        "sms": "SMS to guardians, through your own SMS account",
         "notices": "Notices & homework",
         "website": "Your own school website",
-        "fees": "Fees, receipts & accounts",
-        "sms": "SMS to guardians",
         "app": "Guardian & teacher mobile app",
         "cards": "Admit cards, ID cards & seat plans",
         "onlinePayment": "Online fee payment",
         "devices": "Fingerprint & card attendance machines",
-        "support": "Priority phone support"
-      }
+        "bangla": "Bangla & English"
+      },
+      "upTo": "Up to {count} students",
+      "unlimited": "Unlimited students",
+      "allFeatures": "All features included",
+      "includedTitle": "Every package includes",
+      "includedSubtitle": "No feature is held back: the packages differ only in how many students they allow.",
+      "unavailable": "Our packages couldn't be loaded just now. <link>Get in touch</link> and we'll tell you the prices."
     },
     "contact": {
       "eyebrow": "Contact",
@@ -4840,7 +4828,7 @@
         "email": "Email (optional)",
         "package": "Package",
         "notSure": "Not sure yet",
-        "packageOption": "{name} · {billing} · TK {price}",
+        "packageOption": "{name} · {billing} · {price}",
         "message": "Message (optional)",
         "messagePlaceholder": "How many students do you have? Anything you'd like to know?",
         "privacy": "We only use these details to get back to you.",

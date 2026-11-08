@@ -3,7 +3,7 @@ import { companyContact, localPhone } from "@/lib/marketing/company";
 import { MARKETING_SECTIONS } from "@/lib/marketing/sections";
 import { BrandMark } from "./BrandMark";
 
-/** The marketing site's footer, on ink: the name, the sections, the way schools log in. */
+/** The marketing site's footer, on navy: the name, the sections, the way schools log in. */
 export async function MarketingFooter() {
   const [t, tNav, tCommon] = await Promise.all([
     getTranslations("marketing.footer"),
@@ -30,7 +30,7 @@ export async function MarketingFooter() {
         </div>
 
         <nav aria-label={t("links")}>
-          <h3 className="mb-4 text-xs font-semibold tracking-[0.18em] text-mk-amber uppercase">{t("links")}</h3>
+          <h3 className="mb-4 text-xs font-semibold tracking-[0.18em] text-mk-gold uppercase">{t("links")}</h3>
           <ul className="space-y-2.5 text-sm">
             {MARKETING_SECTIONS.map((section) => (
               <li key={section}>
@@ -43,7 +43,7 @@ export async function MarketingFooter() {
         </nav>
 
         <div>
-          <h3 className="mb-4 text-xs font-semibold tracking-[0.18em] text-mk-amber uppercase">{t("schools")}</h3>
+          <h3 className="mb-4 text-xs font-semibold tracking-[0.18em] text-mk-gold uppercase">{t("schools")}</h3>
           <p className="text-sm leading-relaxed text-white/60">{t("login")}</p>
           <p className="mt-2 inline-block rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1.5 font-mono text-sm text-white/85">{t("loginAddress")}</p>
           {(phone || email) && (

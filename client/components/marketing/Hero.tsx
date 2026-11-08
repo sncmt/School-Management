@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { ProductPreview } from "./ProductPreview";
 
 /*
- * The top of the marketing homepage, on ink: what the platform is, the two ways on, and a
+ * The top of the marketing homepage, on navy: what the platform is, the two ways on, and a
  * picture of the product leaning back into the page with a few live moments floating beside it.
  */
 export async function Hero() {
@@ -14,12 +14,12 @@ export async function Hero() {
     <section className="dark relative isolate overflow-hidden bg-mk-ink text-white">
       {/* backdrop: hairline grid and two soft lights */}
       <div aria-hidden className="mk-grid absolute inset-0 -z-10" />
-      <div aria-hidden className="absolute -top-40 left-1/2 -z-10 h-[34rem] w-[60rem] -translate-x-1/2 rounded-full bg-mk-violet/25 blur-[120px]" />
-      <div aria-hidden className="absolute top-[28rem] -right-40 -z-10 size-[30rem] rounded-full bg-mk-amber/10 blur-[110px]" />
+      <div aria-hidden className="absolute -top-40 left-1/2 -z-10 h-[34rem] w-[60rem] -translate-x-1/2 rounded-full bg-mk-blue/25 blur-[120px]" />
+      <div aria-hidden className="absolute top-[28rem] -right-40 -z-10 size-[30rem] rounded-full bg-mk-gold/10 blur-[110px]" />
 
       <div className="mx-auto max-w-6xl px-4 pt-16 text-center sm:pt-24">
         <p className="animate-in fade-in slide-in-from-bottom-2 mx-auto inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] py-1 pr-3.5 pl-1.5 text-xs font-medium text-white/85 backdrop-blur duration-700 sm:text-sm">
-          <span className="rounded-full bg-mk-amber px-2 py-0.5 text-[11px] font-bold tracking-wide text-mk-ink uppercase">{t("badge")}</span>
+          <span className="rounded-full bg-mk-gold px-2 py-0.5 text-[11px] font-bold tracking-wide text-mk-ink uppercase">{t("badge")}</span>
           {t("eyebrow")}
         </p>
 
@@ -34,7 +34,7 @@ export async function Hero() {
         <div className="animate-in fade-in slide-in-from-bottom-4 mt-9 flex flex-col items-center justify-center gap-3 duration-1000 sm:flex-row">
           <a
             href="#pricing"
-            className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-mk-amber px-7 text-[15px] font-semibold text-mk-ink shadow-[0_10px_40px_-10px_var(--mk-amber)] transition-all hover:bg-white sm:w-auto"
+            className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-mk-gold px-7 text-[15px] font-semibold text-mk-ink shadow-[0_10px_40px_-10px_var(--mk-gold)] transition-all hover:bg-white sm:w-auto"
           >
             {t("primary")}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
@@ -56,9 +56,9 @@ export async function Hero() {
           ))}
         </ul>
 
-        {/* the product, leaning back and fading into the ink */}
+        {/* the product, leaning back and fading into the navy */}
         <div aria-hidden className="relative mx-auto mt-16 max-w-5xl sm:mt-20">
-          <div className="absolute inset-x-10 top-10 -z-10 h-2/3 rounded-full bg-mk-violet/40 blur-[90px]" />
+          <div className="absolute inset-x-10 top-10 -z-10 h-2/3 rounded-full bg-mk-blue/40 blur-[90px]" />
           <div className="mk-tilt [mask-image:linear-gradient(to_bottom,black_55%,transparent_98%)]">
             <ProductPreview />
           </div>
@@ -86,7 +86,7 @@ export async function Hero() {
           </FloatingCard>
 
           <FloatingCard className="mk-float top-56 -right-8 xl:-right-20">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-mk-amber/15 text-mk-amber">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-mk-gold/15 text-mk-gold">
               <Trophy className="size-5" />
             </span>
             <span className="text-left">

@@ -1,11 +1,12 @@
 import { Mail, MapPin, Phone } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { companyContact, localPhone } from "@/lib/marketing/company";
+import type { PublicPackage } from "@/lib/marketing/packages";
 import { ContactForm } from "./ContactForm";
 import { MkHeading } from "./MkHeading";
 
-/** The last section: one card, the way it works on ink at the left and the form at the right. */
-export async function ContactSection() {
+/** The last section: one card, the way it works on navy at the left and the form at the right. */
+export async function ContactSection({ packages }: { packages: PublicPackage[] }) {
   const t = await getTranslations("marketing.contact");
   const { phone, email, address } = companyContact;
 
@@ -17,8 +18,8 @@ export async function ContactSection() {
 
         <div className="grid overflow-hidden rounded-3xl border bg-card shadow-[0_30px_80px_-30px_rgb(15_20_60/0.25)] lg:grid-cols-[2fr_3fr]">
           <aside className="dark relative isolate overflow-hidden bg-mk-ink p-8 text-white sm:p-10">
-            <div aria-hidden className="absolute -right-24 -bottom-24 -z-10 size-72 rounded-full bg-mk-violet/40 blur-3xl" />
-            <div aria-hidden className="absolute -top-16 -left-16 -z-10 size-48 rounded-full bg-mk-amber/15 blur-3xl" />
+            <div aria-hidden className="absolute -right-24 -bottom-24 -z-10 size-72 rounded-full bg-mk-blue/40 blur-3xl" />
+            <div aria-hidden className="absolute -top-16 -left-16 -z-10 size-48 rounded-full bg-mk-gold/15 blur-3xl" />
 
             <h3 className="text-2xl font-bold tracking-tight">{t("stepsTitle")}</h3>
             <ol className="mt-8 space-y-6">
@@ -26,7 +27,7 @@ export async function ContactSection() {
                 <li key={key} className="relative flex gap-4">
                   {/* a line joining the numbers */}
                   {i < 2 && <span aria-hidden className="absolute top-9 bottom-[-1.25rem] left-[1.0625rem] w-px bg-white/15" />}
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-mk-amber/40 bg-mk-amber/10 font-mono text-sm font-bold text-mk-amber">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-mk-gold/40 bg-mk-gold/10 font-mono text-sm font-bold text-mk-gold">
                     {i + 1}
                   </span>
                   <span>
@@ -66,7 +67,7 @@ export async function ContactSection() {
           </aside>
 
           <div className="p-6 sm:p-10">
-            <ContactForm />
+            <ContactForm packages={packages} />
           </div>
         </div>
       </div>
@@ -76,7 +77,7 @@ export async function ContactSection() {
 
 function ContactIcon({ icon: Icon }: { icon: typeof Phone }) {
   return (
-    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.07] text-mk-amber transition-colors group-hover:bg-mk-amber group-hover:text-mk-ink">
+    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.07] text-mk-gold transition-colors group-hover:bg-mk-gold group-hover:text-mk-ink">
       <Icon className="size-4" />
     </span>
   );

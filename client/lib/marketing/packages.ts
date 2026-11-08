@@ -1,60 +1,46 @@
 /*
- * The packages on the marketing site, in Taka. Each lists only what it adds to the one before;
- * the wording of every feature is in messages (marketing.pricing.features.<key>).
+ * The packages on the marketing site. They come from the platform admin's packages (server
+ * module "package"): a name, a student limit and a price a month; a year is twelve months. Every
+ * package has every feature, so they differ only in how many students they allow.
  */
 
 export type Billing = "MONTHLY" | "YEARLY";
-export type PackageId = "BASIC" | "STANDARD" | "PREMIUM";
 
-// marketing.pricing.features.* keys
-export type PackageFeature =
-  | "students300"
-  | "students800"
-  | "studentsUnlimited"
-  | "core"
-  | "attendance"
-  | "exams"
-  | "notices"
-  | "website"
-  | "fees"
-  | "sms"
-  | "app"
-  | "cards"
-  | "onlinePayment"
-  | "devices"
-  | "support";
-
-export type Package = {
-  id: PackageId;
-  price: Record<Billing, number>;
-  features: PackageFeature[];
-  popular?: boolean;
+// Mirrors GET /package. Money arrives as "500.00".
+export type PublicPackage = {
+  // BASIC, STANDARD...: never changes
+  code: string;
+  name: string;
+  // the most active students; null = unlimited
+  maxStudents: number | null;
+  monthlyPrice: string;
+  yearlyPrice: string;
 };
 
-export const PACKAGES: Package[] = [
-  {
-    id: "BASIC",
-    price: { MONTHLY: 500, YEARLY: 6000 },
-    features: ["students300", "core", "attendance", "exams", "notices", "website"],
-  },
-  {
-    id: "STANDARD",
-    price: { MONTHLY: 1000, YEARLY: 12000 },
-    features: ["students800", "fees", "sms", "app", "cards"],
-    popular: true,
-  },
-  {
-    id: "PREMIUM",
-    price: { MONTHLY: 1500, YEARLY: 16000 },
-    features: ["studentsUnlimited", "onlinePayment", "devices", "support"],
-  },
-];
+export const priceOf = (pkg: PublicPackage, billing: Billing) => Number(billing === "MONTHLY" ? pkg.monthlyPrice : pkg.yearlyPrice);
 
 /** What a year costs less than twelve months, or 0. */
-export const yearlySaving = (pkg: Package) => Math.max(0, pkg.price.MONTHLY * 12 - pkg.price.YEARLY);
+export const yearlySaving = (pkg: PublicPackage) => Math.max(0, Number(pkg.monthlyPrice) * 12 - Number(pkg.yearlyPrice));
 
-export const MAX_YEARLY_SAVING = Math.max(...PACKAGES.map(yearlySaving));
+// what every package includes (marketing.pricing.features.* keys)
+export const INCLUDED_FEATURES = [
+  "core",
+  "attendance",
+  "exams",
+  "fees",
+  "sms",
+  "notices",
+  "website",
+  "app",
+  "cards",
+  "onlinePayment",
+  "devices",
+  "bangla",
+] as const;
 
 // a package button tells the contact form which one was chosen
 export const CHOOSE_PACKAGE_EVENT = "sncmt:choose-package";
-export type ChoosePackageDetail = { id: PackageId; billing: Billing };
+export type ChoosePackageDetail = { code: string; billing: Billing };
+
+// the contact form's value for a package and billing ("BASIC:YEARLY"); codes may hold "_"
+export const packageChoice = (code: string, billing: Billing) => `${code}:${billing}`;

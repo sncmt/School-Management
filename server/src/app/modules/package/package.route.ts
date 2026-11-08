@@ -7,6 +7,11 @@ import sendResponse from "../../shared/sendResponse";
 import { PackageService } from "./package.service";
 import { PackageValidation as V } from "./package.validation";
 
+// Public, for the marketing site's packages section: the packages on offer and their prices.
+const publicRouter = express.Router();
+publicRouter.get("/", catchAsync(async (_req, res) => ok(res, "Packages retrieved successfully!", await PackageService.listPublicPackages())));
+export const publicPackageRoutes = publicRouter;
+
 // The platform admin: the subscription packages (student limit and monthly price).
 const router = express.Router();
 router.use(authenticate("PLATFORM"));

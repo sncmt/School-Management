@@ -39,7 +39,7 @@ export async function ModuleMarquee() {
                   key={chip}
                   className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm whitespace-nowrap text-white/80"
                 >
-                  <span className="size-1.5 rounded-full bg-mk-amber" />
+                  <span className="size-1.5 rounded-full bg-mk-gold" />
                   {chip}
                 </li>
               ))}

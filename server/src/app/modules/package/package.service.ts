@@ -70,6 +70,16 @@ const listPackages = async () => {
   return rows.map(({ _count, ...p }) => ({ ...shape(p), schools: _count.schools }));
 };
 
+/* The packages on offer, for the marketing site: only those switched on, without who is on them. */
+const listPublicPackages = async () => {
+  const rows = await prisma.subscriptionPackage.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { monthlyPrice: "asc" }],
+    select: { code: true, name: true, maxStudents: true, monthlyPrice: true },
+  });
+  return rows.map(shape);
+};
+
 const findPackage = async (packageId: string) => {
   const pkg = await prisma.subscriptionPackage.findUnique({ where: { id: packageId } });
   if (!pkg) throw new AppError("Package not found", httpStatus.NOT_FOUND);
@@ -107,4 +117,4 @@ export const assertChoosablePackage = async (db: Db, packageId: string) => {
   if (!pkg.isActive) throw new AppError("This package is switched off. Choose another one", httpStatus.BAD_REQUEST);
 };
 
-export const PackageService = { listPackages, createPackage, updatePackage, deletePackage };
+export const PackageService = { listPackages, listPublicPackages, createPackage, updatePackage, deletePackage };

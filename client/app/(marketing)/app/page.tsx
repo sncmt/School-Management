@@ -32,7 +32,7 @@ export default async function AppDownloadPage() {
     <>
       <section className="dark relative isolate overflow-hidden bg-mk-ink text-white">
         <div aria-hidden className="mk-grid absolute inset-0 -z-10" />
-        <div aria-hidden className="absolute -top-40 left-1/2 -z-10 h-[30rem] w-[50rem] -translate-x-1/2 rounded-full bg-mk-violet/25 blur-[120px]" />
+        <div aria-hidden className="absolute -top-40 left-1/2 -z-10 h-[30rem] w-[50rem] -translate-x-1/2 rounded-full bg-mk-blue/25 blur-[120px]" />
 
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:py-24 lg:grid-cols-[1.2fr_1fr]">
           <div className="text-center lg:text-left">
@@ -48,7 +48,7 @@ export default async function AppDownloadPage() {
             <div className="animate-in fade-in slide-in-from-bottom-4 mt-9 flex flex-col items-center gap-3 duration-1000 sm:flex-row sm:justify-center lg:justify-start">
               <a
                 href={APP_DOWNLOAD_PATH}
-                className="group inline-flex h-13 w-full items-center justify-center gap-2.5 rounded-full bg-mk-amber px-8 text-base font-semibold text-mk-ink shadow-[0_10px_40px_-10px_var(--mk-amber)] transition-all hover:bg-white sm:w-auto"
+                className="group inline-flex h-13 w-full items-center justify-center gap-2.5 rounded-full bg-mk-gold px-8 text-base font-semibold text-mk-ink shadow-[0_10px_40px_-10px_var(--mk-gold)] transition-all hover:bg-white sm:w-auto"
               >
                 <Download className="size-5 transition-transform group-hover:translate-y-0.5" />
                 {t("download")}

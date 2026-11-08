@@ -41,7 +41,7 @@ import { onlinePaymentRoutes } from '../modules/onlinePayment/onlinePayment.rout
 import { notificationRoutes } from '../modules/notification/notification.route';
 import { smsRoutes } from '../modules/sms/sms.route';
 import { platformSubscriptionRoutes, schoolSubscriptionRoutes } from '../modules/subscription/subscription.route';
-import { platformPackageRoutes } from '../modules/package/package.route';
+import { platformPackageRoutes, publicPackageRoutes } from '../modules/package/package.route';
 import { schoolSettingsRoutes } from '../modules/schoolSettings/schoolSettings.route';
 import { contactRoutes } from '../modules/contact/contact.route';
 
@@ -224,6 +224,11 @@ const moduleRoutes = [
         // the subscription packages (student limit and monthly price), for the platform admin
         path: '/platform/package',
         route: platformPackageRoutes
+    },
+    {
+        // the packages on offer, for the marketing site (no login)
+        path: '/package',
+        route: publicPackageRoutes
     },
     {
         // a school's own subscription, for its super admin to read

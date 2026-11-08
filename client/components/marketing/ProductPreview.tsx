@@ -57,7 +57,7 @@ export async function ProductPreview() {
           {/* menu */}
           <div className="hidden w-44 shrink-0 flex-col gap-1 bg-mk-ink-2 p-3 sm:flex">
             <div className="mb-3 flex items-center gap-2 px-1">
-              <span className="size-6 rounded-md bg-[linear-gradient(135deg,var(--mk-violet),var(--mk-amber))]" />
+              <span className="size-6 rounded-md bg-[linear-gradient(135deg,var(--mk-blue),var(--mk-gold))]" />
               <span className="h-2 w-16 rounded-full bg-white/30" />
             </div>
             {MENU.map(([Icon, key], i) => (
@@ -65,7 +65,7 @@ export async function ProductPreview() {
                 key={key}
                 className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[11px] ${i === 0 ? "bg-white/10 font-semibold text-white" : "text-white/60"}`}
               >
-                <Icon className={`size-3.5 ${i === 0 ? "text-mk-amber" : ""}`} />
+                <Icon className={`size-3.5 ${i === 0 ? "text-mk-gold" : ""}`} />
                 {t(`menu.${key}`)}
               </span>
             ))}
@@ -100,7 +100,7 @@ export async function ProductPreview() {
                   {WEEK.map(([day, value], i) => (
                     <div key={day} className="flex flex-1 flex-col items-center gap-1">
                       <div
-                        className={`w-full rounded-t-[3px] ${i === WEEK.length - 1 ? "bg-[linear-gradient(to_top,var(--mk-violet),oklch(0.75_0.15_290))]" : "bg-indigo-100"}`}
+                        className={`w-full rounded-t-[3px] ${i === WEEK.length - 1 ? "bg-[linear-gradient(to_top,var(--mk-blue),oklch(0.75_0.15_290))]" : "bg-indigo-100"}`}
                         style={{ height: `${(value - 80) * 5}%` }}
                       />
                       <span className="text-[9px] text-slate-400">{t(`days.${day}`)}</span>
