@@ -55,7 +55,16 @@ jobs:
             echo "::error::Add the 4 signing secrets first (Settings > Secrets and variables > Actions): ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD"
             exit 1
           fi
-          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          # copying from PowerShell can add spaces or line breaks: base64 refuses them
+          if ! printf '%s' "$KS_B64" | tr -d ' \r\n\t' | base64 -d > "$RUNNER_TEMP/upload.jks" 2>/dev/null || [ ! -s "$RUNNER_TEMP/upload.jks" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not the key file as text. Copy it again (mobile/store/README.md, step 1) and update the secret."
+            exit 1
+          fi
+          # a wrong password or alias would only fail much later, in the build: check now
+          if ! keytool -list -keystore "$RUNNER_TEMP/upload.jks" -storepass "$KS_PASS" -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error::The key file is fine, but ANDROID_KEYSTORE_PASSWORD or ANDROID_KEY_ALIAS (should be: upload) does not match it."
+            exit 1
+          fi
           {
             echo "storeFile=$RUNNER_TEMP/upload.jks"
             echo "storePassword=$KS_PASS"
