@@ -148,7 +148,7 @@
     "dueBeforeGiven": "The due date can't be before the day it is given",
     "fullMarksInvalid": "Enter full marks between 0.5 and 1000",
     "monthsRequired": "Tick at least one month",
-    "schoolNameRequired": "Enter your school's name",
+    "schoolNameRequired": "Enter your school or college name",
     "max1000": "At most 1000 characters",
     "packageRequired": "Choose a package"
   },
@@ -4647,10 +4647,10 @@
     },
     "hero": {
       "badge": "New",
-      "eyebrow": "Made for schools in Bangladesh, in English and বাংলা",
-      "titleStart": "Run your whole school",
+      "eyebrow": "Made for schools & colleges in Bangladesh, in English and বাংলা",
+      "titleStart": "Run your school or college",
       "titleHighlight": "from one calm place.",
-      "subtitle": "Students, attendance, exams, results, fees, SMS and your own school website: one system for the office, the teachers and every guardian.",
+      "subtitle": "Students, attendance, exams, results, fees, SMS and your own website: one system for the office, the teachers and every guardian.",
       "primary": "See packages",
       "secondary": "Ask for a demo",
       "proof1": "Your own web address",
@@ -4695,7 +4695,7 @@
       }
     },
     "modules": {
-      "label": "Everything a school runs on",
+      "label": "Everything a school or college runs on",
       "students": "Students",
       "teachers": "Teachers",
       "attendance": "Attendance",
@@ -4712,13 +4712,13 @@
       "seatPlans": "Seat plans",
       "promotion": "Promotion",
       "expenses": "Expenses",
-      "website": "School website",
+      "website": "Your own website",
       "app": "Mobile app"
     },
     "features": {
       "eyebrow": "Features",
-      "title": "Everything your school runs on, in one place",
-      "subtitle": "No more registers, spreadsheets and phone calls. Each part of the school day has its place, and they all talk to each other.",
+      "title": "Everything your school or college runs on, in one place",
+      "subtitle": "No more registers, spreadsheets and phone calls. Each part of the day has its place, and they all talk to each other.",
       "attendance": {
         "title": "Attendance that takes itself",
         "body": "Fingerprint and card machines mark students as they walk in, or teachers tick a class in seconds. Guardians get an SMS when a child is absent.",
@@ -4747,12 +4747,12 @@
         "body": "Attendance, homework, results and fees on every phone."
       },
       "website": {
-        "title": "Your school's own website",
+        "title": "Your institution's own website",
         "body": "A homepage on its own address with your photos, admission details and notices, all changed from settings.",
         "url": "yourschool.sncmt.com"
       },
       "more": {
-        "title": "And the rest of the school day",
+        "title": "And the rest of the day's work",
         "body": "The small jobs that eat up the office's week, done in a few clicks.",
         "items": {
           "routine": "Class routine",
@@ -4769,7 +4769,7 @@
     },
     "pricing": {
       "eyebrow": "Packages",
-      "title": "Simple prices that grow with your school",
+      "title": "Simple prices that grow with you",
       "subtitle": "Every package has every feature. Choose by the number of students, and pay by the month or by the year.",
       "billing": "Billing period",
       "monthly": "Monthly",
@@ -4782,7 +4782,7 @@
       "billedYearly": "Billed once a year",
       "save": "You save {amount} a year",
       "choose": "Choose {name}",
-      "note": "Prices are in Bangladeshi Taka. A very large school or something special in mind? <link>Talk to us</link>.",
+      "note": "Prices are in Bangladeshi Taka. A very large school or college, or something special in mind? <link>Talk to us</link>.",
       "features": {
         "core": "Students, teachers, classes & routines",
         "attendance": "Daily attendance & reports",
@@ -4790,7 +4790,7 @@
         "fees": "Fees, receipts & accounts",
         "sms": "SMS to guardians, through your own SMS account",
         "notices": "Notices & homework",
-        "website": "Your own school website",
+        "website": "Your institution's own website",
         "app": "Guardian & teacher mobile app",
         "cards": "Admit cards, ID cards & seat plans",
         "onlinePayment": "Online fee payment",
@@ -4806,12 +4806,12 @@
     },
     "contact": {
       "eyebrow": "Contact",
-      "title": "Let's get your school online",
-      "subtitle": "Tell us a little about your school. We'll call you back, answer your questions and show you around.",
+      "title": "Let's get your school or college online",
+      "subtitle": "Tell us a little about your institution. We'll call you back, answer your questions and show you around.",
       "stepsTitle": "How it works",
       "step1": {
         "title": "Send us your details",
-        "body": "A minute's work: your name, your school and a number to call."
+        "body": "A minute's work: your name, your school or college and a number to call."
       },
       "step2": {
         "title": "See it working",
@@ -4819,11 +4819,11 @@
       },
       "step3": {
         "title": "Go live on your own address",
-        "body": "We set up your school with you and train your staff."
+        "body": "We set up your institution with you and train your staff."
       },
       "form": {
         "name": "Your name",
-        "school": "School name",
+        "school": "School or college name",
         "phone": "Mobile number",
         "email": "Email (optional)",
         "package": "Package",
@@ -4840,10 +4840,10 @@
       }
     },
     "footer": {
-      "about": "School management for Bangladesh: students, attendance, exams, fees and a website for every school, in English and Bangla.",
+      "about": "School and college management for Bangladesh: students, attendance, exams, fees and a website for every institution, in English and Bangla.",
       "links": "On this page",
-      "schools": "For schools",
-      "login": "Already with us? Your school logs in on its own address:",
+      "schools": "For schools & colleges",
+      "login": "Already with us? Your school or college logs in on its own address:",
       "loginAddress": "yourschool.sncmt.com",
       "rights": "© {year} {name}. All rights reserved.",
       "made": "Made in Bangladesh"
@@ -4862,7 +4862,7 @@
       "step2Title": "Allow and install",
       "step2Body": "Open the file. If Android asks, allow installing apps from your browser once, then tap Install.",
       "step3Title": "Log in",
-      "step3Body": "Enter your school’s code (abc for abc.sncmt.com) and the mobile number your school registered.",
+      "step3Body": "Enter your institution’s code (abc for abc.sncmt.com) and the mobile number your institution registered.",
       "playProtect": "Until the app is on Google Play, Android may say it is from an unknown developer: tap “Install anyway”. The app tells you when a new version is out."
     }
   },

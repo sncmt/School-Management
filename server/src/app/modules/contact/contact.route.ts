@@ -11,7 +11,7 @@ import { bdPhoneSchema, emailSchema } from "../../utils/identity";
 import { Mailer } from "../../utils/mailer";
 
 /*
- * The marketing site's contact form: a school asking about the platform. Nothing is stored;
+ * The marketing site's contact form: a school or college asking about the platform. Nothing is stored;
  * the message is emailed to the platform (config.contactEmail) with the sender as reply-to.
  */
 
@@ -25,7 +25,7 @@ const optionalText = (max: number) =>
 
 const contactSchema = z.object({
   name: z.string({ error: "Name is required!" }).trim().min(2, "Enter your name").max(100),
-  school: z.string({ error: "School name is required!" }).trim().min(2, "Enter your school's name").max(150),
+  school: z.string({ error: "School or college name is required!" }).trim().min(2, "Enter your school or college name").max(150),
   phone: bdPhoneSchema,
   email: optionalText(150).pipe(emailSchema.optional()),
   // a package's code (BASIC, STANDARD...), as the packages section lists them
