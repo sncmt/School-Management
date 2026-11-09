@@ -188,6 +188,18 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get somethingWentWrong;
 
+  /// No description provided for @errorDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get errorDetails;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'SNCMT {version} (build {build})'**
+  String appVersion(String version, String build);
+
   /// No description provided for @schoolCodeTitle.
   ///
   /// In en, this message translates to:

@@ -58,6 +58,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get somethingWentWrong => 'Something went wrong. Please try again.';
 
   @override
+  String get errorDetails => 'Details';
+
+  @override
+  String appVersion(String version, String build) {
+    return 'SNCMT $version (build $build)';
+  }
+
+  @override
   String get schoolCodeTitle => 'Find your school';
 
   @override

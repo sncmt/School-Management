@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/app_update.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/ui.dart';
@@ -122,6 +123,16 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          // which build this phone runs: the first question when something goes wrong
+          if (ref.watch(appInfoProvider).value case final info?)
+            Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: Text(
+                t.appVersion(info.version, info.buildNumber),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
         ],
       ),
     );

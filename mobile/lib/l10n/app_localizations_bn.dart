@@ -58,6 +58,14 @@ class AppLocalizationsBn extends AppLocalizations {
   String get somethingWentWrong => 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।';
 
   @override
+  String get errorDetails => 'বিস্তারিত';
+
+  @override
+  String appVersion(String version, String build) {
+    return 'SNCMT $version (বিল্ড $build)';
+  }
+
+  @override
   String get schoolCodeTitle => 'আপনার স্কুল খুঁজুন';
 
   @override

@@ -17,6 +17,9 @@
   "required": "Required",
   "networkError": "Can't reach the server. Check your internet connection.",
   "somethingWentWrong": "Something went wrong. Please try again.",
+  "errorDetails": "Details",
+  "appVersion": "SNCMT {version} (build {build})",
+  "@appVersion": { "placeholders": { "version": { "type": "String" }, "build": { "type": "String" } } },
 
   "schoolCodeTitle": "Find your school",
   "schoolCodeHelp": "Enter the school code your school gave you.",

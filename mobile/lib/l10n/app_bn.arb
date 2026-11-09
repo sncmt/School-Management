@@ -16,6 +16,8 @@
   "required": "আবশ্যক",
   "networkError": "সার্ভারে পৌঁছানো যাচ্ছে না। ইন্টারনেট সংযোগ দেখুন।",
   "somethingWentWrong": "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+  "errorDetails": "বিস্তারিত",
+  "appVersion": "SNCMT {version} (বিল্ড {build})",
 
   "schoolCodeTitle": "আপনার স্কুল খুঁজুন",
   "schoolCodeHelp": "আপনার স্কুলের দেওয়া স্কুল কোডটি লিখুন।",

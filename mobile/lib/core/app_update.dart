@@ -15,6 +15,9 @@ class AppUpdate {
 
 final _tag = RegExp(r'^app-v(.+)-b(\d+)$');
 
+/// This app's version and build ("1.0.0", "6"), for Settings and error details.
+final appInfoProvider = FutureProvider<PackageInfo>((ref) => PackageInfo.fromPlatform());
+
 /// Checked once per launch. null: up to date, offline, or a debug build (whose build number
 /// means nothing). Never fails: a check that can't be done just shows nothing.
 final appUpdateProvider = FutureProvider<AppUpdate?>((ref) async {
