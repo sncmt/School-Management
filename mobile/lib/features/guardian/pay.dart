@@ -23,7 +23,7 @@ class PayableFee {
   final String id;
   final String? nameEn;
   final String? nameBn;
-  final String? month;
+  final int? month;
   final int? year;
   final String? description;
 
@@ -36,7 +36,7 @@ class PayableFee {
       id: json['id'] as String,
       nameEn: type['nameEn'] as String?,
       nameBn: type['nameBn'] as String?,
-      month: json['month'] as String?,
+      month: json['month'] as int?,
       year: json['year'] as int?,
       description: json['description'] as String?,
       remaining: json['remaining'] as String,

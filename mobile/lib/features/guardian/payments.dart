@@ -153,8 +153,8 @@ class ReceiptLine {
   final String? feeEn;
   final String? feeBn;
 
-  /// "JAN".."DEC" for a monthly fee.
-  final String? month;
+  /// 1-12 for a monthly fee (StudentFee.month).
+  final int? month;
   final int? year;
   final String? description;
 
@@ -168,7 +168,7 @@ class ReceiptLine {
     return ReceiptLine(
       feeEn: type['nameEn'] as String?,
       feeBn: type['nameBn'] as String?,
-      month: fee['month'] as String?,
+      month: fee['month'] as int?,
       year: fee['year'] as int?,
       description: fee['description'] as String?,
       feeYear: (fee['academicYear'] as Map?)?['name'] as String?,

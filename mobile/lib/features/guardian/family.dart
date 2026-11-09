@@ -111,8 +111,8 @@ class Fee {
   final String? nameEn;
   final String? nameBn;
 
-  /// "JAN".."DEC" for a monthly fee; null for a one-time fee.
-  final String? month;
+  /// 1-12 for a monthly fee (StudentFee.month); null for a one-time fee.
+  final int? month;
   final int? year;
   final String? description;
   final String due;
@@ -123,7 +123,7 @@ class Fee {
       id: json['id'] as String,
       nameEn: type['nameEn'] as String?,
       nameBn: type['nameBn'] as String?,
-      month: json['month'] as String?,
+      month: json['month'] as int?,
       year: json['year'] as int?,
       description: json['description'] as String?,
       due: json['due'] as String,

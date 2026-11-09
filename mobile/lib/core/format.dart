@@ -45,14 +45,10 @@ extension Formats on BuildContext {
   /// "October 2026".
   String monthYear(DateTime month) => DateFormat.yMMMM(_locale).format(month);
 
-  /// The server's fee month ("JAN".."DEC") with its year: "Jan 2026".
-  String feeMonth(String month, int year) {
-    final index = _months.indexOf(month);
-    return index < 0 ? '$month $year' : DateFormat.yMMM(_locale).format(DateTime(year, index + 1));
-  }
+  /// A fee's month as the server stores it (1-12, StudentFee.month) with its year: "Nov 2026".
+  String feeMonth(int month, int year) =>
+      month >= 1 && month <= 12 ? DateFormat.yMMM(_locale).format(DateTime(year, month)) : '$month/$year';
 
   /// English or Bangla name, whichever the app shows, falling back to the English one.
   String pick(String? en, String? bn) => (isBangla && (bn?.isNotEmpty ?? false) ? bn : en) ?? bn ?? '';
 }
-
-const _months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];

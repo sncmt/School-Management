@@ -38,7 +38,7 @@ const _familyHome = '''
       "dues": {
         "total": "1500.00",
         "fees": [
-          { "id": "f1", "month": "NOV", "year": 2026, "description": null, "feeType": { "nameEn": null, "nameBn": "বেতন" },
+          { "id": "f1", "month": 11, "year": 2026, "description": null, "feeType": { "nameEn": null, "nameBn": "বেতন" },
             "academicYear": { "id": "y1", "name": "2026" }, "due": "1000.00" },
           { "id": "f2", "month": null, "year": null, "description": "Late fine", "feeType": { "nameEn": "Fine", "nameBn": null },
             "academicYear": { "id": "y1", "name": "2026" }, "due": "500.00" }
@@ -62,6 +62,9 @@ void main() {
     expect(child.hasDues, isTrue);
     expect(child.fees.first.nameEn, isNull);
     expect(child.fees.first.nameBn, 'বেতন');
+    // the server stores a fee's month as a number (1-12): once read as text, it broke the home
+    expect(child.fees.first.month, 11);
+    expect(child.fees.last.month, isNull);
     expect(child.homework.single.subjectEn, isNull);
     expect(child.admitCards.single.nameBn, 'অর্ধবার্ষিক পরীক্ষা');
     expect(home.upcoming.single.nameBn, 'বিজয় দিবস');
