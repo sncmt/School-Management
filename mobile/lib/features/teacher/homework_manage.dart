@@ -24,7 +24,7 @@ class SubjectOption {
 
   final String classSubjectId;
   final String className;
-  final String subjectEn;
+  final String? subjectEn;
   final String? subjectBn;
   final String? groupEn;
   final String? groupBn;
@@ -37,7 +37,7 @@ class SubjectOption {
     return SubjectOption(
       classSubjectId: json['classSubjectId'] as String,
       className: className,
-      subjectEn: subject['nameEn'] as String,
+      subjectEn: subject['nameEn'] as String?,
       subjectBn: subject['nameBn'] as String?,
       groupEn: group?['nameEn'] as String?,
       groupBn: group?['nameBn'] as String?,
@@ -65,7 +65,7 @@ class GivenHomework {
 
   final String id;
   final String title;
-  final String subjectEn;
+  final String? subjectEn;
   final String? subjectBn;
   final List<SectionRef> sections;
   final String dueDate;
@@ -82,7 +82,7 @@ class GivenHomework {
     return GivenHomework(
       id: json['id'] as String,
       title: json['title'] as String,
-      subjectEn: subject['nameEn'] as String,
+      subjectEn: subject['nameEn'] as String?,
       subjectBn: subject['nameBn'] as String?,
       sections: _sections(json['sections'], className),
       dueDate: json['dueDate'] as String,
@@ -133,7 +133,7 @@ class HomeworkSheet {
   final String assignedOn;
   final String dueDate;
   final num? fullMarks;
-  final String subjectEn;
+  final String? subjectEn;
   final String? subjectBn;
   final List<SectionRef> sections;
   final List<Attachment> attachments;
@@ -154,7 +154,7 @@ class HomeworkSheet {
       assignedOn: json['assignedOn'] as String,
       dueDate: json['dueDate'] as String,
       fullMarks: _num(json['fullMarks']),
-      subjectEn: subject['nameEn'] as String,
+      subjectEn: subject['nameEn'] as String?,
       subjectBn: subject['nameBn'] as String?,
       sections: _sections(json['sections'], className),
       attachments: Attachment.listFrom(json['attachments']),

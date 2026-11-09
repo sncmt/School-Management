@@ -62,7 +62,7 @@ class RoutineEntry {
 
   final int weekday;
   final int periodNumber;
-  final String subjectEn;
+  final String? subjectEn;
   final String? subjectBn;
 
   /// null until the school assigns a teacher.
@@ -75,7 +75,7 @@ class RoutineEntry {
     return RoutineEntry(
       weekday: json['weekday'] as int,
       periodNumber: json['periodNumber'] as int,
-      subjectEn: subject['nameEn'] as String,
+      subjectEn: subject['nameEn'] as String?,
       subjectBn: subject['nameBn'] as String?,
       teacherEn: teacher?['nameEn'] as String?,
       teacherBn: teacher?['nameBn'] as String?,
@@ -116,7 +116,7 @@ class AdmitCard {
     required this.rules,
   });
 
-  final String examEn;
+  final String? examEn;
   final String? examBn;
   final String? year;
   final String? schoolEn;
@@ -152,7 +152,7 @@ class AdmitCard {
     final group = card['group'] as Map<String, dynamic>?;
     final seat = card['seat'] as Map<String, dynamic>?;
     return AdmitCard(
-      examEn: exam['nameEn'] as String,
+      examEn: exam['nameEn'] as String?,
       examBn: exam['nameBn'] as String?,
       year: (exam['academicYear'] as Map?)?['name'] as String?,
       schoolEn: school?['nameEn'] as String?,

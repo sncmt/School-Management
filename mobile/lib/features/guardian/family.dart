@@ -108,7 +108,7 @@ class Fee {
   Fee({required this.id, required this.nameEn, this.nameBn, this.month, this.year, this.description, required this.due});
 
   final String id;
-  final String nameEn;
+  final String? nameEn;
   final String? nameBn;
 
   /// "JAN".."DEC" for a monthly fee; null for a one-time fee.
@@ -121,7 +121,7 @@ class Fee {
     final type = json['feeType'] as Map<String, dynamic>;
     return Fee(
       id: json['id'] as String,
-      nameEn: type['nameEn'] as String,
+      nameEn: type['nameEn'] as String?,
       nameBn: type['nameBn'] as String?,
       month: json['month'] as String?,
       year: json['year'] as int?,
@@ -135,11 +135,11 @@ class ExamRef {
   ExamRef({required this.id, required this.nameEn, this.nameBn});
 
   final String id;
-  final String nameEn;
+  final String? nameEn;
   final String? nameBn;
 
   factory ExamRef.fromJson(Map<String, dynamic> json) =>
-      ExamRef(id: json['id'] as String, nameEn: json['nameEn'] as String, nameBn: json['nameBn'] as String?);
+      ExamRef(id: json['id'] as String, nameEn: json['nameEn'] as String?, nameBn: json['nameBn'] as String?);
 }
 
 class Holiday {

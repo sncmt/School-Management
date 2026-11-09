@@ -22,10 +22,10 @@ class MarkSheetRef {
 
   final String examSubjectId;
   final String examId;
-  final String examEn;
+  final String? examEn;
   final String? examBn;
   final SectionRef section;
-  final String subjectEn;
+  final String? subjectEn;
   final String? subjectBn;
 
   /// The subject's exam day ("2026-11-03"): marks open on it.
@@ -39,14 +39,14 @@ class MarkSheetRef {
     return MarkSheetRef(
       examSubjectId: json['examSubjectId'] as String,
       examId: exam['id'] as String,
-      examEn: exam['nameEn'] as String,
+      examEn: exam['nameEn'] as String?,
       examBn: exam['nameBn'] as String?,
       section: SectionRef(
         id: section['id'] as String,
         className: (json['class'] as Map)['name'] as String,
         sectionName: section['isDefault'] == true ? null : section['name'] as String?,
       ),
-      subjectEn: subject['nameEn'] as String,
+      subjectEn: subject['nameEn'] as String?,
       subjectBn: subject['nameBn'] as String?,
       date: json['date'] as String,
       open: json['open'] == true,

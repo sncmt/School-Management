@@ -28,7 +28,7 @@ class Homework {
   final String assignedOn;
   final String dueDate;
   final num? fullMarks;
-  final String subjectEn;
+  final String? subjectEn;
   final String? subjectBn;
   final List<Attachment> attachments;
 
@@ -45,7 +45,7 @@ class Homework {
       assignedOn: json['assignedOn'] as String,
       dueDate: json['dueDate'] as String,
       fullMarks: json['fullMarks'] as num?,
-      subjectEn: subject['nameEn'] as String,
+      subjectEn: subject['nameEn'] as String?,
       subjectBn: subject['nameBn'] as String?,
       attachments: Attachment.listFrom(json['attachments']),
       check: check == null ? null : HomeworkCheck.fromJson(check),

@@ -21,7 +21,7 @@ class PayableFee {
   PayableFee({required this.id, required this.nameEn, this.nameBn, this.month, this.year, this.description, required this.remaining});
 
   final String id;
-  final String nameEn;
+  final String? nameEn;
   final String? nameBn;
   final String? month;
   final int? year;
@@ -34,7 +34,7 @@ class PayableFee {
     final type = json['feeType'] as Map<String, dynamic>;
     return PayableFee(
       id: json['id'] as String,
-      nameEn: type['nameEn'] as String,
+      nameEn: type['nameEn'] as String?,
       nameBn: type['nameBn'] as String?,
       month: json['month'] as String?,
       year: json['year'] as int?,

@@ -40,7 +40,7 @@ class TeacherClass {
   /// "HH:mm"; null when the section has no period template.
   final String? startTime;
   final String? endTime;
-  final String subjectEn;
+  final String? subjectEn;
   final String? subjectBn;
 
   /// Usually one; more for sections taught together.
@@ -69,7 +69,7 @@ class TeacherClass {
       periodNumber: json['periodNumber'] as int,
       startTime: json['startTime'] as String?,
       endTime: json['endTime'] as String?,
-      subjectEn: subject['nameEn'] as String,
+      subjectEn: subject['nameEn'] as String?,
       subjectBn: subject['nameBn'] as String?,
       sections: [
         for (final s in (json['sections'] as List?) ?? const [])

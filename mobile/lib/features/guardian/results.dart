@@ -21,7 +21,7 @@ class ResultSummary {
   });
 
   final String examId;
-  final String examEn;
+  final String? examEn;
   final String? examBn;
   final String? year;
   final num totalMarks;
@@ -37,7 +37,7 @@ class ResultSummary {
     final exam = json['exam'] as Map<String, dynamic>;
     return ResultSummary(
       examId: exam['id'] as String,
-      examEn: exam['nameEn'] as String,
+      examEn: exam['nameEn'] as String?,
       examBn: exam['nameBn'] as String?,
       year: (json['academicYear'] as Map?)?['name'] as String?,
       totalMarks: _num(json['totalMarks']) ?? 0,
@@ -82,7 +82,7 @@ class Marksheet {
     required this.subjects,
   });
 
-  final String examEn;
+  final String? examEn;
   final String? examBn;
   final String? year;
   final String? className;
@@ -113,7 +113,7 @@ class Marksheet {
     final position = json['position'] as Map<String, dynamic>;
     final attendance = json['attendance'] as Map<String, dynamic>;
     return Marksheet(
-      examEn: exam['nameEn'] as String,
+      examEn: exam['nameEn'] as String?,
       examBn: exam['nameBn'] as String?,
       year: (json['academicYear'] as Map?)?['name'] as String?,
       className: (json['class'] as Map?)?['name'] as String?,

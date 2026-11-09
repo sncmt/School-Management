@@ -150,7 +150,7 @@ class Receipt {
 class ReceiptLine {
   ReceiptLine({required this.feeEn, this.feeBn, this.month, this.year, this.description, this.feeYear, required this.amount});
 
-  final String feeEn;
+  final String? feeEn;
   final String? feeBn;
 
   /// "JAN".."DEC" for a monthly fee.
@@ -166,7 +166,7 @@ class ReceiptLine {
     final fee = json['studentFee'] as Map<String, dynamic>;
     final type = fee['feeType'] as Map<String, dynamic>;
     return ReceiptLine(
-      feeEn: type['nameEn'] as String,
+      feeEn: type['nameEn'] as String?,
       feeBn: type['nameBn'] as String?,
       month: fee['month'] as String?,
       year: fee['year'] as int?,
