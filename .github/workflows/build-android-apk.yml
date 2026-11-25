@@ -53,9 +53,13 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # A fixed Flutter, the one the app is developed and checked with: a newer stable can
+      # fail "Check the code" on its own (a later one deprecated package:flutter/material.dart).
+      # Move it up on purpose, after flutter analyze passes locally on the new version.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.47.8'
           cache: true
 
       - run: flutter pub get
