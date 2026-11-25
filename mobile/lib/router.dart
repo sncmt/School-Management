@@ -14,11 +14,13 @@ import 'features/guardian/pay_screens.dart';
 import 'features/guardian/payment_screens.dart';
 import 'features/guardian/result_screens.dart';
 import 'features/guardian/routine_screens.dart';
+import 'features/messages/messages_screen.dart';
 import 'features/notices/notice_screens.dart';
 import 'features/notices/notices.dart';
 import 'features/teacher/homework_screens.dart';
 import 'features/teacher/marks_screens.dart';
 import 'features/teacher/teacher_screens.dart';
+import 'features/home/app_shell.dart';
 import 'features/home/home_screen.dart';
 import 'features/language/language_screen.dart';
 import 'features/language/locale_controller.dart';
@@ -61,7 +63,33 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/school', builder: (_, _) => const SchoolCodeScreen()),
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
-      GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+      // the four tabs of the bottom bar, each with its own back stack
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => AppShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [GoRoute(path: '/home', builder: (_, _) => const HomeScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/messages', builder: (_, _) => const MessagesScreen())]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/notices',
+                builder: (_, _) => const NoticeBoardScreen(),
+                routes: [GoRoute(path: ':noticeId', builder: (_, state) => NoticeDetailScreen(notice: state.extra as Notice?))],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (_, _) => const SettingsScreen(),
+                routes: [GoRoute(path: 'password', builder: (_, _) => const ChangePasswordScreen())],
+              ),
+            ],
+          ),
+        ],
+      ),
+      // the rest open over the bar
       GoRoute(
         path: '/child/:id',
         builder: (_, state) => ChildScreen(childId: state.pathParameters['id']!),
@@ -146,16 +174,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (_, state) => RollCallScreen(sectionId: state.pathParameters['sectionId']!, label: state.extra as String?),
           ),
         ],
-      ),
-      GoRoute(
-        path: '/notices',
-        builder: (_, _) => const NoticeBoardScreen(),
-        routes: [GoRoute(path: ':noticeId', builder: (_, state) => NoticeDetailScreen(notice: state.extra as Notice?))],
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (_, _) => const SettingsScreen(),
-        routes: [GoRoute(path: 'password', builder: (_, _) => const ChangePasswordScreen())],
       ),
     ],
   );

@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/app_update.dart';
 import '../../core/config.dart';
 import '../../core/open_link.dart';
-import '../../core/format.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/school_logo.dart';
 import '../../widgets/ui.dart';
 import '../auth/auth_controller.dart';
-import '../notices/notices.dart';
 import '../school/school.dart';
 import 'guardian_home.dart';
 import 'teacher_home.dart';
 
 /// The guardian or teacher home, by the active role. Someone with both switches in the app bar.
+/// Messages, notices and the profile are on the bottom bar (AppShell).
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -27,11 +25,6 @@ class HomeScreen extends ConsumerWidget {
     final me = auth?.me;
     if (me == null) return const SizedBox.shrink();
     final role = auth!.activeRole;
-    // a failed count just hides the badge
-    final unread = ref.watch(unreadNoticesProvider).value ?? 0;
-
-    // round, softly filled action buttons
-    final roundStyle = IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.surface, side: BorderSide(color: context.palette.hairline));
 
     return Scaffold(
       appBar: AppBar(
@@ -50,26 +43,6 @@ class HomeScreen extends ConsumerWidget {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            style: roundStyle,
-            icon: Badge(
-              isLabelVisible: unread > 0,
-              label: Text(context.number(unread)),
-              child: const Icon(Icons.notifications_none_rounded),
-            ),
-            tooltip: t.notices,
-            onPressed: () => context.push('/notices'),
-          ),
-          const SizedBox(width: 6),
-          IconButton(
-            style: roundStyle,
-            icon: const Icon(Icons.person_outline_rounded),
-            tooltip: t.settings,
-            onPressed: () => context.push('/settings'),
-          ),
-          const SizedBox(width: 14),
-        ],
         bottom: me.appRoles.length > 1
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(56),

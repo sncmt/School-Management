@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 /// ACCENT_COLORS in client/lib/theme/accents.ts, converted from its light-mode "brand" shade.
 const _accents = <String, Color>{
   'BLUE': Color(0xFF285CC2),
+  'NAVY': Color(0xFF173A76),
   'INDIGO': Color(0xFF4D45BB),
   'VIOLET': Color(0xFF793FB5),
   'MAROON': Color(0xFF852535),
   'TEAL': Color(0xFF007373),
   'SLATE': Color(0xFF3E4E63),
+  'GOLDEN': Color(0xFF9D6800),
+  'CREAM': Color(0xFF8A5E36),
 };
 
 /// No choice (or a key this app doesn't know yet) looks like the platform's own blue.
@@ -218,6 +221,26 @@ ThemeData buildTheme(Color seed, Brightness brightness) {
       dividerColor: palette.hairline,
       indicatorSize: TabBarIndicatorSize.label,
     ),
+    // the bottom bar: white like the cards, a hairline above, the school's colour on the open tab
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: card,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      height: 68,
+      indicatorColor: scheme.primary.withValues(alpha: 0.12),
+      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control)),
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      iconTheme: WidgetStateProperty.resolveWith(
+        (states) => IconThemeData(size: 24, color: states.contains(WidgetState.selected) ? scheme.primary : palette.muted),
+      ),
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (states) => text.labelMedium?.copyWith(
+          fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
+          color: states.contains(WidgetState.selected) ? scheme.primary : palette.muted,
+        ),
+      ),
+    ),
+    badgeTheme: BadgeThemeData(backgroundColor: scheme.error, textColor: scheme.onError),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control)),

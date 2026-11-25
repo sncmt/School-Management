@@ -11,8 +11,8 @@ import '../auth/auth_controller.dart';
 import '../teacher/teacher.dart';
 import '../teacher/teacher_screens.dart';
 
-/// The teacher's day: a greeting, today at a glance, the tools (routine, attendance with the
-/// school's permission, homework, marks), then today's classes in time order.
+/// The teacher's day: a greeting, today at a glance, the tools (routine, attendance for a class
+/// teacher or with the school's permission, homework, marks), then today's classes in time order.
 class TeacherHome extends ConsumerWidget {
   const TeacherHome({super.key, required this.me});
 
@@ -21,11 +21,16 @@ class TeacherHome extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
-    final canMark = me.permissions.contains('attendance:mark');
+    // the class teacher takes their section's roll without the permission; until the server
+    // says, the permission decides
+    final canMark = ref.watch(rollCallAccessProvider).value?.canTakeAny ?? me.permissions.contains('attendance:mark');
     final dayValue = ref.watch(myDayProvider);
 
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(myDayProvider.future),
+      onRefresh: () {
+        ref.invalidate(rollCallAccessProvider);
+        return ref.refresh(myDayProvider.future);
+      },
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [

@@ -1321,6 +1321,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log out of this phone?'**
   String get logoutConfirm;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get navMessages;
+
+  /// No description provided for @navNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'Notices'**
+  String get navNotices;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get navProfile;
+
+  /// No description provided for @messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messages;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get markAllRead;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet.'**
+  String get noMessages;
+
+  /// No description provided for @noUnreadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up.'**
+  String get noUnreadMessages;
+
+  /// No description provided for @allMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allMessages;
+
+  /// No description provided for @unreadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get unreadMessages;
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get justNow;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min ago'**
+  String minutesAgo(String n);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} h ago'**
+  String hoursAgo(String n);
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @msgAdmittedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission confirmed'**
+  String get msgAdmittedTitle;
+
+  /// No description provided for @msgAdmittedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student} has been admitted to {place} for {year}. Admission no.: {no}.'**
+  String msgAdmittedBody(String student, String place, String year, String no);
+
+  /// No description provided for @msgPaymentReceivedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee payment received'**
+  String get msgPaymentReceivedTitle;
+
+  /// No description provided for @msgPaymentReceivedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} received for {student}. Receipt no.: {receipt}.'**
+  String msgPaymentReceivedBody(String amount, String student, String receipt);
+
+  /// No description provided for @msgPaymentCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled'**
+  String get msgPaymentCancelledTitle;
+
+  /// No description provided for @msgPaymentCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment of {amount} for {student} (receipt {receipt}) has been cancelled.'**
+  String msgPaymentCancelledBody(String amount, String student, String receipt);
+
+  /// No description provided for @msgPresentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get msgPresentTitle;
+
+  /// No description provided for @msgPresentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student} was present at school on {date}.'**
+  String msgPresentBody(String student, String date);
+
+  /// No description provided for @msgAbsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get msgAbsentTitle;
+
+  /// No description provided for @msgAbsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student} was absent on {date}.'**
+  String msgAbsentBody(String student, String date);
+
+  /// No description provided for @msgLateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Came late'**
+  String get msgLateTitle;
+
+  /// No description provided for @msgLateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student} came late on {date}.'**
+  String msgLateBody(String student, String date);
+
+  /// No description provided for @msgResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result published'**
+  String get msgResultTitle;
+
+  /// No description provided for @msgResultBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student}\'s {exam} result is out.'**
+  String msgResultBody(String student, String exam);
+
+  /// No description provided for @msgAdmitCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admit card ready'**
+  String get msgAdmitCardTitle;
+
+  /// No description provided for @msgAdmitCardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student}\'s admit card for {exam} is ready to view.'**
+  String msgAdmitCardBody(String student, String exam);
+
+  /// No description provided for @msgFeeDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fees due'**
+  String get msgFeeDueTitle;
+
+  /// No description provided for @msgFeeDueBodyOne.
+  ///
+  /// In en, this message translates to:
+  /// **'{student} has {amount} in fees due (1 fee). Please pay at the school office.'**
+  String msgFeeDueBodyOne(String student, String amount);
+
+  /// No description provided for @msgFeeDueBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student} has {amount} in fees due ({fees} fees). Please pay at the school office.'**
+  String msgFeeDueBody(String student, String amount, String fees);
+
+  /// No description provided for @msgPromotedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Promoted to the next class'**
+  String get msgPromotedTitle;
+
+  /// No description provided for @msgPromotedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{student} has been promoted to {place} for {year}.'**
+  String msgPromotedBody(String student, String place, String year);
+
+  /// No description provided for @msgGraduatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduated'**
+  String get msgGraduatedTitle;
+
+  /// No description provided for @msgGraduatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! {student} has completed {className} and graduated.'**
+  String msgGraduatedBody(String student, String className);
+
+  /// No description provided for @classTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Class teacher'**
+  String get classTeacher;
+
+  /// No description provided for @noRollCallSections.
+  ///
+  /// In en, this message translates to:
+  /// **'No sections to take attendance for'**
+  String get noRollCallSections;
 }
 
 class _AppLocalizationsDelegate

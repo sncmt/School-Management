@@ -136,6 +136,51 @@ List<SectionRef> sectionsOf(List<TeacherClass> week) {
 
 // --------------------------------------------------------------------- attendance
 
+/// Whose roll call this teacher may take (GET /attendance/my-sections): any section with the
+/// attendance:mark permission, and always the sections they are class teacher of. Neither when
+/// the school has no attendance module.
+class RollCallAccess {
+  RollCallAccess({required this.canMarkAny, required this.classTeacherOf});
+
+  final bool canMarkAny;
+  final List<SectionRef> classTeacherOf;
+
+  bool get canTakeAny => canMarkAny || classTeacherOf.isNotEmpty;
+
+  factory RollCallAccess.fromJson(Map<String, dynamic> json) => RollCallAccess(
+        canMarkAny: json['canMarkAny'] == true,
+        classTeacherOf: [
+          for (final s in (json['sections'] as List?) ?? const [])
+            SectionRef(
+              id: (s as Map)['id'] as String,
+              className: (s['class'] as Map?)?['name'] as String? ?? '',
+              sectionName: s['isDefault'] == true ? null : s['name'] as String?,
+            ),
+        ],
+      );
+}
+
+final rollCallAccessProvider = FutureProvider.autoDispose<RollCallAccess>((ref) async {
+  final json = await ref.watch(apiClientProvider)!.get<Map<String, dynamic>>('/attendance/my-sections');
+  return RollCallAccess.fromJson(json);
+});
+
+/// The sections on the attendance screen: the class teacher's own first (marked true), then,
+/// with the permission, the others they teach in the week's routine.
+final rollCallSectionsProvider = FutureProvider.autoDispose<List<(SectionRef, bool classTeacher)>>((ref) async {
+  final accessing = ref.watch(rollCallAccessProvider.future);
+  final week = ref.watch(myWeekProvider.future);
+  final access = await accessing;
+  // a routine that fails to load leaves the class teacher's own sections
+  final taught = access.canMarkAny ? sectionsOf(await week.catchError((_) => <TeacherClass>[])) : <SectionRef>[];
+  final own = {for (final s in access.classTeacherOf) s.id};
+  return [
+    for (final s in access.classTeacherOf) (s, true),
+    for (final s in taught)
+      if (!own.contains(s.id)) (s, false),
+  ];
+});
+
 /// A section's roll call for a date (GET /attendance/students/sheet).
 class RollCall {
   RollCall({

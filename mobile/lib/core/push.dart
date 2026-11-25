@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/guardian/family.dart';
 import '../features/language/locale_controller.dart';
+import '../features/messages/messages.dart';
 import '../features/school/school.dart';
 import '../router.dart';
 import 'api_client.dart';
@@ -103,29 +104,27 @@ class PushController {
   }
 
   /// The screen a notification is about: the child's attendance, payments, or their page.
-  String? _routeOf(RemoteMessage m) {
-    final studentId = m.data['studentId'] as String?;
-    if (studentId == null || studentId.isEmpty) return null;
-    return switch (m.data['type']) {
-      'STUDENT_PRESENT' || 'STUDENT_ABSENT' || 'STUDENT_LATE' => '/child/$studentId/attendance',
-      'PAYMENT_RECEIVED' || 'PAYMENT_CANCELLED' || 'FEE_DUE' => '/child/$studentId/payments',
-      _ => '/child/$studentId',
-    };
-  }
+  String? _routeOf(RemoteMessage m) => messageRoute(m.data['type'] as String?, m.data['studentId'] as String?);
 
+  /// Tapped: the message is read (it is in the inbox too), and its screen opens.
   void _open(RemoteMessage m) {
     if (!_loggedIn) {
       _pending = m;
       return;
     }
     _ref.invalidate(familyHomeProvider);
+    final id = m.data['notificationId'] as String?;
+    if (id != null && id.isNotEmpty) markMessageRead(_ref, id);
     final route = _routeOf(m);
     if (route != null) _ref.read(routerProvider).push(route);
   }
 
-  /// The app is open: Android shows nothing by itself, so a snack bar does, and the home's data refreshes.
+  /// The app is open: Android shows nothing by itself, so a snack bar does; the home's data,
+  /// the inbox and its badge refresh.
   void _showInApp(RemoteMessage m) {
     _ref.invalidate(familyHomeProvider);
+    _ref.invalidate(unreadMessagesProvider);
+    _ref.invalidate(messageListProvider);
     final text = m.notification?.body;
     if (text == null) return;
     final route = _routeOf(m);

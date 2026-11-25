@@ -8,6 +8,7 @@ import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/async_body.dart';
 import '../../widgets/attendance_status.dart';
+import '../../widgets/ui.dart';
 import '../auth/auth_controller.dart';
 import 'teacher.dart';
 
@@ -146,28 +147,41 @@ class AttendanceSectionsScreen extends ConsumerWidget {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.takeAttendance)),
-      body: AsyncBody(
-        value: ref.watch(myWeekProvider),
-        onRetry: () => ref.invalidate(myWeekProvider),
-        builder: (week) {
-          final sections = sectionsOf(week);
-          if (sections.isEmpty) return Center(child: Text(t.noRoutine));
-          return ListView(
-            padding: const EdgeInsets.all(12),
-            children: [
-              for (final s in sections)
-                Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: const Icon(Icons.groups_outlined),
-                    title: Text(s.label),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push('/teacher/attendance/${s.id}', extra: s.label),
-                  ),
-                ),
-            ],
-          );
+      body: RefreshIndicator(
+        onRefresh: () {
+          ref.invalidate(rollCallAccessProvider);
+          ref.invalidate(myWeekProvider);
+          return ref.refresh(rollCallSectionsProvider.future);
         },
+        child: AsyncBody(
+          value: ref.watch(rollCallSectionsProvider),
+          onRetry: () {
+            ref.invalidate(rollCallAccessProvider);
+            ref.invalidate(myWeekProvider);
+          },
+          builder: (sections) {
+            if (sections.isEmpty) {
+              return ListView(children: [EmptyState(icon: Icons.fact_check_outlined, message: t.noRollCallSections)]);
+            }
+            final primary = Theme.of(context).colorScheme.primary;
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+              children: [
+                for (final (s, classTeacher) in sections)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: IconBadge(classTeacher ? Icons.star_rounded : Icons.groups_outlined, size: 40),
+                      title: Text(s.label),
+                      subtitle: classTeacher ? Align(alignment: Alignment.centerLeft, child: Pill(t.classTeacher, color: primary)) : null,
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push('/teacher/attendance/${s.id}', extra: s.label),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

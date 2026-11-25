@@ -688,4 +688,153 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get logoutConfirm => 'এই ফোন থেকে লগআউট করবেন?';
+
+  @override
+  String get navHome => 'হোম';
+
+  @override
+  String get navMessages => 'বার্তা';
+
+  @override
+  String get navNotices => 'নোটিশ';
+
+  @override
+  String get navProfile => 'প্রোফাইল';
+
+  @override
+  String get messages => 'বার্তা';
+
+  @override
+  String get markAllRead => 'সব পড়া হয়েছে';
+
+  @override
+  String get noMessages => 'এখনো কোনো বার্তা নেই।';
+
+  @override
+  String get noUnreadMessages => 'সব বার্তা পড়া হয়ে গেছে।';
+
+  @override
+  String get allMessages => 'সব';
+
+  @override
+  String get unreadMessages => 'অপঠিত';
+
+  @override
+  String get justNow => 'এইমাত্র';
+
+  @override
+  String minutesAgo(String n) {
+    return '$n মিনিট আগে';
+  }
+
+  @override
+  String hoursAgo(String n) {
+    return '$n ঘণ্টা আগে';
+  }
+
+  @override
+  String get yesterday => 'গতকাল';
+
+  @override
+  String get msgAdmittedTitle => 'ভর্তি সম্পন্ন';
+
+  @override
+  String msgAdmittedBody(String student, String place, String year, String no) {
+    return '$student $year শিক্ষাবর্ষে $place শ্রেণিতে ভর্তি হয়েছে। ভর্তি নম্বর: $no।';
+  }
+
+  @override
+  String get msgPaymentReceivedTitle => 'ফি জমা হয়েছে';
+
+  @override
+  String msgPaymentReceivedBody(String amount, String student, String receipt) {
+    return '$student-এর $amount জমা হয়েছে। রসিদ নম্বর: $receipt।';
+  }
+
+  @override
+  String get msgPaymentCancelledTitle => 'জমা বাতিল';
+
+  @override
+  String msgPaymentCancelledBody(
+    String amount,
+    String student,
+    String receipt,
+  ) {
+    return '$student-এর $amount জমা (রসিদ $receipt) বাতিল করা হয়েছে।';
+  }
+
+  @override
+  String get msgPresentTitle => 'উপস্থিত';
+
+  @override
+  String msgPresentBody(String student, String date) {
+    return '$student $date তারিখে স্কুলে উপস্থিত ছিল।';
+  }
+
+  @override
+  String get msgAbsentTitle => 'অনুপস্থিত';
+
+  @override
+  String msgAbsentBody(String student, String date) {
+    return '$student $date তারিখে অনুপস্থিত ছিল।';
+  }
+
+  @override
+  String get msgLateTitle => 'দেরিতে উপস্থিত';
+
+  @override
+  String msgLateBody(String student, String date) {
+    return '$student $date তারিখে দেরিতে এসেছে।';
+  }
+
+  @override
+  String get msgResultTitle => 'ফলাফল প্রকাশিত';
+
+  @override
+  String msgResultBody(String student, String exam) {
+    return '$student-এর $exam-এর ফলাফল প্রকাশিত হয়েছে।';
+  }
+
+  @override
+  String get msgAdmitCardTitle => 'প্রবেশপত্র প্রস্তুত';
+
+  @override
+  String msgAdmitCardBody(String student, String exam) {
+    return '$student-এর $exam-এর প্রবেশপত্র এখন দেখা যাবে।';
+  }
+
+  @override
+  String get msgFeeDueTitle => 'ফি বকেয়া';
+
+  @override
+  String msgFeeDueBodyOne(String student, String amount) {
+    return '$student-এর $amount ফি বকেয়া আছে (১টি ফি)। অনুগ্রহ করে স্কুল অফিসে জমা দিন।';
+  }
+
+  @override
+  String msgFeeDueBody(String student, String amount, String fees) {
+    return '$student-এর $amount ফি বকেয়া আছে ($feesটি ফি)। অনুগ্রহ করে স্কুল অফিসে জমা দিন।';
+  }
+
+  @override
+  String get msgPromotedTitle => 'পরের শ্রেণিতে উত্তীর্ণ';
+
+  @override
+  String msgPromotedBody(String student, String place, String year) {
+    return '$student $year শিক্ষাবর্ষে $place শ্রেণিতে উত্তীর্ণ হয়েছে।';
+  }
+
+  @override
+  String get msgGraduatedTitle => 'স্কুল শিক্ষা সম্পন্ন';
+
+  @override
+  String msgGraduatedBody(String student, String className) {
+    return 'অভিনন্দন! $student $className শ্রেণি সম্পন্ন করে উত্তীর্ণ হয়েছে।';
+  }
+
+  @override
+  String get classTeacher => 'শ্রেণি শিক্ষক';
+
+  @override
+  String get noRollCallSections => 'হাজিরা নেওয়ার মতো কোনো সেকশন নেই';
 }

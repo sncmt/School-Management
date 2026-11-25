@@ -688,4 +688,153 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logoutConfirm => 'Log out of this phone?';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navMessages => 'Messages';
+
+  @override
+  String get navNotices => 'Notices';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get messages => 'Messages';
+
+  @override
+  String get markAllRead => 'Mark all as read';
+
+  @override
+  String get noMessages => 'No messages yet.';
+
+  @override
+  String get noUnreadMessages => 'You\'re all caught up.';
+
+  @override
+  String get allMessages => 'All';
+
+  @override
+  String get unreadMessages => 'Unread';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(String n) {
+    return '$n min ago';
+  }
+
+  @override
+  String hoursAgo(String n) {
+    return '$n h ago';
+  }
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get msgAdmittedTitle => 'Admission confirmed';
+
+  @override
+  String msgAdmittedBody(String student, String place, String year, String no) {
+    return '$student has been admitted to $place for $year. Admission no.: $no.';
+  }
+
+  @override
+  String get msgPaymentReceivedTitle => 'Fee payment received';
+
+  @override
+  String msgPaymentReceivedBody(String amount, String student, String receipt) {
+    return '$amount received for $student. Receipt no.: $receipt.';
+  }
+
+  @override
+  String get msgPaymentCancelledTitle => 'Payment cancelled';
+
+  @override
+  String msgPaymentCancelledBody(
+    String amount,
+    String student,
+    String receipt,
+  ) {
+    return 'The payment of $amount for $student (receipt $receipt) has been cancelled.';
+  }
+
+  @override
+  String get msgPresentTitle => 'Present';
+
+  @override
+  String msgPresentBody(String student, String date) {
+    return '$student was present at school on $date.';
+  }
+
+  @override
+  String get msgAbsentTitle => 'Absent';
+
+  @override
+  String msgAbsentBody(String student, String date) {
+    return '$student was absent on $date.';
+  }
+
+  @override
+  String get msgLateTitle => 'Came late';
+
+  @override
+  String msgLateBody(String student, String date) {
+    return '$student came late on $date.';
+  }
+
+  @override
+  String get msgResultTitle => 'Result published';
+
+  @override
+  String msgResultBody(String student, String exam) {
+    return '$student\'s $exam result is out.';
+  }
+
+  @override
+  String get msgAdmitCardTitle => 'Admit card ready';
+
+  @override
+  String msgAdmitCardBody(String student, String exam) {
+    return '$student\'s admit card for $exam is ready to view.';
+  }
+
+  @override
+  String get msgFeeDueTitle => 'Fees due';
+
+  @override
+  String msgFeeDueBodyOne(String student, String amount) {
+    return '$student has $amount in fees due (1 fee). Please pay at the school office.';
+  }
+
+  @override
+  String msgFeeDueBody(String student, String amount, String fees) {
+    return '$student has $amount in fees due ($fees fees). Please pay at the school office.';
+  }
+
+  @override
+  String get msgPromotedTitle => 'Promoted to the next class';
+
+  @override
+  String msgPromotedBody(String student, String place, String year) {
+    return '$student has been promoted to $place for $year.';
+  }
+
+  @override
+  String get msgGraduatedTitle => 'Graduated';
+
+  @override
+  String msgGraduatedBody(String student, String className) {
+    return 'Congratulations! $student has completed $className and graduated.';
+  }
+
+  @override
+  String get classTeacher => 'Class teacher';
+
+  @override
+  String get noRollCallSections => 'No sections to take attendance for';
 }

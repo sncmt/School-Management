@@ -37,7 +37,7 @@ class SettingsScreen extends ConsumerWidget {
     final error = Theme.of(context).colorScheme.error;
 
     return Scaffold(
-      appBar: AppBar(title: Text(t.settings)),
+      appBar: AppBar(title: Text(t.navProfile)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
         children: [
