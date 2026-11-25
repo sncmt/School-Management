@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- the push notifications' channel, as Android's notification settings show it -->
+    <string name="channel_school_updates">School updates</string>
+    <string name="channel_school_updates_description">Attendance, fees, results and other news from the school</string>
+</resources>
