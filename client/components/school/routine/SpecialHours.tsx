@@ -25,7 +25,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears } from "@/lib/school/academicYears";
+import { currentYearOf, useAcademicYears } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
 import { useTimeLabel } from "@/lib/school/routine";
 import { useDeleteScheduleOverride, useScheduleOverrides, type ScheduleOverride } from "@/lib/school/schedule";
 import { useDateRange } from "../calendar/shared";
@@ -42,7 +44,9 @@ export function SpecialHours({ canManage }: { canManage: boolean }) {
   const years = useAcademicYears();
   const [yearId, setYearId] = useState<string | undefined>();
   const yearList = years.data ?? [];
-  const shownYearId = yearId ?? yearList.find((y) => y.isCurrent)?.id ?? yearList[0]?.id;
+  const { main } = useInstitutionTracks();
+  const yearLabel = useYearLabel();
+  const shownYearId = yearId ?? currentYearOf(yearList, main)?.id ?? currentYearOf(yearList)?.id ?? yearList[0]?.id;
   const { data, isPending, isError, error, refetch } = useScheduleOverrides(shownYearId);
   const [form, setForm] = useState<{ override: ScheduleOverride | null } | null>(null);
   const [deleting, setDeleting] = useState<ScheduleOverride | null>(null);
@@ -61,13 +65,13 @@ export function SpecialHours({ canManage }: { canManage: boolean }) {
           <p className="max-w-2xl text-sm text-muted-foreground">{t("description")}</p>
           {yearList.length > 1 && (
             <Select value={shownYearId} onValueChange={setYearId}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {yearList.map((y) => (
                   <SelectItem key={y.id} value={y.id}>
-                    {y.name}
+                    {yearLabel(y)}
                   </SelectItem>
                 ))}
               </SelectContent>

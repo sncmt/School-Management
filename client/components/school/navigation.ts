@@ -10,6 +10,7 @@ import {
   CreditCard,
   FileText,
   GraduationCap,
+  Hash,
   History,
   IdCard,
   LayoutDashboard,
@@ -50,6 +51,8 @@ export const schoolMenu: MenuGroup[] = [
       { href: "/academic-years", label: "academicYears", icon: CalendarRange, permission: "academic_year:view" },
       { href: "/classes", label: "classes", icon: Layers, permission: "class:view" },
       { href: "/sections", label: "sections", icon: Rows3, permission: "section:view" },
+      // each class's (or section's) roll numbers for a year
+      { href: "/roll-numbers", label: "rollNumbers", icon: Hash, permission: "student:view" },
       { href: "/groups", label: "groups", icon: Shapes, permission: "group:view" },
       { href: "/subjects", label: "schoolSubjects", icon: BookOpen, permission: "subject:view" },
       { href: "/class-subjects", label: "classSubjects", icon: ListOrdered, permission: "class_subject:view" },

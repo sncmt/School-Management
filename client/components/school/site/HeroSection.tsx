@@ -61,7 +61,7 @@ export async function HeroSection({ school, name }: { school: SchoolSite; name: 
         </div>
       )}
 
-      <h1 className="text-[32px] leading-[1.2] font-bold text-brand-ink sm:text-[42px] sm:leading-[1.2] lg:text-[42px] lg:leading-[0.9]">
+      <h1 className="text-[32px] leading-[1.2] font-extrabold text-brand-ink sm:text-[42px] sm:leading-[1.2] lg:text-[42px] lg:leading-[0.9]">
         {first}
         {second && (
           <>
@@ -71,14 +71,14 @@ export async function HeroSection({ school, name }: { school: SchoolSite; name: 
         )}
       </h1>
 
-      <p className="mt-4 text-base font-medium text-slate-700 sm:text-lg lg:mt-5 lg:text-[19px]">{school.about.tagline || t("tagline")}</p>
+      <p className="mt-4 text-base font-medium text-slate-700 sm:text-lg lg:mt-5 lg:text-[18px]">{school.about.tagline || t("tagline")}</p>
 
       <div className="mt-7 flex flex-wrap items-center gap-4 sm:gap-6 lg:mt-[34px]">
         {openYear && (
           <Link
             href={publicSchoolRoutes.apply}
             className={cn(
-              "inline-flex h-11 items-center gap-2.5 rounded-full bg-brand-ink px-6 text-sm font-semibold lg:h-12 lg:px-[30px] lg:text-[15px] text-white shadow-[0_6px_16px_-6px_rgb(10_74_99/0.55)] transition hover:opacity-90",
+              "inline-flex h-11 items-center gap-2.5 rounded-full bg-brand-ink px-6 text-sm font-semibold lg:h-12 lg:px-[30px] lg:text-[14px] text-white shadow-[0_6px_16px_-6px_rgb(10_74_99/0.55)] transition hover:opacity-90",
               siteFocus,
             )}
           >
@@ -89,7 +89,7 @@ export async function HeroSection({ school, name }: { school: SchoolSite; name: 
         <a
           href={explore}
           className={cn(
-            "inline-flex h-11 items-center justify-center rounded-full border border-brand-ink/40 bg-white px-6 text-sm font-semibold lg:h-12 lg:px-[30px] lg:text-[15px] text-brand-ink transition hover:border-brand-ink",
+            "inline-flex h-11 items-center justify-center rounded-full border border-brand-ink/40 bg-white px-6 text-sm font-semibold lg:h-12 lg:px-[30px] lg:text-[14px] text-brand-ink transition hover:border-brand-ink",
             siteFocus,
           )}
         >

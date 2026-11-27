@@ -3,6 +3,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
+import type { AcademicTrack } from "@/lib/school/academicYears";
 
 // Mirrors server/src/app/modules/exam. Each class of an exam moves through
 // ROUTINE -> MARKS_ENTRY -> PUBLISHED on its own. Prisma Decimals arrive as strings.
@@ -34,13 +35,17 @@ export type Exam = {
   // the attendance shown on the result sheet; null = year start to the last exam day
   attendanceFrom: string | null;
   attendanceTo: string | null;
-  academicYear: { id: string; name: string };
+  // track: school or college (its classes are that track's)
+  academicYear: { id: string; name: string; track?: AcademicTrack };
   classes: ExamClass[];
 };
 
-export type ExamList = { academicYear: { id: string; name: string }; items: Exam[] };
+// no year and no track asked: the exams of every track's current year (academicYear: the main track's)
+export type ExamList = { academicYear: { id: string; name: string; track?: AcademicTrack }; items: Exam[] };
 
 export type CreateExamBody = {
+  // left out: the current year (of the classes' track)
+  academicYearId?: string;
   nameEn: string | null;
   nameBn: string | null;
   type: ExamType;
@@ -114,29 +119,51 @@ export type RoutineBody = {
   }[];
 };
 
+type ChoiceSubject = {
+  id: string;
+  type: "OPTIONAL" | "ELECTIVE";
+  groupId: string | null;
+  sortOrder: number;
+  group: NameRef | null;
+  subject: NameRef & { code: string | null };
+};
+
 export type OptionalChoices = {
   academicYear: { id: string; name: string };
   class: { id: string; name: string };
-  options: { id: string; groupId: string | null; group: NameRef | null; subject: NameRef & { code: string | null } }[];
+  // the fixed 4th subjects, and the "main or 4th" ones (Biology / Higher Math)
+  options: ChoiceSubject[];
+  electives: ChoiceSubject[];
+  // how many "main or 4th" subjects a group takes as main (none listed: 1)
+  electiveRules: { groupId: string | null; mainCount: number }[];
   hasOptionalSubjects: boolean;
   missingChoices: number;
+  missingMains: number;
   students: {
     enrollmentId: string;
     student: { id: string; nameEn: string; nameBn: string; admissionNo: string };
     section: { id: string; name: string; isDefault: boolean };
     group: NameRef | null;
     rollNumber: string | null;
+    // the 4th subject
     choice: string | null;
-    // the optional subjects open to this student's group
+    // the 4th list as the saved mains are (the client works it out again as mains change)
     available: string[];
+    // the main subjects among the "main or 4th" ones, what they pick from, and how many
+    mains: string[];
+    availableMains: string[];
+    mainCount: number;
   }[];
 };
+
+// mainIds: the whole set ([] clears); left out = as it is. classSubjectId: the 4th; left out = as it is
+export type SubjectChoiceBody = { enrollmentId: string; classSubjectId?: string | null; mainIds?: string[] };
 
 // --------------------------------------------------------------------- api
 
 export const examsApi = {
-  list: async (academicYearId?: string) =>
-    (await httpClient.get<ApiResponse<ExamList>>("/exam", { params: { academicYearId } })).data.data,
+  list: async (academicYearId?: string, track?: AcademicTrack) =>
+    (await httpClient.get<ApiResponse<ExamList>>("/exam", { params: { academicYearId, track } })).data.data,
 
   get: async (examId: string) => (await httpClient.get<ApiResponse<Exam>>(`/exam/${examId}`)).data.data,
 
@@ -171,8 +198,8 @@ export const examsApi = {
     (await httpClient.get<ApiResponse<OptionalChoices>>("/optional-subject", { params: query })).data.data,
 
   // null removes a student's choice
-  setOptionalChoices: async (choices: { enrollmentId: string; classSubjectId: string | null }[]) =>
-    (await httpClient.put<ApiResponse<{ saved: number }>>("/optional-subject", { choices })).data.data,
+  setOptionalChoices: async (choices: SubjectChoiceBody[]) =>
+    (await httpClient.put<ApiResponse<{ saved: number; clearedFourths: number }>>("/optional-subject", { choices })).data.data,
 };
 
 // ------------------------------------------------------------------- hooks
@@ -181,11 +208,12 @@ export type ExamDeleteInput = { reason?: string; confirmName?: string };
 
 const examsKey = ["school", "exams"] as const;
 
-export const useExams = (academicYearId?: string) =>
+export const useExams = (academicYearId?: string, options?: { enabled?: boolean; track?: AcademicTrack }) =>
   useQuery({
-    queryKey: [...examsKey, "list", academicYearId],
-    queryFn: () => examsApi.list(academicYearId),
+    queryKey: [...examsKey, "list", academicYearId, options?.track],
+    queryFn: () => examsApi.list(academicYearId, options?.track),
     placeholderData: keepPreviousData,
+    enabled: options?.enabled ?? true,
   });
 
 export const useExam = (examId: string | undefined) =>

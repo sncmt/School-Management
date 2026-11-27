@@ -35,7 +35,7 @@ export function PageHero({
         {description && <p className="mt-1 text-[15px] text-white/75">{description}</p>}
       </div>
       {/* on a phone the actions share a full row under the title */}
-      {actions && <div className="flex shrink-0 flex-wrap gap-2 max-sm:w-full">{actions}</div>}
+      {actions && <div className="page-hero-actions flex shrink-0 flex-wrap items-center gap-2 max-sm:w-full">{actions}</div>}
     </header>
   );
 }

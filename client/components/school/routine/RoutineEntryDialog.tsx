@@ -108,7 +108,7 @@ function EntryForm({ slot, onDone }: { slot: EntrySlot; onDone: () => void }) {
   };
 
   const subjectLabel = (s: NonNullable<typeof subjects.data>["items"][number]) =>
-    [name(s.subject), s.group && name(s.group), s.type === "OPTIONAL" && t("optional")].filter(Boolean).join(" · ");
+    [name(s.subject), s.group && name(s.group), s.type === "OPTIONAL" && t("optional"), s.type === "ELECTIVE" && t("elective")].filter(Boolean).join(" · ");
 
   const otherSections = slot.sections.filter((s) => !s.isDefault && s.id !== slot.section.id);
 

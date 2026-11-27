@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertClassesInYearTrack } from "../../shared/academicYears";
 import { assertSchoolLanguageName } from "../../shared/names";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, eachDay, loadCalendar, weeklyHolidaysOn } from "./calendar.resolver";
@@ -170,6 +171,8 @@ const assertEntryValid = async (schoolId: string, data: EntryPayload) => {
     if (found !== data.classIds.length) {
       throw new AppError("One or more classes were not found for this school", httpStatus.NOT_FOUND);
     }
+    // a school year's holiday is for school classes, a college year's for college ones
+    await assertClassesInYearTrack(prisma, schoolId, data.classIds, data.academicYearId);
   }
 };
 

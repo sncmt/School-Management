@@ -10,7 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears } from "@/lib/school/academicYears";
+import { useAcademicYears, yearsOfTrack } from "@/lib/school/academicYears";
+import { useTrack } from "@/lib/school/tracks";
+import { TrackSwitch } from "@/components/school/years/TrackSwitch";
 import {
   useClassResultSettings,
   useGradingScaleList,
@@ -28,21 +30,27 @@ export function ResultSettings({ canManage, onOpenScales }: { canManage: boolean
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
   const years = useAcademicYears();
-  const [yearId, setYearId] = useState<string | undefined>();
-  const settings = useClassResultSettings(yearId);
+  // school or college (an institution with both): each has its own years and classes
+  const { track, setTrack, hasBoth } = useTrack();
+  const trackYears = yearsOfTrack(years.data, track);
+  const [chosenYearId, setYearId] = useState<string | undefined>();
+  const yearId = chosenYearId && trackYears.some((y) => y.id === chosenYearId) ? chosenYearId : undefined;
+  const settings = useClassResultSettings(yearId, hasBoth ? track : undefined);
   const scales = useGradingScaleList();
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="max-w-2xl text-sm text-muted-foreground">{t("description")}</p>
-        {(years.data?.length ?? 0) > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+        <TrackSwitch value={track} onChange={setTrack} />
+        {trackYears.length > 1 && (
           <Select value={yearId ?? settings.data?.academicYear.id} onValueChange={setYearId}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {years.data?.map((y) => (
+              {trackYears.map((y) => (
                 <SelectItem key={y.id} value={y.id}>
                   {y.name}
                 </SelectItem>
@@ -50,6 +58,7 @@ export function ResultSettings({ canManage, onOpenScales }: { canManage: boolean
             </SelectContent>
           </Select>
         )}
+        </div>
       </div>
 
       {scales.data?.length === 0 && (

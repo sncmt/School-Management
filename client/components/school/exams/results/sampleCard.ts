@@ -135,8 +135,8 @@ const sampleExamCards = (settings: CardSettings, school: School | undefined): Om
       subjects: [
         line("bangla", "Bangla", "বাংলা", 200, 168, "A+", 5, {
           papers: [
-            { subjectId: "b1", nameEn: "Bangla 1st Paper", nameBn: "বাংলা ১ম পত্র", fullMarks: 100, marks: 86, isAbsent: false },
-            { subjectId: "b2", nameEn: "Bangla 2nd Paper", nameBn: "বাংলা ২য় পত্র", fullMarks: 100, marks: 82, isAbsent: false },
+            { id: "b1", nameEn: "Bangla 1st Paper", nameBn: "বাংলা ১ম পত্র", code: "101", fullMarks: 100, passMarks: 33, marks: 86, isAbsent: false, highestInSection: 94, highestInClass: 96 },
+            { id: "b2", nameEn: "Bangla 2nd Paper", nameBn: "বাংলা ২য় পত্র", code: "102", fullMarks: 100, passMarks: 33, marks: 82, isAbsent: false, highestInSection: 90, highestInClass: 93 },
           ],
         }),
         line("english", "English", "ইংরেজি", 100, 78, "A", 4),

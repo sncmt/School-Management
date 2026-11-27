@@ -33,7 +33,9 @@ enum SmsStatus {
   CANCELLED // never sent: SMS turned off, or the event was undone first
 }
 
-/* A school's SMS account: its own gateway, the language, and the switch for all SMS. */
+/**
+ * A school's SMS account: its own gateway, the language, and the switch for all SMS.
+ */
 model SmsSetting {
   id String @id @default(cuid())
 
@@ -52,7 +54,9 @@ model SmsSetting {
   updatedAt DateTime @updatedAt
 }
 
-/* One automatic SMS of a school: on or off, and the school's own wording (null = the default text). */
+/**
+ * One automatic SMS of a school: on or off, and the school's own wording (null = the default text).
+ */
 model SmsTemplate {
   id String @id @default(cuid())
 
@@ -71,7 +75,7 @@ model SmsTemplate {
   @@unique([schoolId, event])
 }
 
-/*
+/**
  * Every SMS: the outbox and the log. Written as QUEUED when something happens (or by hand);
  * the sender (sms.worker) sends it once sendAfter has come.
  */

@@ -18,6 +18,7 @@ import type { ExamClassPayload, MarksheetQuery, SummaryQuery, TabulationQuery } 
 import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { marksProgress } from "./examMarks.service";
 import { loadExamStudents } from "./examStudents";
+import { fourthOptions, isFourthFor, loadElectiveRules, mainCountFor, openElectives } from "../../shared/subjectChoice";
 
 type Auth = NonNullable<Express.Request["auth"]>;
 
@@ -74,14 +75,21 @@ const missingOptionalChoices = async (
   classId: string,
   students: Awaited<ReturnType<typeof loadExamStudents>>["students"],
 ) => {
-  const options = await prisma.classSubject.findMany({
-    where: { schoolId, academicYearId, classId, type: "OPTIONAL" },
-    select: { groupId: true },
-  });
+  const [options, rules] = await Promise.all([
+    prisma.classSubject.findMany({
+      where: { schoolId, academicYearId, classId, type: { in: ["OPTIONAL", "ELECTIVE"] } },
+      select: { id: true, type: true, groupId: true },
+    }),
+    loadElectiveRules(prisma, academicYearId, classId),
+  ]);
   if (options.length === 0) return [];
-  return students.filter(
-    (s) => s.optionalClassSubjectId === null && options.some((o) => o.groupId === null || o.groupId === s.group?.id),
-  );
+  // no 4th subject while the 4th list has some, or fewer main subjects than the class takes
+  return students.filter((s) => {
+    const groupId = s.group?.id ?? null;
+    const mainCount = mainCountFor(rules, groupId, openElectives(options, groupId).length);
+    if (mainCount > 0 && s.mainClassSubjectIds.length !== mainCount) return true;
+    return s.optionalClassSubjectId === null && fourthOptions(options, { groupId, mainIds: s.mainClassSubjectIds }).length > 0;
+  });
 };
 
 /* Present (incl. late), absent and leave days of each enrollment over a period. */
@@ -138,7 +146,7 @@ const publishResult = async (auth: Auth, data: ExamClassPayload) => {
   const academicYearId = examClass.exam.academicYear.id;
   const noChoice = await missingOptionalChoices(schoolId, academicYearId, examClass.classId, students);
   if (noChoice.length > 0) {
-    throw new AppError(`${noChoice.length} student(s) have not chosen their optional (4th) subject`, httpStatus.CONFLICT, {
+    throw new AppError(`${noChoice.length} student(s) have not chosen their main or 4th subject`, httpStatus.CONFLICT, {
       students: noChoice.map((s) => ({ enrollmentId: s.enrollmentId, student: s.student, section: s.section })),
     });
   }
@@ -209,8 +217,13 @@ const publishResult = async (auth: Auth, data: ExamClassPayload) => {
   const attendanceTo = examClass.exam.attendanceTo ?? lastDay;
   const attendanceOf = await attendanceOver(students.map((s) => s.enrollmentId), attendanceFrom, attendanceTo);
 
+  const classSubjectOf = new Map(subjects.map((s) => [s.id, s.classSubject.id]));
   const results = students.map((s) => {
-    const own = [...s.examSubjectIds].map((id) => subjectInputs.get(id)!);
+    // the 4th subject is each student's own (Higher Math is one student's 4th, another's main)
+    const own = [...s.examSubjectIds].map((id) => ({
+      ...subjectInputs.get(id)!,
+      isOptional: isFourthFor({ id: classSubjectOf.get(id)! }, { fourthId: s.optionalClassSubjectId }),
+    }));
     const result = computeStudentResult(rules, own, marksOf.get(s.enrollmentId) ?? new Map());
     return { ...s, result, passed: result.passed, gpa: result.gpa, totalMarks: result.totalMarks };
   });
@@ -409,8 +422,12 @@ const getTabulation = async (schoolId: string, query: TabulationQuery) => {
   const columns = new Map<string, { subjectId: string; nameEn: string | null; nameBn: string | null; code: string | null; isOptional: boolean; sortOrder: number }>();
   for (const r of results) {
     for (const s of r.subjects) {
-      if (!columns.has(s.subjectId)) {
+      const column = columns.get(s.subjectId);
+      if (!column) {
         columns.set(s.subjectId, { subjectId: s.subjectId, nameEn: s.nameEn, nameBn: s.nameBn, code: s.code, isOptional: s.isOptional, sortOrder: s.sortOrder });
+      } else if (!s.isOptional) {
+        // a "main or 4th" subject: a 4th column only when it is every student's 4th (each cell says)
+        column.isOptional = false;
       }
     }
   }

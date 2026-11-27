@@ -17,6 +17,7 @@ import { FeeTypesTab } from "../finance/FeeTypesTab";
 import { FinanceSettingsTab } from "../finance/FinanceSettingsTab";
 import { DuesReport } from "../finance/money/ReportsTab";
 import { OnlinePaymentTab } from "../finance/OnlinePaymentTab";
+import { PageHero } from "@/components/layout/PageHero";
 
 /**
  * Fees: collecting them, payments, dues, what each class pays, the kinds of fees, online
@@ -56,11 +57,8 @@ export function FeesPage() {
   // the family login: its children's receipts
   if (staffTabs.length === 0 && isFamily) {
     return (
-      <div className="space-y-4">
-        <div>
-          <h1 className="page-title">{t("familyTitle")}</h1>
-          <p className="page-subtitle">{t("familyDescription")}</p>
-        </div>
+      <div className="space-y-2">
+        <PageHero title={t("familyTitle")} description={t("familyDescription")} />
         <FamilyPayments />
       </div>
     );
@@ -68,14 +66,11 @@ export function FeesPage() {
 
   return (
     <RequirePermission permission={FEES_PERMISSIONS} any>
-      <div className="space-y-4">
-        <div className="no-print">
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
+      <div className="space-y-2">
+        <PageHero title={t("title")} description={t("description")} className="no-print" />
 
-        <Tabs value={tab ?? tabs[0]} onValueChange={setTab}>
-          <TabsList className="no-print">
+        <Tabs value={tab ?? tabs[0]} onValueChange={setTab} className="gap-2">
+          <TabsList variant="strip" className="no-print">
             {tabs.map((name) => (
               <TabsTrigger key={name} value={name}>
                 {t(`tabs.${name}` as "tabs.collect")}

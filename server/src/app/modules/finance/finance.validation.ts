@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MidYearFeeRule } from "../../../../generated/prisma/enums";
+import { trackSchema } from "../../shared/academicYears";
 
 // the whole settings form is sent when saving
 const saveSettings = z.strictObject({
@@ -16,9 +17,10 @@ const collectionReportQuery = z
   .refine((d) => !d.from || !d.to || d.from <= d.to, { message: "The start must be before the end", path: ["to"] });
 
 const duesReportQuery = z.object({
-  // defaults to the current academic year
+  // defaults to the current academic year (of the class's track, or of this track)
   academicYearId: z.string().trim().min(1).optional(),
-  // one class: each student who owes; left out = every class
+  track: trackSchema.optional(),
+  // one class: each student who owes; left out = every class (of the year's track)
   classId: z.string().trim().min(1).optional(),
 });
 

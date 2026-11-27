@@ -14,12 +14,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCan, useSchoolMe } from "@/lib/auth/hooks";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears } from "@/lib/school/academicYears";
-import { useClasses } from "@/lib/school/classes";
+import { currentYearOf, useAcademicYears, yearsOfTrack } from "@/lib/school/academicYears";
+import { classesOfTrack, useClasses } from "@/lib/school/classes";
+import { useTrack } from "@/lib/school/tracks";
+import { TrackSwitch } from "@/components/school/years/TrackSwitch";
 import { ID_CARD_TEMPLATES, useIdCards, useIdCardSchool, useIdCardSettings, useSaveIdCardSettings, type IdCard, type IdCardSettings, type IdCardYear } from "@/lib/school/idCards";
 import { cn } from "@/lib/utils";
 import { IdCardPrint, PER_SHEET } from "./IdCardPrint";
 import { IdCardBack, IdCardFront } from "./IdCardTemplates";
+import { PageHero } from "@/components/layout/PageHero";
 
 const ALL = "all";
 const PREVIEW = 6;
@@ -30,13 +33,10 @@ export function IdCardsPage() {
   const t = useTranslations("school.idCards");
   const can = useCan();
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
-      <Tabs defaultValue="print">
-        <TabsList>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
+      <Tabs defaultValue="print" className="gap-2">
+        <TabsList variant="strip">
           <TabsTrigger value="print">{t("tabs.print")}</TabsTrigger>
           <TabsTrigger value="design">{t("tabs.design")}</TabsTrigger>
         </TabsList>
@@ -64,9 +64,18 @@ function PrintTab() {
   const [sectionId, setSectionId] = useState<string>(ALL);
   const [withBacks, setWithBacks] = useState(true);
 
-  const yearList = years.data ?? [];
-  const shownYear = yearId ?? yearList.find((y) => y.isCurrent)?.id;
-  const sections = classes.data?.items.find((c) => c.id === classId)?.sections.filter((s) => !s.isDefault) ?? [];
+  // school or college (an institution with both): its years and classes
+  const { track, setTrack: switchTrack } = useTrack();
+  const setTrack = (next: typeof track) => {
+    switchTrack(next);
+    setYearId(undefined);
+    setClassId(ALL);
+    setSectionId(ALL);
+  };
+  const yearList = yearsOfTrack(years.data, track);
+  const classList = classesOfTrack(classes.data?.items, track);
+  const shownYear = (yearId && yearList.some((y) => y.id === yearId) ? yearId : undefined) ?? currentYearOf(yearList, track)?.id;
+  const sections = classList.find((c) => c.id === classId)?.sections.filter((s) => !s.isDefault) ?? [];
   const cards = useIdCards(
     {
       ...(shownYear ? { academicYearId: shownYear } : {}),
@@ -74,7 +83,7 @@ function PrintTab() {
       ...(classId !== ALL && sectionId !== ALL ? { sectionId } : {}),
     },
     // the whole school at once only when a class is chosen or the school is small
-    classId !== ALL || (classes.data?.items.length ?? 0) <= 3,
+    classId !== ALL || classList.length <= 3,
   );
   const data = cards.data;
   const sheets = data ? Math.ceil(data.cards.length / PER_SHEET) : 0;
@@ -82,6 +91,7 @@ function PrintTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-2">
+        <TrackSwitch value={track} onChange={setTrack} className="self-end" />
         {yearList.length > 1 && (
           <Select value={shownYear} onValueChange={setYearId}>
             <SelectTrigger className="w-36" label={t("year")} required>
@@ -108,7 +118,7 @@ function PrintTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>{t("allClasses")}</SelectItem>
-            {classes.data?.items.map((c) => (
+            {classList.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
               </SelectItem>
@@ -143,7 +153,7 @@ function PrintTab() {
         </div>
       </div>
 
-      {classId === ALL && (classes.data?.items.length ?? 0) > 3 ? (
+      {classId === ALL && classList.length > 3 ? (
         <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("chooseClass")}</p>
       ) : cards.isPending ? (
         <Skeleton className="h-72" />

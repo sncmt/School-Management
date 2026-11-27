@@ -13,6 +13,9 @@ import type { HolidayType } from "../../../../generated/prisma/enums";
  *   5. otherwise a school day
  * For teachers, a school holiday counts only when it covers all classes and teachersOff is
  * set, and any make-up working day is a working day.
+ *
+ * An entry "for all classes" means all classes of its year's track: a college-year holiday
+ * doesn't close the school classes of an institution with both (national holidays close both).
  */
 
 type Db = Prisma.TransactionClient;
@@ -30,7 +33,7 @@ export type Calendar = Awaited<ReturnType<typeof loadCalendar>>;
 
 /* Everything that can affect the days from `from` to `to` (inclusive). */
 export const loadCalendar = async (db: Db, schoolId: string, from: Date, to: Date) => {
-  const [rules, nationals, entries] = await Promise.all([
+  const [rules, nationals, entries, classes] = await Promise.all([
     db.weeklyHolidayRule.findMany({
       where: { schoolId, effectiveFrom: { lte: to } },
       orderBy: { effectiveFrom: "asc" },
@@ -58,8 +61,10 @@ export const loadCalendar = async (db: Db, schoolId: string, from: Date, to: Dat
         allClasses: true,
         teachersOff: true,
         classes: { select: { classId: true } },
+        academicYear: { select: { track: true } },
       },
     }),
+    db.schoolClass.findMany({ where: { schoolId }, select: { id: true, track: true } }),
   ]);
 
   const span = (e: { fromDate: Date; toDate: Date }) => e.toDate.getTime() - e.fromDate.getTime();
@@ -67,8 +72,9 @@ export const loadCalendar = async (db: Db, schoolId: string, from: Date, to: Dat
     rules,
     // the shortest first: Eid inside the summer vacation is shown as Eid
     nationals: nationals.sort((a, b) => span(a) - span(b)),
+    trackOfClass: new Map(classes.map((c) => [c.id, c.track])),
     entries: entries
-      .map((e) => ({ ...e, classIds: new Set(e.classes.map((c) => c.classId)) }))
+      .map(({ academicYear, ...e }) => ({ ...e, track: academicYear.track, classIds: new Set(e.classes.map((c) => c.classId)) }))
       .sort((a, b) => span(a) - span(b)),
   };
 };
@@ -93,7 +99,12 @@ export const weeklyHolidaysOn = (calendar: Calendar, day: Date) => {
 export const dayStatus = (calendar: Calendar, day: Date, who: { classId: string } | "TEACHERS"): DayStatus => {
   const forTeachers = who === "TEACHERS";
   const applies = (e: Calendar["entries"][number]) =>
-    covers(e, day) && (forTeachers ? true : e.allClasses || e.classIds.has(who.classId));
+    covers(e, day) &&
+    (forTeachers
+      ? true
+      : e.allClasses
+        ? (calendar.trackOfClass.get(who.classId) ?? e.track) === e.track
+        : e.classIds.has(who.classId));
 
   const holiday = calendar.entries.find(
     (e) => e.kind === "HOLIDAY" && applies(e) && (!forTeachers || (e.allClasses && e.teachersOff)),

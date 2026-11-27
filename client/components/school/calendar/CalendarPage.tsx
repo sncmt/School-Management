@@ -4,13 +4,15 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCan } from "@/lib/auth/hooks";
-import { useAcademicYears } from "@/lib/school/academicYears";
+import { currentYearOf, useAcademicYears } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
 import type { CalendarEntry } from "@/lib/school/calendar";
 import { EntriesTab } from "./EntriesTab";
 import { EntryFormDialog, type EntryDefaults } from "./EntryFormDialog";
 import { MonthView } from "./MonthView";
 import { NationalHolidaysTab } from "./NationalHolidaysTab";
 import { WeeklyHolidaysTab } from "./WeeklyHolidaysTab";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** The school calendar: month view, the school's own entries, national holidays, weekly days off. */
 export function CalendarPage() {
@@ -18,6 +20,7 @@ export function CalendarPage() {
   const can = useCan();
   const canManage = can("holiday:manage");
   const years = useAcademicYears();
+  const { main } = useInstitutionTracks();
 
   const [tab, setTab] = useState("month");
   const [yearId, setYearId] = useState<string | undefined>();
@@ -25,18 +28,16 @@ export function CalendarPage() {
   const [form, setForm] = useState<{ entry: CalendarEntry | null; defaults?: EntryDefaults } | null>(null);
 
   const yearList = years.data ?? [];
-  const shownYearId = yearId ?? yearList.find((y) => y.isCurrent)?.id ?? yearList[0]?.id;
+  // the main track's current year (with school and college: the school year)
+  const shownYearId = yearId ?? currentYearOf(yearList, main)?.id ?? currentYearOf(yearList)?.id ?? yearList[0]?.id;
   const noYears = years.isSuccess && yearList.length === 0;
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+      <Tabs value={tab} onValueChange={setTab} className="gap-2">
+        <TabsList variant="strip">
           <TabsTrigger value="month">{t("tabs.month")}</TabsTrigger>
           <TabsTrigger value="entries">{t("tabs.entries")}</TabsTrigger>
           <TabsTrigger value="national">{t("tabs.national")}</TabsTrigger>

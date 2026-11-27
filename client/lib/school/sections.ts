@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
+import type { AcademicTrack } from "@/lib/school/academicYears";
 
 /** A section's settings for one academic year (all optional until set). */
 export type SectionYearConfig = {
@@ -33,6 +34,8 @@ export type Section = {
 
 export type SectionList = {
   academicYear: { id: string; name: string } | null;
+  // the current year of each track; each section's year info is from its own track's year
+  currentYears?: { id: string; name: string; track: AcademicTrack }[];
   items: Section[];
 };
 

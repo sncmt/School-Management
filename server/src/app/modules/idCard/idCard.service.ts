@@ -3,6 +3,7 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { fileUrl } from "../../shared/storage";
+import { requireYear, trackOfSection } from "../../shared/academicYears";
 import { idCardSettingsSchema, type IdCardSettings, type IdCardsQuery } from "./idCard.validation";
 
 /*
@@ -40,10 +41,13 @@ const saveSettings = async (schoolId: string, userId: string, data: IdCardSettin
 const roll = (r: string | null) => (r && /^\d+$/.test(r) ? Number(r) : Number.MAX_SAFE_INTEGER);
 
 const getCards = async (schoolId: string, query: IdCardsQuery) => {
-  const year = query.academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: query.academicYearId, schoolId }, select: { id: true, name: true, startDate: true, endDate: true } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true, startDate: true, endDate: true } });
-  if (!year) throw new AppError(query.academicYearId ? "Academic year not found!" : "Set the current academic year first", httpStatus.BAD_REQUEST);
+  // no year: the current year of the class's (or section's) track, or of the track asked for
+  const sectionTrack = query.sectionId ? await trackOfSection(prisma, schoolId, query.sectionId) : null;
+  const year = await requireYear(prisma, schoolId, {
+    academicYearId: query.academicYearId,
+    track: query.track ?? sectionTrack,
+    classId: query.classId,
+  });
 
   const [school, settings, enrollments] = await Promise.all([
     prisma.school.findUnique({ where: { id: schoolId }, select: { nameEn: true, nameBn: true, logo: true, address: true, phone: true, email: true, website: true } }),

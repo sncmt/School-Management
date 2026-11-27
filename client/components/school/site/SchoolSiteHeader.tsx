@@ -14,7 +14,7 @@ import { siteContainer, siteFocus, splitName } from "./siteStyles";
 /*
  * The header of the school's public homepage, as in the mockup, in two parts:
  * - a 40px white utility bar, all in the school's deep accent (13px text, its icons, light bars): phone, email and
- *   address on the left, parted by light bars; the ways in ("Student portal | Log in", or
+ *   address on the left, parted by light bars; the way in ("Log in", or
  *   "Dashboard" once logged in) and the language on the right. It scrolls away with the page;
  * - the 80px white bar under it, which stays at the top (a little see-through, a hairline and a
  *   soft shadow under it): the school's 56px round logo and its name over two lines in the deep
@@ -87,16 +87,10 @@ export async function SchoolSiteHeader({ school, onHome = true }: { school: Scho
                 {t("dashboard")}
               </Link>
             ) : (
-              <>
-                <Link href={login} className={`hidden rounded-sm hover:underline sm:inline ${siteFocus}`}>
-                  {t("studentPortal")}
-                </Link>
-                {bar("portal-bar", "sm")}
-                <Link href={login} className={`inline-flex items-center gap-1.5 rounded-sm hover:underline ${siteFocus}`}>
-                  <LogIn aria-hidden className="size-3.5" />
-                  {t("logIn")}
-                </Link>
-              </>
+              <Link href={login} className={`inline-flex items-center gap-1.5 rounded-sm hover:underline ${siteFocus}`}>
+                <LogIn aria-hidden className="size-3.5" />
+                {t("logIn")}
+              </Link>
             )}
             {bar("language-bar", "always")}
             <SiteLanguageMenu />

@@ -5,7 +5,7 @@ enum AnnouncementKind {
   MAINTENANCE
 }
 
-/*
+/**
  * A note from the platform to every school's super admin: a new feature, a change in how
  * something works, planned maintenance. Written in both languages; each school reads its own.
  * It shows in the school's header bell (a school sees only those written after it joined).
@@ -31,7 +31,9 @@ model PlatformAnnouncement {
   @@index([createdAt])
 }
 
-/* A super admin has opened an announcement: unread ones make the bell's badge. */
+/**
+ * A super admin has opened an announcement: unread ones make the bell's badge.
+ */
 model PlatformAnnouncementRead {
   id String @id @default(cuid())
 

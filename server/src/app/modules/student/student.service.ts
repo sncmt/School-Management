@@ -21,6 +21,7 @@ import { isUniqueViolation } from "../../utils/prismaError";
 import { DEFAULT_SECTION_NAME } from "../class/class.service";
 import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { assertStudentRoom } from "../package/package.service";
+import { assertClassesInTrack, trackOfClass, trackOfSection } from "../../shared/academicYears";
 import { processImage } from "../../shared/imageUpload";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
 import { dayKey, endOfBangladeshDay, todayInBangladesh } from "../../shared/scheduleSchemas";
@@ -101,16 +102,22 @@ const accountPayload = (
 
 // ------------------------------------------------------------------- helpers
 
-const resolveAcademicYear = async (db: Db, schoolId: string, academicYearId?: string) => {
+/*
+ * The year a student is placed in: the one given, or the current year of the class's track
+ * (school or college). The class must belong to the year's track.
+ */
+const resolveAcademicYear = async (db: Db, schoolId: string, academicYearId: string | undefined, classId: string) => {
+  const track = academicYearId ? undefined : ((await trackOfClass(db, schoolId, classId)) ?? undefined);
   const year = academicYearId
     ? await db.academicYear.findFirst({ where: { id: academicYearId, schoolId } })
-    : await db.academicYear.findFirst({ where: { schoolId, isCurrent: true } });
+    : await db.academicYear.findFirst({ where: { schoolId, isCurrent: true, ...(track ? { track } : {}) } });
 
   if (!year) {
     throw academicYearId
       ? new AppError("Academic year not found for this school", httpStatus.NOT_FOUND)
       : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
   }
+  await assertClassesInTrack(db, schoolId, [classId], year);
   return year;
 };
 
@@ -251,7 +258,7 @@ const createStudent = async (schoolId: string, data: CreateStudentPayload) => {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const academicYear = await resolveAcademicYear(tx, schoolId, enr.academicYearId);
+      const academicYear = await resolveAcademicYear(tx, schoolId, enr.academicYearId, enr.classId);
       // no section chosen: the class's whole-class section (only for a class without sections)
       const sectionId = enr.sectionId ?? (await wholeClassSection(tx, schoolId, enr.classId));
       await assertPlacement(tx, schoolId, { ...enr, sectionId });
@@ -438,7 +445,9 @@ const alignFees = async (
   }
 
   const enrollment = await tx.enrollment.findFirst({
+    // the current year of the student's own track (school or college)
     where: { studentId: before.id, status: "ACTIVE", academicYear: { schoolId, isCurrent: true } },
+    orderBy: { academicYear: { startDate: "desc" } },
     select: { academicYearId: true, classId: true },
   });
   if (!enrollment || hasLeft(status)) return;
@@ -569,17 +578,23 @@ const updateStudent = async (schoolId: string, studentId: string, data: UpdateSt
 
 /*
  * Moves a student to another section, group or roll number in the current academic
- * year, inside the same class. Changing class is a promotion, done elsewhere.
+ * year (of their own track: school or college), inside the same class. Changing class is a
+ * promotion, done elsewhere.
  */
 const changePlacement = async (schoolId: string, studentId: string, data: ChangePlacementPayload) => {
   const admissionFees = await prisma.$transaction(async (tx) => {
-    const year = await resolveAcademicYear(tx, schoolId);
     const enrollment = await tx.enrollment.findFirst({
-      where: { studentId, academicYearId: year.id, student: { schoolId } },
+      where: { studentId, student: { schoolId }, academicYear: { schoolId, isCurrent: true } },
+      orderBy: { academicYear: { startDate: "desc" } },
+      include: { academicYear: { select: { id: true, name: true } } },
     });
     if (!enrollment) {
-      throw new AppError(`This student isn't enrolled in ${year.name}`, httpStatus.NOT_FOUND);
+      const any = await tx.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } });
+      throw any
+        ? new AppError("This student isn't enrolled in the current academic year", httpStatus.NOT_FOUND)
+        : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
     }
+    const year = enrollment.academicYear;
 
     const sectionId = data.sectionId ?? enrollment.sectionId;
     const groupId = data.groupId === undefined ? enrollment.groupId : data.groupId;
@@ -664,9 +679,24 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
     limit,
   } = query;
 
-  const yearId =
-    academicYearId ??
-    (await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } }))?.id;
+  // no year given: the current year of the class's (or section's, or the asked) track. With no
+  // class, section or track, every track's current year: each student shows the enrollment of
+  // their own track (one track: the school's current year, as before).
+  const track = academicYearId
+    ? undefined
+    : ((classId ? await trackOfClass(prisma, schoolId, classId) : null) ??
+      (sectionId ? await trackOfSection(prisma, schoolId, sectionId) : null) ??
+      query.track);
+  const yearIds = academicYearId
+    ? [academicYearId]
+    : (
+        await prisma.academicYear.findMany({
+          where: { schoolId, isCurrent: true, ...(track ? { track } : {}) },
+          select: { id: true },
+        })
+      ).map((y) => y.id);
+  const yearId = yearIds[0];
+  const yearIn = { in: yearIds };
 
   const placementFilter = Boolean(classId || sectionId || groupId || admissionType);
   if (placementFilter && !yearId) {
@@ -698,7 +728,7 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
       ? {
           enrollments: {
             some: {
-              academicYearId: yearId,
+              academicYearId: yearIn,
               ...(classId ? { classId } : {}),
               ...(sectionId ? { sectionId } : {}),
               ...(groupId ? { groupId } : {}),
@@ -713,7 +743,7 @@ const getStudents = async (schoolId: string, query: ListStudentsQuery) => {
   const include = {
     // the enrollment for the chosen (or current) year, else the latest one
     enrollments: {
-      where: yearId ? { academicYearId: yearId } : undefined,
+      where: yearId ? { academicYearId: yearIn } : undefined,
       orderBy: { academicYear: { startDate: "desc" as const } },
       take: 1,
       select: enrollmentSelect,
@@ -807,7 +837,7 @@ const placeStudent = async (schoolId: string, studentId: string, enr: PlaceStude
   prisma.$transaction(async (tx) => {
     const student = await tx.student.findFirst({ where: { id: studentId, schoolId }, select: { id: true } });
     if (!student) throw new AppError("Student not found", httpStatus.NOT_FOUND);
-    const academicYear = await resolveAcademicYear(tx, schoolId, enr.academicYearId);
+    const academicYear = await resolveAcademicYear(tx, schoolId, enr.academicYearId, enr.classId);
     const placed = await tx.enrollment.findFirst({ where: { studentId, academicYearId: academicYear.id }, select: { id: true } });
     if (placed) throw new AppError("This student already has a class in this year", httpStatus.CONFLICT);
 

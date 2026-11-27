@@ -29,7 +29,7 @@ export function FamilyPayments() {
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const list = useFamilyPayments({ page, limit: PAGE_SIZE, ...(studentId !== ALL ? { studentId } : {}) }, ready && isFamily);
 
-  if (!ready || (isFamily && list.isPending)) return <Skeleton className="h-72 rounded-xl" />;
+  if (!ready || (isFamily && list.isPending)) return <Skeleton className="h-72 rounded-2xl" />;
   if (!isFamily) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("familyOnly")}</p>;
   if (list.error) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(list.error)}</p>;
 
@@ -41,7 +41,7 @@ export function FamilyPayments() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-2">
       {data.children.length > 1 && (
         <div className="flex flex-wrap gap-2" role="group" aria-label={t("child")}>
           {[{ id: ALL, label: t("allChildren") }, ...data.children.map((c) => ({ id: c.id, label: name(c) }))].map((c) => (

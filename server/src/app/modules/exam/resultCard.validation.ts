@@ -32,8 +32,8 @@ export const cardSettingsSchema = z.object({
   highestMarks: z.enum(["NONE", "SECTION", "CLASS"]).default("CLASS"),
   showGrade: z.boolean().default(true),
   showPoint: z.boolean().default(true),
-  // final result cards: each component's percentage (Half-yearly 30%, Annual 70%…)
-  showComponents: z.boolean().default(true),
+  // final result cards: each component's percentage (Half-yearly 30%, Annual 70%…); off unless the school turns it on
+  showComponents: z.boolean().default(false),
 
   // below the table
   position: z.enum(["NONE", "SECTION", "CLASS", "BOTH"]).default("SECTION"),

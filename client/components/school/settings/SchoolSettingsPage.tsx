@@ -31,6 +31,7 @@ import { AdmissionCard } from "./AdmissionCard";
 import { FacilitiesCard } from "./FacilitiesCard";
 import { SiteTeachersCard } from "./SiteTeachersCard";
 import { PhotoListCard } from "./PhotoListCard";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** The school's own settings (super admin only): the colours of its site, and its homepage's slider and admission section. */
 export function SchoolSettingsPage() {
@@ -40,18 +41,18 @@ export function SchoolSettingsPage() {
   if (me && !me.isSuperAdmin) return <p className="py-12 text-center text-sm text-muted-foreground">{t("superAdminOnly")}</p>;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <div className="space-y-1">
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
+      {/* the cards keep a reading width under the full-width panel */}
+      <div className="mx-auto max-w-3xl space-y-5">
+        <AppearanceCard />
+        <PhotoListCard list="slides" />
+        <AboutCard />
+        <SiteTeachersCard />
+        <FacilitiesCard />
+        <AdmissionCard />
+        <PhotoListCard list="gallery" icon={GalleryHorizontalEnd} />
       </div>
-      <AppearanceCard />
-      <PhotoListCard list="slides" />
-      <AboutCard />
-      <SiteTeachersCard />
-      <FacilitiesCard />
-      <AdmissionCard />
-      <PhotoListCard list="gallery" icon={GalleryHorizontalEnd} />
     </div>
   );
 }

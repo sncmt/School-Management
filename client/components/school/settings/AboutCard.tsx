@@ -203,7 +203,7 @@ function AboutForm({ saved }: { saved: About }) {
       </div>
 
       {/* the principal's message: shown beside the about text, hidden while the message is empty */}
-      <fieldset className="space-y-5 rounded-xl border border-border/70 p-4 sm:p-5">
+      <fieldset className="min-w-0 space-y-5 rounded-xl border border-border/70 p-4 sm:p-5">
         <legend className="px-1 text-sm font-semibold">{t("principal")}</legend>
         <p className="-mt-2 text-xs text-muted-foreground">{t("principalHint")}</p>
         <PrincipalPhoto photo={saved.principalPhoto} />
@@ -266,7 +266,7 @@ function AboutForm({ saved }: { saved: About }) {
       </div>
 
       {/* the footer's icons: each shows only when its link is filled in */}
-      <fieldset className="space-y-4 rounded-xl border border-border/70 p-4 sm:p-5">
+      <fieldset className="min-w-0 space-y-4 rounded-xl border border-border/70 p-4 sm:p-5">
         <legend className="px-1 text-sm font-semibold">{t("social")}</legend>
         <p className="-mt-2 text-xs text-muted-foreground">{t("socialHint")}</p>
         <div className="grid gap-4 sm:grid-cols-3">

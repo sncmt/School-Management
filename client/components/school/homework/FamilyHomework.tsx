@@ -28,12 +28,12 @@ export function FamilyHomework() {
   const childId = chosen ?? children[0]?.id;
   const list = useFamilyHomework(childId, page);
 
-  if (home.isPending) return <Skeleton className="h-64 rounded-xl" />;
+  if (home.isPending) return <Skeleton className="h-64 rounded-2xl" />;
   if (home.error) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(home.error)}</p>;
   if (children.length === 0) return <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{t("noChildren")}</p>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {children.length > 1 && (
         <div className="flex flex-wrap gap-2" role="tablist">
           {children.map((c) => (
@@ -62,9 +62,9 @@ export function FamilyHomework() {
       )}
 
       {list.isPending ? (
-        <div className="space-y-3">
-          <Skeleton className="h-28 rounded-xl" />
-          <Skeleton className="h-28 rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-28 rounded-2xl" />
+          <Skeleton className="h-28 rounded-2xl" />
         </div>
       ) : list.error ? (
         <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(list.error)}</p>
@@ -75,7 +75,7 @@ export function FamilyHomework() {
         </div>
       ) : (
         <>
-          <ul className="space-y-3">
+          <ul className="space-y-2">
             {list.data.items.map((hw) => (
               <li key={hw.id}>
                 <HomeworkCard homework={hw} />

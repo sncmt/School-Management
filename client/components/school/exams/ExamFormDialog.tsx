@@ -21,7 +21,8 @@ import { applyServerErrors } from "@/lib/auth/formErrors";
 import { dayKey } from "@/lib/dates";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useClasses } from "@/lib/school/classes";
+import { classesOfTrack, useClasses } from "@/lib/school/classes";
+import type { AcademicTrack } from "@/lib/school/academicYears";
 import { useCreateExam, useUpdateExam, type Exam } from "@/lib/school/exams";
 import { cn } from "@/lib/utils";
 import { examFormSchema, type ExamFormInput, type ExamFormValues } from "@/zod/exam";
@@ -33,11 +34,14 @@ const FIELDS: FieldPath<ExamFormInput>[] = ["nameEn", "nameBn", "type", "classId
 export function ExamFormDialog({
   open,
   exam,
+  year,
   onClose,
   onCreated,
 }: {
   open: boolean;
   exam: Exam | null;
+  // a new exam: the year it is for (left out: the current year)
+  year?: { id: string; track?: AcademicTrack };
   onClose: () => void;
   onCreated?: (exam: Exam) => void;
 }) {
@@ -49,13 +53,23 @@ export function ExamFormDialog({
           <DialogTitle>{exam ? t("editTitle") : t("addTitle")}</DialogTitle>
           <DialogDescription>{exam ? t("editDescription") : t("description")}</DialogDescription>
         </DialogHeader>
-        {open && <ExamForm key={exam?.id ?? "new"} exam={exam} onDone={onClose} onCreated={onCreated} />}
+        {open && <ExamForm key={exam?.id ?? "new"} exam={exam} year={year} onDone={onClose} onCreated={onCreated} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function ExamForm({ exam, onDone, onCreated }: { exam: Exam | null; onDone: () => void; onCreated?: (exam: Exam) => void }) {
+function ExamForm({
+  exam,
+  year,
+  onDone,
+  onCreated,
+}: {
+  exam: Exam | null;
+  year?: { id: string; track?: AcademicTrack };
+  onDone: () => void;
+  onCreated?: (exam: Exam) => void;
+}) {
   const t = useTranslations("school.exams.examForm");
   const describeError = useErrorMessage();
   const language = useSchoolLanguage();
@@ -96,6 +110,7 @@ function ExamForm({ exam, onDone, onCreated }: { exam: Exam | null; onDone: () =
         toast.success(t("updated", { name: name(values) }));
       } else {
         const created = await create.mutateAsync({
+          ...(year ? { academicYearId: year.id } : {}),
           nameEn: values.nameEn,
           nameBn: values.nameBn,
           type: values.type,
@@ -173,7 +188,8 @@ function ExamForm({ exam, onDone, onCreated }: { exam: Exam | null; onDone: () =
             render={({ field }) => (
               <FormItem>
                 <div className="grid grid-cols-2 gap-2 rounded-md border p-3 sm:grid-cols-4">
-                  {(classes.data?.items ?? []).map((c) => (
+                  {/* the year's own classes (a college year: the college classes) */}
+                  {classesOfTrack(classes.data?.items, year?.track).map((c) => (
                     <label key={c.id} className="flex cursor-pointer items-center gap-2 text-sm">
                       <input
                         type="checkbox"

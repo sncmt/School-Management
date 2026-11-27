@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function SchoolExamsPage() {
   return (
     <RequirePermission permission={["exam:view", "grading:view"]} any>
-      {/* the open part is in the address (?part=marks) */}
+      {/* the open tab is in the address (?tab=marks) */}
       <Suspense>
         <ExamsPage />
       </Suspense>

@@ -1,5 +1,6 @@
 import type { Prisma } from "../../../../generated/prisma/client";
 import { endOfBangladeshDay } from "../../shared/scheduleSchemas";
+import { choicesOf, takesSubject } from "../../shared/subjectChoice";
 
 /*
  * Who sits which subject of a class's exam. Shared by marks entry and results.
@@ -9,6 +10,8 @@ import { endOfBangladeshDay } from "../../shared/scheduleSchemas";
  *  - a group subject only for that group's students
  *  - a religion subject only for students of that religion
  *  - an optional subject only for the students who chose it as their 4th subject
+ *  - a "main or 4th" subject for the students who took it as main or as their 4th
+ * (see shared/subjectChoice.ts)
  */
 
 type Db = Prisma.TransactionClient;
@@ -73,6 +76,7 @@ export const loadExamStudents = async (db: Db, examClassId: string, opts: { sect
       group: { select: { id: true, nameEn: true, nameBn: true } },
       student: { select: { id: true, nameEn: true, nameBn: true, admissionNo: true, religion: true, photo: true, fatherName: true, motherName: true } },
       optionalSubject: { select: { classSubjectId: true } },
+      mainSubjects: { select: { classSubjectId: true } },
     },
   });
 
@@ -82,11 +86,7 @@ export const loadExamStudents = async (db: Db, examClassId: string, opts: { sect
       (e.status === "ACTIVE" || (e.leftAt !== null && e.leftAt.getTime() >= s.date.getTime()));
     if (!onRoll) return false;
 
-    const cs = s.classSubject;
-    if (cs.groupId !== null && cs.groupId !== e.groupId) return false;
-    if (cs.subject.religion !== null && cs.subject.religion !== e.student.religion) return false;
-    if (cs.type === "OPTIONAL" && e.optionalSubject?.classSubjectId !== cs.id) return false;
-    return true;
+    return takesSubject(s.classSubject, choicesOf(e));
   };
 
   const students = enrollments
@@ -96,7 +96,9 @@ export const loadExamStudents = async (db: Db, examClassId: string, opts: { sect
       section: e.section,
       group: e.group,
       student: e.student,
+      // the 4th subject (a fixed 4th, or a "main or 4th" one not taken as main)
       optionalClassSubjectId: e.optionalSubject?.classSubjectId ?? null,
+      mainClassSubjectIds: e.mainSubjects.map((m) => m.classSubjectId),
       // the exam subjects this student sits
       examSubjectIds: new Set(subjects.filter((s) => takes(e, s)).map((s) => s.id)),
     }))

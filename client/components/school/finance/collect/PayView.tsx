@@ -34,8 +34,12 @@ export function PayView({ studentId, enrollments }: { studentId: string; enrollm
   // the year whose paid fees are shown (unpaid ones of every year always are)
   const [yearId, setYearId] = useState(enrollments[0]?.academicYearId);
   const payable = usePayableFees(studentId, yearId);
-  // one-time fees of another year show which year they are from
-  const currentYearId = useClasses().data?.academicYear?.id;
+  // one-time fees of another year show which year they are from (with school and college: the
+  // current year of the student's own track)
+  const classList = useClasses().data;
+  const currentYearId =
+    enrollments.find((e) => classList?.currentYears?.some((y) => y.id === e.academicYearId))?.academicYearId ??
+    classList?.academicYear?.id;
   const record = useRecordPayment();
   const today = bangladeshDay(new Date().toISOString());
   // the ticked fees and the amount being paid on each

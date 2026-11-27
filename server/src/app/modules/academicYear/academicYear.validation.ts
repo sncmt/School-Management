@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { idSchema } from "../../shared/financeSchemas";
+import { trackSchema } from "../../shared/academicYears";
 import { dateOnlySchema } from "../../shared/scheduleSchemas";
 
 const name = z
@@ -15,6 +16,9 @@ const createAcademicYear = z
     startDate: dateOnlySchema,
     endDate: dateOnlySchema,
     isCurrent: z.boolean().optional().default(false),
+    // school or college; only asked of an institution that has both (the others get their one track).
+    // It never changes afterwards: the year's classes, enrollments and fees all belong to it.
+    track: trackSchema.optional(),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: "End date must be after start date",

@@ -8,7 +8,8 @@ import type {
   GetAllSchoolsQuery,
   UpdateSchoolPayload,
 } from "./school.type";
-import type { SchoolStatus } from "../../../../generated/prisma/enums";
+import type { InstitutionType, SchoolStatus } from "../../../../generated/prisma/enums";
+import { tracksOf } from "../../shared/academicYears";
 import { buildQueryOptions, paginate } from "../../utils/queryBuilder";
 import { Prisma } from "../../../../generated/prisma/client";
 import { PasswordUtils } from "../../utils/password";
@@ -413,9 +414,12 @@ const getSchoolById = async (schoolId: string) => {
 const updateSchool = async (schoolId: string, data: UpdateSchoolPayload) => {
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
-    select: { id: true, email: true, activationDate: true, packageId: true },
+    select: { id: true, email: true, activationDate: true, packageId: true, institutionType: true },
   });
   if (!school) throw new AppError("School not found", httpStatus.NOT_FOUND);
+
+  const typeChanges = data.institutionType !== undefined && data.institutionType !== school.institutionType;
+  if (typeChanges) await assertTypeChange(schoolId, school.institutionType, data.institutionType!);
 
   // another package: one that is switched on (staying on a switched-off one is fine)
   if (data.packageId && data.packageId !== school.packageId) await assertChoosablePackage(prisma, data.packageId);
@@ -449,7 +453,39 @@ const updateSchool = async (schoolId: string, data: UpdateSchoolPayload) => {
     if (phoneTaken) throw new AppError("Phone is already in use by another school", httpStatus.CONFLICT);
   }
 
-  return prisma.school.update({ where: { id: schoolId }, data });
+  if (!typeChanges) return prisma.school.update({ where: { id: schoolId }, data });
+  return prisma.$transaction(async (tx) => {
+    // school <-> college: the one track is renamed, with everything in it
+    const from = tracksOf(school.institutionType);
+    const to = tracksOf(data.institutionType!);
+    if (from.length === 1 && to.length === 1) {
+      await tx.schoolClass.updateMany({ where: { schoolId }, data: { track: to[0] } });
+      await tx.academicYear.updateMany({ where: { schoolId }, data: { track: to[0] } });
+    }
+    return tx.school.update({ where: { id: schoolId }, data });
+  });
+};
+
+/*
+ * Changing what an institution teaches:
+ * - school <-> college (one track to the other): allowed; its classes and years move along.
+ * - one track -> both: allowed; the new track starts empty.
+ * - both -> one track: only when the track it gives up has no classes and no years.
+ */
+const assertTypeChange = async (schoolId: string, from: InstitutionType, to: InstitutionType) => {
+  const dropped = tracksOf(from).filter((t) => !tracksOf(to).includes(t));
+  if (tracksOf(from).length === 1 || dropped.length === 0) return;
+  const [classes, years] = await Promise.all([
+    prisma.schoolClass.count({ where: { schoolId, track: { in: dropped } } }),
+    prisma.academicYear.count({ where: { schoolId, track: { in: dropped } } }),
+  ]);
+  if (classes > 0 || years > 0) {
+    const what = dropped[0] === "COLLEGE" ? "college" : "school";
+    throw new AppError(
+      `This institution still has ${classes} ${what} class(es) and ${years} ${what} year(s). Remove or move them first`,
+      httpStatus.CONFLICT,
+    );
+  }
 };
 
 /*

@@ -1,14 +1,17 @@
 import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
-import type { Religion } from "../../../../generated/prisma/enums";
+import type { AcademicTrack, Religion } from "../../../../generated/prisma/enums";
+import { requireYear } from "../../shared/academicYears";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { displayName } from "../../shared/names";
 import { isUniqueViolation } from "../../utils/prismaError";
+import { audienceOf, audiencesDisjoint } from "../routine/routine.rules";
 import type {
   AssignSubjectsPayload,
   ListClassSubjectsQuery,
   ReorderPayload,
+  SetElectiveRulePayload,
   SetMarksPayload,
   UpdateClassSubjectPayload,
 } from "./classSubject.type";
@@ -35,19 +38,9 @@ const classSubjectInclude = {
 
 // ------------------------------------------------------------------- helpers
 
-/* The given year, or the current one when none is given. */
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId }, select: { id: true, name: true } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } });
-
-  if (!year) {
-    throw academicYearId
-      ? new AppError("Academic year not found for this school", httpStatus.NOT_FOUND)
-      : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
-  }
-  return year;
-};
+/* The given year, or the current one (of the class's track) when none is given. */
+const resolveYear = (schoolId: string, academicYearId?: string, classId?: string, track?: AcademicTrack) =>
+  requireYear(prisma, schoolId, { academicYearId, classId, track });
 
 const findClassSubject = async (schoolId: string, classSubjectId: string) => {
   const row = await prisma.classSubject.findFirst({
@@ -126,13 +119,12 @@ const assertConsistent = (rows: Row[], groupNames: Map<string, string>) => {
 
 /* Adds subjects to a class for a year, all or nothing. */
 const assignSubjects = async (schoolId: string, data: AssignSubjectsPayload) => {
-  const year = await resolveYear(schoolId, data.academicYearId);
-
   const schoolClass = await prisma.schoolClass.findFirst({
     where: { id: data.classId, schoolId },
     select: { id: true },
   });
   if (!schoolClass) throw new AppError("Class not found for this school", httpStatus.NOT_FOUND);
+  const year = await resolveYear(schoolId, data.academicYearId, data.classId);
 
   const subjectIds = [...new Set(data.items.map((i) => i.subjectId))];
   const groupIds = [...new Set(data.items.flatMap((i) => (i.groupId ? [i.groupId] : [])))];
@@ -207,7 +199,7 @@ const assignSubjects = async (schoolId: string, data: AssignSubjectsPayload) => 
 
 /* The subjects of one class (or every class) in a year, in their order. */
 const getClassSubjects = async (schoolId: string, query: ListClassSubjectsQuery) => {
-  const year = await resolveYear(schoolId, query.academicYearId);
+  const year = await resolveYear(schoolId, query.academicYearId, query.classId, query.track);
 
   const items = await prisma.classSubject.findMany({
     where: {
@@ -220,23 +212,128 @@ const getClassSubjects = async (schoolId: string, query: ListClassSubjectsQuery)
     orderBy: [{ class: { numericLevel: "asc" } }, { sortOrder: "asc" }, { createdAt: "asc" }],
     include: classSubjectInclude,
   });
+  // how many "main or 4th" subjects each class (or group) takes as main; none listed = 1
+  const electiveRules = await prisma.electiveRule.findMany({
+    where: { academicYearId: year.id, ...(query.classId ? { classId: query.classId } : {}) },
+    select: { classId: true, groupId: true, mainCount: true },
+  });
 
-  return { academicYear: year, items };
+  return { academicYear: year, items, electiveRules };
 };
 
 // -------------------------------------------------------------------- update
 
 const updateClassSubject = async (schoolId: string, classSubjectId: string, data: UpdateClassSubjectPayload) => {
-  await findClassSubject(schoolId, classSubjectId);
+  const current = await findClassSubject(schoolId, classSubjectId);
 
-  return prisma.classSubject.update({
-    where: { id: classSubjectId },
-    data: {
-      ...(data.type !== undefined ? { type: data.type } : {}),
-      ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
-    },
-    include: classSubjectInclude,
+  // students' picks must still make sense: main picks need a "main or 4th" subject, 4th picks
+  // a 4th or "main or 4th" one
+  if (data.type !== undefined && data.type !== current.type) {
+    const [mains, fourths] = await Promise.all([
+      current.type === "ELECTIVE" ? prisma.studentMainSubject.count({ where: { classSubjectId } }) : 0,
+      data.type === "COMPULSORY" ? prisma.studentOptionalSubject.count({ where: { classSubjectId } }) : 0,
+    ]);
+    if (mains > 0) {
+      throw new AppError(`${mains} student(s) took this as a main subject. Change their choice first`, httpStatus.CONFLICT);
+    }
+    if (fourths > 0) {
+      throw new AppError(`${fourths} student(s) chose this as their 4th subject. Change their choice first`, httpStatus.CONFLICT);
+    }
+  }
+
+  const groupChanges = data.groupId !== undefined && data.groupId !== current.groupId;
+  if (groupChanges) await assertGroupChange(schoolId, current, data.groupId ?? null);
+
+  try {
+    return await prisma.classSubject.update({
+      where: { id: classSubjectId },
+      data: {
+        ...(data.type !== undefined ? { type: data.type } : {}),
+        ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
+        ...(groupChanges ? { groupId: data.groupId ?? null } : {}),
+      },
+      include: classSubjectInclude,
+    });
+  } catch (e) {
+    if (isUniqueViolation(e)) throw new AppError("This subject is already assigned to that group", httpStatus.CONFLICT);
+    throw e;
+  }
+};
+
+/*
+ * Moving a class subject to another group, or to the whole class. The class's subject list
+ * must stay consistent (a subject is never both whole-class and group-only), and nobody outside
+ * the new group may already depend on it: students who picked it (main or 4th) or have marks in it.
+ */
+const assertGroupChange = async (
+  schoolId: string,
+  current: { id: string; academicYearId: string; classId: string; subjectId: string },
+  groupId: string | null,
+) => {
+  const groups = await prisma.group.findMany({ where: { schoolId }, select: { id: true, nameEn: true, nameBn: true } });
+  const groupNames = new Map(groups.map((g) => [g.id, displayName(g)]));
+  if (groupId && !groupNames.has(groupId)) throw new AppError("Group not found for this school", httpStatus.NOT_FOUND);
+
+  const rows = await prisma.classSubject.findMany({
+    where: { academicYearId: current.academicYearId, classId: current.classId },
+    select: { id: true, subjectId: true, groupId: true, subject: { select: { nameEn: true, nameBn: true, parentId: true, religion: true } } },
   });
+  assertConsistent(
+    rows.map((r) => (r.id === current.id ? { ...r, groupId } : r)),
+    groupNames,
+  );
+
+  // the routine: a class that shared a period with this one only because their groups differed
+  const entries = await prisma.routineEntry.findMany({
+    where: { classSubjectId: current.id },
+    select: {
+      id: true,
+      academicYearId: true,
+      weekday: true,
+      periodNumber: true,
+      sections: { select: { sectionId: true } },
+      classSubject: { select: { id: true, type: true, subject: { select: { religion: true } } } },
+    },
+  });
+  for (const e of entries) {
+    const others = await prisma.routineEntry.findMany({
+      where: {
+        id: { not: e.id },
+        academicYearId: e.academicYearId,
+        weekday: e.weekday,
+        periodNumber: e.periodNumber,
+        sections: { some: { sectionId: { in: e.sections.map((x) => x.sectionId) } } },
+      },
+      select: { classSubject: { select: { id: true, type: true, groupId: true, subject: { select: { nameEn: true, nameBn: true, religion: true } } } } },
+    });
+    const moved = audienceOf({ ...e.classSubject, groupId });
+    const clash = others.find((o) => !audiencesDisjoint(moved, audienceOf(o.classSubject)));
+    if (clash) {
+      throw new AppError(
+        `In the routine this subject shares a period with ${displayName(clash.classSubject.subject)}. Move one of them first`,
+        httpStatus.CONFLICT,
+      );
+    }
+  }
+
+  // only to one group: everyone outside it loses the subject
+  if (!groupId) return;
+  const outside = { enrollment: { OR: [{ groupId: null }, { groupId: { not: groupId } }] } };
+  const [mains, fourths, marks] = await Promise.all([
+    prisma.studentMainSubject.count({ where: { classSubjectId: current.id, ...outside } }),
+    prisma.studentOptionalSubject.count({ where: { classSubjectId: current.id, ...outside } }),
+    prisma.examMark.count({ where: { examSubject: { classSubjectId: current.id }, ...outside } }),
+  ]);
+  const groupName = groupNames.get(groupId);
+  if (mains + fourths > 0) {
+    throw new AppError(
+      `${mains + fourths} student(s) outside the ${groupName} group picked this subject. Change their choice first`,
+      httpStatus.CONFLICT,
+    );
+  }
+  if (marks > 0) {
+    throw new AppError(`Students outside the ${groupName} group already have marks in this subject`, httpStatus.CONFLICT);
+  }
 };
 
 /*
@@ -245,7 +342,7 @@ const updateClassSubject = async (schoolId: string, classSubjectId: string, data
  * Mark sheets and the tabulation sheet follow this order.
  */
 const reorderClassSubjects = async (schoolId: string, data: ReorderPayload) => {
-  const year = await resolveYear(schoolId, data.academicYearId);
+  const year = await resolveYear(schoolId, data.academicYearId, data.classId);
   const current = await prisma.classSubject.findMany({
     where: { schoolId, academicYearId: year.id, classId: data.classId },
     select: { id: true },
@@ -273,9 +370,10 @@ const reorderClassSubjects = async (schoolId: string, data: ReorderPayload) => {
 const removeClassSubject = async (schoolId: string, classSubjectId: string) => {
   await findClassSubject(schoolId, classSubjectId);
 
-  const [examined, chosen] = await Promise.all([
+  const [examined, chosen, mains] = await Promise.all([
     prisma.examSubject.count({ where: { classSubjectId } }),
     prisma.studentOptionalSubject.count({ where: { classSubjectId } }),
+    prisma.studentMainSubject.count({ where: { classSubjectId } }),
   ]);
   if (examined > 0) {
     throw new AppError("This subject is in an exam routine and cannot be removed", httpStatus.CONFLICT);
@@ -285,6 +383,9 @@ const removeClassSubject = async (schoolId: string, classSubjectId: string) => {
       `${chosen} student(s) chose this as their optional subject. Change their choice first`,
       httpStatus.CONFLICT,
     );
+  }
+  if (mains > 0) {
+    throw new AppError(`${mains} student(s) took this as a main subject. Change their choice first`, httpStatus.CONFLICT);
   }
 
   await prisma.classSubject.delete({ where: { id: classSubjectId } });
@@ -319,7 +420,45 @@ const setMarks = async (schoolId: string, classSubjectId: string, data: SetMarks
   });
 };
 
+// ------------------------------------------------------------ main or 4th
+
+/*
+ * How many of a class's "main or 4th" subjects its students (or one group's) take as main.
+ * Between 1 and one less than the number of such subjects open to them, so at least one is
+ * left for the 4th list.
+ */
+const setElectiveRule = async (schoolId: string, data: SetElectiveRulePayload) => {
+  const year = await resolveYear(schoolId, data.academicYearId, data.classId);
+  const groupId = data.groupId ?? null;
+  const electives = await prisma.classSubject.count({
+    where: {
+      schoolId,
+      academicYearId: year.id,
+      classId: data.classId,
+      type: "ELECTIVE",
+      ...(groupId ? { OR: [{ groupId: null }, { groupId }] } : { groupId: null }),
+    },
+  });
+  if (electives < 2) {
+    throw new AppError("Add at least two \"main or 4th\" subjects first", httpStatus.BAD_REQUEST);
+  }
+  if (data.mainCount > electives - 1) {
+    throw new AppError(`At most ${electives - 1}: at least one has to be left for the 4th-subject list`, httpStatus.BAD_REQUEST, [
+      { path: "mainCount", message: `At most ${electives - 1}` },
+    ]);
+  }
+  // students' main picks of the old number stay; the choices page flags them until changed
+  const existing = await prisma.electiveRule.findFirst({ where: { academicYearId: year.id, classId: data.classId, groupId } });
+  const rule = existing
+    ? await prisma.electiveRule.update({ where: { id: existing.id }, data: { mainCount: data.mainCount } })
+    : await prisma.electiveRule.create({
+        data: { schoolId, academicYearId: year.id, classId: data.classId, groupId, mainCount: data.mainCount },
+      });
+  return { classId: rule.classId, groupId: rule.groupId, mainCount: rule.mainCount };
+};
+
 export const ClassSubjectService = {
+  setElectiveRule,
   setMarks,
   reorderClassSubjects,
   assignSubjects,

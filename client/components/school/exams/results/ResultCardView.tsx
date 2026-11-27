@@ -55,24 +55,37 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
       style={{ borderColor: accent } as CSSProperties}
     >
       {/* ------------------------------------------------------------ header */}
-      <header className={cn("flex items-center gap-3", s.layout === "CLASSIC" ? "justify-center text-center" : "")}>
-        {s.showLogo && data.school?.logo && (
+      {/* classic: the words centred on the card itself, the logo in the left column and an equal
+          empty one on the right (so the logo never pushes them off centre); the others: logo then words */}
+      <header
+        className={cn(
+          "items-center",
+          s.layout === "CLASSIC"
+            ? cn("grid gap-3 text-center", compact ? "grid-cols-[3rem_minmax(0,1fr)_3rem]" : "grid-cols-[4rem_minmax(0,1fr)_4rem]")
+            : "flex gap-3",
+        )}
+      >
+        {s.showLogo && data.school?.logo ? (
           // eslint-disable-next-line @next/next/no-img-element -- signed links to private storage
           <img src={data.school.logo} alt="" className={cn("object-contain", compact ? "size-12" : "size-16")} />
+        ) : (
+          s.layout === "CLASSIC" && <span aria-hidden />
         )}
-        <div className={cn(s.layout === "CLASSIC" && "flex-none")}>
-          <div className={cn("font-bold", compact ? "text-base" : "text-xl")} style={{ color: accent }}>
+        <div className="min-w-0">
+          <div className={cn("leading-tight font-bold text-balance", compact ? "text-base" : "text-xl")} style={{ color: accent }}>
             {data.school ? name(data.school) : ""}
           </div>
-          {s.showAddress && data.school?.address && <div className="text-neutral-600">{data.school.address}</div>}
+          {s.showAddress && data.school?.address && <div className="mt-0.5 text-neutral-600">{data.school.address}</div>}
           <div className="text-neutral-600">
             {name(data.exam)} · {data.academicYear.name}
           </div>
         </div>
+        {s.layout === "CLASSIC" && <span aria-hidden />}
       </header>
 
+      {/* the card's title on a band of its colour: centred, no letter-spacing (it breaks up Bangla) */}
       <div
-        className={cn("text-center font-semibold tracking-wide", compact ? "py-0.5 text-xs" : "py-1 text-sm", modern ? "rounded" : "")}
+        className={cn("text-center leading-tight font-semibold", compact ? "py-1 text-xs" : "py-1.5 text-[15px]", modern ? "rounded" : "")}
         style={{ backgroundColor: accent, color: "#fff" }}
       >
         {title}
@@ -154,12 +167,29 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
                     (line.components ?? []).map((c) => [`component:${c.componentId}`, c.percentage === null ? "—" : `${num(c.percentage)}%`]),
                   ),
                 }}
+                // each paper as a row of its own under the combined subject, with its own marks;
+                // the grade and point belong to the combined subject
                 papers={
                   line.papers?.map((p) => ({
-                    key: p.subjectId,
-                    subject: <span className="pl-3 text-neutral-600">{name(p)}</span>,
-                    full: num(p.fullMarks),
-                    marks: p.isAbsent ? t("absent") : num(p.marks),
+                    key: p.id,
+                    failed: !p.isAbsent && p.passMarks !== undefined && p.marks !== null && p.marks < p.passMarks,
+                    cells: {
+                      code: p.code ?? "",
+                      subject: (
+                        <>
+                          <span className="pl-3">{name(p)}</span>
+                          {s.showParts && p.parts && p.parts.length > 0 && !p.isAbsent && (
+                            <span className="block pl-3 text-[12px] text-neutral-500">
+                              {p.parts.map((x) => `${x.name} ${num(x.marks)}/${num(x.fullMarks)}`).join(" · ")}
+                            </span>
+                          )}
+                        </>
+                      ),
+                      full: num(p.fullMarks),
+                      pass: p.passMarks === undefined ? "" : num(p.passMarks),
+                      marks: p.isAbsent ? t("absent") : num(p.marks),
+                      highest: num((s.highestMarks === "SECTION" ? p.highestInSection : p.highestInClass) ?? null),
+                    },
                   })) ?? []
                 }
               />
@@ -303,7 +333,7 @@ function SubjectRows({
   cell: string;
   failed: boolean;
   cells: Record<string, ReactNode>;
-  papers: { key: string; subject: ReactNode; full: string; marks: string }[];
+  papers: { key: string; failed: boolean; cells: Record<string, ReactNode> }[];
 }) {
   return (
     <>
@@ -323,10 +353,18 @@ function SubjectRows({
         ))}
       </tr>
       {papers.map((p) => (
-        <tr key={p.key} className="text-[12px]">
+        <tr key={p.key}>
           {columns.map((c) => (
-            <td key={c} className={cn("border border-neutral-200 tabular-nums text-neutral-600", cell, c === "subject" ? "text-left" : "text-center")}>
-              {c === "subject" ? p.subject : c === "full" ? p.full : c === "marks" ? p.marks : ""}
+            <td
+              key={c}
+              className={cn(
+                "border border-neutral-300 tabular-nums",
+                cell,
+                c === "subject" ? "text-left" : "text-center",
+                p.failed && c === "marks" && "font-semibold text-rose-700",
+              )}
+            >
+              {p.cells[c] ?? ""}
             </td>
           ))}
         </tr>

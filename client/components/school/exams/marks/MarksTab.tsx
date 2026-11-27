@@ -58,7 +58,7 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-2">
       {/* the logged-in teacher's own subjects */}
       {mine.data && mine.data.items.length > 0 && (
         <div className="space-y-2">
@@ -89,10 +89,11 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
       ) : examList.length === 0 ? (
         <p className="rounded-md border border-dashed py-12 text-center text-sm text-muted-foreground">{t("noneOpen")}</p>
       ) : (
-        <>
-          <div className="flex flex-wrap items-end gap-2">
+        // one sheet: the pickers and the way of entering on a strip, then the marks
+        <div className="flex min-h-[calc(100svh-17.75rem)] flex-col rounded-2xl border border-border/60 bg-card">
+          <div className="flex flex-wrap items-end gap-2.5 rounded-t-2xl border-b border-border/60 bg-muted/40 px-4 py-3 sm:px-5">
             <Select value={exam?.id ?? ""} onValueChange={(id) => setPick({ examId: id })}>
-              <SelectTrigger className="w-52" label={t("exam")} required>
+              <SelectTrigger className="w-52 bg-card dark:bg-card" label={t("exam")} required>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -104,7 +105,7 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
               </SelectContent>
             </Select>
             <Select value={examClass?.class.id ?? ""} onValueChange={(id) => setPick({ examId: exam?.id, classId: id })}>
-              <SelectTrigger className="w-40" label={t("class")} required>
+              <SelectTrigger className="w-40 bg-card dark:bg-card" label={t("class")} required>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -117,7 +118,7 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
             </Select>
             {realSections.length > 0 && mode !== "progress" && (
               <Select value={sectionId ?? ""} onValueChange={(id) => setPick((p) => ({ ...p, examId: exam?.id, classId: examClass?.class.id, sectionId: id }))}>
-                <SelectTrigger className="w-32" label={t("section")} required>
+                <SelectTrigger className="w-32 bg-card dark:bg-card" label={t("section")} required>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -131,7 +132,7 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
             )}
             {mode === "subject" && subjects.length > 0 && (
               <Select value={examSubjectId ?? ""} onValueChange={(id) => setPick((p) => ({ ...p, examId: exam?.id, classId: examClass?.class.id, sectionId, examSubjectId: id }))}>
-                <SelectTrigger className="w-52" label={t("subject")} required>
+                <SelectTrigger className="w-52 bg-card dark:bg-card" label={t("subject")} required>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -143,45 +144,55 @@ export function MarksTab({ start }: { start?: { examId: string; classId: string 
                 </SelectContent>
               </Select>
             )}
-          </div>
 
-          <div className="inline-flex overflow-hidden rounded-md border text-sm">
-            {(["subject", ...(canGrid ? ["grid"] : []), "progress"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={cn("cursor-pointer border-l px-3 py-1.5 first:border-l-0", mode === m ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
-              >
-                {t(`modes.${m}`)}
-              </button>
-            ))}
+            {/* the way of entering: one subject, the whole section, or how far along */}
+            <div className="inline-flex gap-0.5 rounded-lg border border-border/70 bg-card p-0.5 text-sm max-sm:w-full sm:ml-auto">
+              {(["subject", ...(canGrid ? ["grid"] : []), "progress"] as Mode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  aria-pressed={mode === m}
+                  className={cn(
+                    "cursor-pointer rounded-md px-3 py-1.5 transition-colors max-sm:flex-1",
+                    mode === m ? "bg-primary font-semibold text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  {t(`modes.${m}`)}
+                </button>
+              ))}
+            </div>
           </div>
 
           {mode === "progress" && exam && examClass ? (
-            <MarksProgressView
-              examId={exam.id}
-              classId={examClass.class.id}
-              onOpen={(id, section) => openSheet({ examId: exam.id, classId: examClass.class.id, sectionId: section, examSubjectId: id })}
-            />
+            <div className="p-4 sm:p-5">
+              <MarksProgressView
+                examId={exam.id}
+                classId={examClass.class.id}
+                onOpen={(id, section) => openSheet({ examId: exam.id, classId: examClass.class.id, sectionId: section, examSubjectId: id })}
+              />
+            </div>
           ) : mode === "grid" ? (
-            grid.isPending ? (
-              <Skeleton className="h-64" />
-            ) : grid.isError ? (
-              <ErrorBox message={describeError(grid.error)} retry={() => grid.refetch()} label={tCommon("tryAgain")} />
-            ) : grid.data && exam ? (
-              <MarksGridEditor key={grid.dataUpdatedAt} examId={exam.id} grid={grid.data} />
-            ) : null
+            <div className="p-4 sm:p-5">
+              {grid.isPending ? (
+                <Skeleton className="h-64" />
+              ) : grid.isError ? (
+                <ErrorBox message={describeError(grid.error)} retry={() => grid.refetch()} label={tCommon("tryAgain")} />
+              ) : grid.data && exam ? (
+                <MarksGridEditor key={grid.dataUpdatedAt} examId={exam.id} grid={grid.data} />
+              ) : null}
+            </div>
           ) : !examSubjectId ? (
-            <p className="text-sm text-muted-foreground">{t("noSubjects")}</p>
+            <p className="p-5 text-sm text-muted-foreground">{t("noSubjects")}</p>
           ) : sheet.isPending ? (
-            <Skeleton className="h-64" />
+            <Skeleton className="m-5 h-64" />
           ) : sheet.isError ? (
             <ErrorBox message={describeError(sheet.error)} retry={() => sheet.refetch()} label={tCommon("tryAgain")} />
           ) : sheet.data ? (
+            // the subject sheet fills the rest, its save bar pinned to the window's bottom
             <MarksSheetEditor key={sheet.dataUpdatedAt} examSubjectId={examSubjectId} sheet={sheet.data} />
           ) : null}
-        </>
+        </div>
       )}
     </div>
   );

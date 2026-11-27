@@ -13,6 +13,7 @@ import { useAuditLog, useAuditLogEntry, type AuditLogEntry } from "@/lib/school/
 import { cn } from "@/lib/utils";
 import { Pager } from "../finance/collect/PaymentsTab";
 import { ListState } from "../finance/shared";
+import { PageHero } from "@/components/layout/PageHero";
 
 const ALL = "all";
 // the filter: what kind of record (an action prefix on the server)
@@ -36,11 +37,8 @@ export function ActivityLogPage() {
   const items = log.data?.items ?? [];
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
 
       <Select
         value={kind}

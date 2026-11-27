@@ -1,16 +1,17 @@
 enum SubjectType {
   COMPULSORY // every student of the class (or of the group) takes it
   OPTIONAL // the student picks it (4th subject); the choice is recorded by the exam module
+  // main or 4th: each student takes a set number of these as main subjects (ElectiveRule);
+  // the rest join their 4th-subject list (e.g. Biology / Higher Math in Science)
+  ELECTIVE
 }
 
-/*
+/**
  * The subject catalogue. A platform subject (schoolId null) is the shared NCTB list every
  * school can assign; a school subject (schoolId set) is that school's own extra.
- *
  * Papers: "Bangla 1st Paper" and "Bangla 2nd Paper" point to "Bangla" as their parent
  * (one level only). A class gets either "Bangla" or its papers, never both, so results
  * can combine the papers through the parent without counting anything twice.
- *
  * Names are unique (ignoring case) among the platform subjects and within a school, and a
  * school subject cannot reuse a platform subject's name or code (checked by the service).
  */
@@ -45,7 +46,7 @@ model Subject {
   @@index([parentId])
 }
 
-/*
+/**
  * A subject taught in a class in one academic year. A new academic year starts with a
  * copy of the previous year's list. groupId null = for the whole class; set = only for
  * students of that group (Science, Business Studies...).
@@ -75,8 +76,8 @@ model ClassSubject {
 
   // marks setup: the default for every exam of the year (an exam copies it and may change it,
   // e.g. a monthly test out of 25). null until the school sets it.
-  fullMarks Decimal?             @db.Decimal(6, 2)
-  passMarks Decimal?             @db.Decimal(6, 2)
+  fullMarks Decimal?           @db.Decimal(6, 2)
+  passMarks Decimal?           @db.Decimal(6, 2)
   // optional: Written 70 + MCQ 30..., each with its own pass marks; none = one total
   parts     ClassSubjectPart[]
 
@@ -84,9 +85,10 @@ model ClassSubject {
   gradingScaleId String?
   gradingScale   GradingScale? @relation(fields: [gradingScaleId], references: [id], onDelete: Restrict)
 
-  teachers SubjectTeacher[]
+  teachers        SubjectTeacher[]
   examSubjects    ExamSubject[]
   optionalChoices StudentOptionalSubject[]
+  mainChoices     StudentMainSubject[]
   homework        Homework[]
   routineEntries  RoutineEntry[]
 
@@ -100,4 +102,33 @@ model ClassSubject {
   @@index([academicYearId, classId])
   @@index([subjectId])
   @@index([groupId])
+}
+
+/**
+ * How many of a class's "main or 4th" (ELECTIVE) subjects its students take as main subjects
+ * in a year: for the whole class (groupId null) or one group. No row = 1. The service keeps
+ * one row per year, class and group (a unique index lets NULL groups repeat).
+ */
+model ElectiveRule {
+  id String @id @default(cuid())
+
+  schoolId String
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  classId String
+  class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  mainCount Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([academicYearId, classId, groupId])
+  @@index([schoolId])
 }

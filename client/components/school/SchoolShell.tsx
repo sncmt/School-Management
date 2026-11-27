@@ -37,7 +37,10 @@ export function SchoolShell({ children }: { children: ReactNode }) {
         // beside the logo in the menu
         sidebarTitle: t("dashboard"),
         // everyone sees the year they are working in
-        subtitle: me?.academicYear?.name && tShell("session", { year: me.academicYear.name }),
+        // (school and college: both current years, "2026 · 2026-27")
+        subtitle: me?.academicYears?.length
+          ? tShell("session", { year: me.academicYears.map((y) => y.name).join(" · ") })
+          : me?.academicYear?.name && tShell("session", { year: me.academicYear.name }),
         home: "/dashboard",
       }}
       menu={schoolMenu}

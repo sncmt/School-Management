@@ -3,6 +3,7 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import type { TeacherStatus } from "../../../../generated/prisma/enums";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { currentYears, yearsCovering } from "../../shared/academicYears";
 import { processImage } from "../../shared/imageUpload";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { deleteFile, fileKey, putFile, withFileUrls } from "../../shared/storage";
@@ -59,20 +60,25 @@ const findTeacher = async (schoolId: string, teacherId: string) => {
   return teacher;
 };
 
-/* The given year, or the current one when none is given. null when the school has no current year. */
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId }, select: { id: true, name: true } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } });
+/*
+ * The years a teacher's work is shown for: the given year, or the current year of every track
+ * (a teacher may teach school and college classes). `year` is the given one, or the main
+ * track's current year; null when the school has no current year.
+ */
+const resolveYears = async (schoolId: string, academicYearId?: string) => {
+  const years = academicYearId
+    ? await prisma.academicYear.findMany({ where: { id: academicYearId, schoolId }, select: { id: true, name: true, track: true } })
+    : (await currentYears(prisma, schoolId)).map((y) => ({ id: y.id, name: y.name, track: y.track }));
 
-  if (academicYearId && !year) {
+  if (academicYearId && years.length === 0) {
     throw new AppError("Academic year not found for this school", httpStatus.NOT_FOUND);
   }
-  return year;
+  return { year: years[0] ? { id: years[0].id, name: years[0].name } : null, years, yearIds: years.map((y) => y.id) };
 };
 
-/* Sections where the teacher is class teacher, and the subjects they teach, in one year. */
-const loadAssignments = async (teacher: { id: string; membershipId: string }, academicYearId: string) => {
+/* Sections where the teacher is class teacher, and the subjects they teach, in the year(s). */
+const loadAssignments = async (teacher: { id: string; membershipId: string }, yearIds: string[]) => {
+  const academicYearId = { in: yearIds };
   const [classTeacherOf, subjects] = await Promise.all([
     prisma.sectionYearConfig.findMany({
       where: { academicYearId, classTeacherMembershipId: teacher.membershipId },
@@ -217,13 +223,13 @@ const getTeachers = async (schoolId: string, query: ListTeachersQuery) => {
 };
 
 const getTeacherById = async (schoolId: string, teacherId: string, query: YearQuery) => {
-  const [teacher, year] = await Promise.all([
+  const [teacher, { year, years, yearIds }] = await Promise.all([
     findTeacher(schoolId, teacherId),
-    resolveYear(schoolId, query.academicYearId),
+    resolveYears(schoolId, query.academicYearId),
   ]);
 
-  const assignments = year ? await loadAssignments(teacher, year.id) : null;
-  return { ...(await withFileUrls(teacher, ["photo"])), academicYear: year, assignments };
+  const assignments = year ? await loadAssignments(teacher, yearIds) : null;
+  return { ...(await withFileUrls(teacher, ["photo"])), academicYear: year, academicYears: years, assignments };
 };
 
 // -------------------------------------------------------------------- update
@@ -313,9 +319,13 @@ const getMyProfile = async (auth: Auth) => withFileUrls(await findMyProfile(auth
 
 const getMyAssignments = async (auth: Auth, query: YearQuery) => {
   const teacher = await findMyProfile(auth);
-  const year = await resolveYear(auth.schoolId!, query.academicYearId);
+  const { year, years, yearIds } = await resolveYears(auth.schoolId!, query.academicYearId);
 
-  return { academicYear: year, ...(year ? await loadAssignments(teacher, year.id) : { classTeacherOf: [], subjects: [] }) };
+  return {
+    academicYear: year,
+    academicYears: years,
+    ...(year ? await loadAssignments(teacher, yearIds) : { classTeacherOf: [], subjects: [] }),
+  };
 };
 
 /* The class hours, on one date, of every section the teacher is class teacher of or teaches in. */
@@ -324,19 +334,15 @@ const getMySchedule = async (auth: Auth, query: ScheduleQuery) => {
   const schoolId = auth.schoolId!;
   const date = query.date ?? todayInBangladesh();
 
-  const [year, calendar] = await Promise.all([
-    prisma.academicYear.findFirst({
-      where: { schoolId, startDate: { lte: date }, endDate: { gte: date } },
-      orderBy: { startDate: "desc" },
-      select: { id: true, name: true },
-    }),
-    loadCalendar(prisma, schoolId, date, date),
-  ]);
+  // the school year and the college year of the day (a teacher may teach in both)
+  const [years, calendar] = await Promise.all([yearsCovering(prisma, schoolId, date), loadCalendar(prisma, schoolId, date, date)]);
+  const year = years[0] ? { id: years[0].id, name: years[0].name } : null;
+  const yearIds = years.map((y) => y.id);
   // whether the teacher works that day (weekly, national or school holiday)
   const teacherDay = dayStatus(calendar, date, "TEACHERS");
   if (!year) return { date: dayKey(date), academicYear: null, teacherDay, items: [] };
 
-  const { classTeacherOf, subjects } = await loadAssignments(teacher, year.id);
+  const { classTeacherOf, subjects } = await loadAssignments(teacher, yearIds);
 
   // one entry per section, with what the teacher does there
   const bySection = new Map<
@@ -360,7 +366,7 @@ const getMySchedule = async (auth: Auth, query: ScheduleQuery) => {
   const hours = await resolveSectionHours(
     prisma,
     schoolId,
-    year.id,
+    yearIds,
     date,
     entries.map((e) => ({ id: e.section.id, classId: e.section.class.id })),
   );

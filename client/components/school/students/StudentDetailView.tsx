@@ -166,8 +166,14 @@ function Detail({ student }: { student: StudentDetail }) {
   const studentName = name(student);
   // the other language's name, under the main one
   const otherName = studentName === student.nameEn ? student.nameBn : student.nameEn;
-  const currentYearId = classes.data?.academicYear?.id;
-  const current = student.enrollments.find((e) => e.academicYearId === currentYearId) ?? null;
+  // the current year of each track (school and college): this year's class is in one of them
+  const currentYearIds = classes.data?.currentYears?.length
+    ? classes.data.currentYears.map((y) => y.id)
+    : classes.data?.academicYear
+      ? [classes.data.academicYear.id]
+      : [];
+  const currentYearId = currentYearIds[0];
+  const current = student.enrollments.find((e) => currentYearIds.includes(e.academicYearId)) ?? null;
   // the ID card is for a student on roll: this year's class, else the latest one
   const cardEnrollment = student.status === "ACTIVE" ? (current ?? student.enrollments.find((e) => e.status === "ACTIVE") ?? null) : null;
   const notSet = <span className="text-muted-foreground">{t("notSet")}</span>;
@@ -195,7 +201,7 @@ function Detail({ student }: { student: StudentDetail }) {
         </Link>
       </Button>
 
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 dark rounded-2xl bg-brand-ink px-4 py-4 text-white sm:px-5">
         <div className="flex flex-wrap items-center gap-4">
           <ImageUpload
             imageUrl={student.photo}
@@ -210,7 +216,7 @@ function Detail({ student }: { student: StudentDetail }) {
           />
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="page-title">{studentName}</h1>
+              <h1 className="text-[1.625rem] leading-tight font-bold tracking-[-0.02em] text-balance sm:text-[1.75rem]">{studentName}</h1>
               <StudentStatusBadge status={student.status} />
             </div>
             <p className="text-muted-foreground">{otherName}</p>
@@ -221,7 +227,7 @@ function Detail({ student }: { student: StudentDetail }) {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="page-hero-actions flex flex-wrap gap-2">
           {(can("payment:create") || can("student_fee:view")) && (
             <Button variant="outline" asChild>
               <Link href={`/fees?student=${student.id}`}>

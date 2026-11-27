@@ -169,7 +169,7 @@ function TeacherForm({
       <form onSubmit={onSubmit} className="space-y-5" noValidate>
         <FormError message={formError} />
 
-        <fieldset className="space-y-4">
+        <fieldset className="min-w-0 space-y-4">
           <legend className="mb-2 text-sm font-semibold">{t("sections.person")}</legend>
           <div className="space-y-2">
             <p className="text-sm font-medium">{t("photo")}</p>
@@ -214,7 +214,7 @@ function TeacherForm({
           </div>
         </fieldset>
 
-        <fieldset className="space-y-4">
+        <fieldset className="min-w-0 space-y-4">
           <legend className="mb-2 text-sm font-semibold">{t("sections.work")}</legend>
           <div className="grid gap-4 sm:grid-cols-2">
             {textField("designation", t("designation"), { placeholder: t("designationPlaceholder") })}

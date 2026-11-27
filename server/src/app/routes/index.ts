@@ -45,6 +45,7 @@ import { platformSubscriptionRoutes, schoolSubscriptionRoutes } from '../modules
 import { platformPackageRoutes, publicPackageRoutes } from '../modules/package/package.route';
 import { schoolSettingsRoutes } from '../modules/schoolSettings/schoolSettings.route';
 import { contactRoutes } from '../modules/contact/contact.route';
+import { rollNumberRoutes } from '../modules/rollNumber/rollNumber.route';
 import { auditLogRoutes } from '../modules/auditLog/auditLog.route';
 
 
@@ -291,6 +292,11 @@ const moduleRoutes = [
         // guardians paying fees through the school's own SSLCommerz store
         path: '/online-payment',
         route: onlinePaymentRoutes
+    },
+    {
+        // roll numbers of a class (or section) for a year, set in one go
+        path: '/roll-numbers',
+        route: rollNumberRoutes
     },
     {
         // the marketing site's contact form, emailed to the platform

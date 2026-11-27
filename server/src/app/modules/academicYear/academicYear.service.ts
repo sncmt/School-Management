@@ -4,14 +4,28 @@ import { dayKey } from "../../shared/scheduleSchemas";
 import type { CreateAcademicYearPayload, UpdateAcademicYearPayload } from "./academicYear.type";
 import httpStatus from 'http-status'
 import type { Prisma } from "../../../../generated/prisma/client";
+import type { AcademicTrack } from "../../../../generated/prisma/enums";
+import { institutionTracks, trackForNew } from "../../shared/academicYears";
 
 const createAcademicYear = async (
   schoolId: string,
   payload: CreateAcademicYearPayload
 ) => {
-  const { name, startDate, endDate, isCurrent = false } = payload;
+  const { name, startDate, endDate } = payload;
 
   return prisma.$transaction(async (tx) => {
+    // an institution with school and college classes says which line the year is for
+    const tracks = await institutionTracks(tx, schoolId);
+    if (tracks.length > 1 && !payload.track) {
+      throw new AppError("Choose whether this is a school year or a college year", httpStatus.BAD_REQUEST, [
+        { path: "track", message: "Choose school or college" },
+      ]);
+    }
+    const track = await trackForNew(tx, schoolId, payload.track);
+    // the track's first year is its current year
+    const isCurrent =
+      payload.isCurrent || !(await tx.academicYear.findFirst({ where: { schoolId, track, isCurrent: true }, select: { id: true } }));
+
     // 1. Check duplicate academic year
     const existingAcademicYear = await tx.academicYear.findUnique({
       where: {
@@ -29,14 +43,15 @@ const createAcademicYear = async (
       );
     }
 
-    await assertNoOverlap(tx, schoolId, startDate, endDate);
+    await assertNoOverlap(tx, schoolId, track, startDate, endDate);
 
     // 2. If this year should become current,
-    //    remove current status from existing year
+    //    remove current status from the track's current year (the other track keeps its own)
     if (isCurrent) {
       await tx.academicYear.updateMany({
         where: {
           schoolId,
+          track,
           isCurrent: true,
         },
         data: {
@@ -53,11 +68,13 @@ const createAcademicYear = async (
         startDate,
         endDate,
         isCurrent,
+        track,
       },
     });
 
+    // the setup is carried from the year before in the same track (its classes are this year's)
     const previousYear = await tx.academicYear.findFirst({
-      where: { schoolId, id: { not: academicYear.id }, startDate: { lt: academicYear.startDate } },
+      where: { schoolId, track, id: { not: academicYear.id }, startDate: { lt: academicYear.startDate } },
       orderBy: { startDate: "desc" },
       select: { id: true },
     });
@@ -76,6 +93,8 @@ const createAcademicYear = async (
     const carriedOverResultSettings = previousYear
       ? await carryOverResultSettings(tx, schoolId, previousYear.id, academicYear.id)
       : 0;
+    // how many "main or 4th" subjects each class (or group) takes as main
+    if (previousYear) await carryOverElectiveRules(tx, schoolId, previousYear.id, academicYear.id);
     // after the subjects: routine classes point at the new year's class subjects
     const carriedOverRoutine = previousYear
       ? await carryOverRoutine(tx, schoolId, previousYear.id, academicYear.id)
@@ -243,6 +262,20 @@ const carryOverRoutine = async (
   return count;
 };
 
+/* A new year starts with each class's (or group's) number of main subjects among its "main or 4th" ones. */
+const carryOverElectiveRules = async (tx: Prisma.TransactionClient, schoolId: string, previousYearId: string, newYearId: string) => {
+  const previous = await tx.electiveRule.findMany({
+    where: { schoolId, academicYearId: previousYearId },
+    select: { classId: true, groupId: true, mainCount: true },
+  });
+  if (previous.length === 0) return 0;
+  const result = await tx.electiveRule.createMany({
+    data: previous.map((r) => ({ ...r, schoolId, academicYearId: newYearId })),
+    skipDuplicates: true,
+  });
+  return result.count;
+};
+
 /* A new year starts with each class's result settings (system, scale, papers, absent rule). */
 const carryOverResultSettings = async (
   tx: Prisma.TransactionClient,
@@ -312,13 +345,22 @@ const carryOverSectionConfigs = async (
 type Db = Prisma.TransactionClient | typeof prisma;
 
 /*
- * Two years of one school never cover the same day: "the year of a date" (attendance,
- * calendar, exams) must have one answer.
+ * Two years of one track never cover the same day: "the year of a date" for a class
+ * (attendance, calendar, exams) must have one answer. A school year and a college year may
+ * overlap: their classes are different.
  */
-const assertNoOverlap = async (db: Db, schoolId: string, startDate: Date, endDate: Date, excludeId?: string) => {
+const assertNoOverlap = async (
+  db: Db,
+  schoolId: string,
+  track: AcademicTrack,
+  startDate: Date,
+  endDate: Date,
+  excludeId?: string,
+) => {
   const clash = await db.academicYear.findFirst({
     where: {
       schoolId,
+      track,
       startDate: { lte: endDate },
       endDate: { gte: startDate },
       ...(excludeId ? { id: { not: excludeId } } : {}),
@@ -416,7 +458,7 @@ const updateAcademicYear = async (schoolId: string, academicYearId: string, data
         { path: "endDate", message: "End date must be after start date" },
       ]);
     }
-    await assertNoOverlap(prisma, schoolId, startDate, endDate, academicYearId);
+    await assertNoOverlap(prisma, schoolId, year.track, startDate, endDate, academicYearId);
     const stranded = await firstDatedOutside(academicYearId, startDate, endDate);
     if (stranded) {
       throw new AppError(
@@ -436,11 +478,14 @@ const updateAcademicYear = async (schoolId: string, academicYearId: string, data
   });
 };
 
-/* The year the school works in by default (lists, admission, attendance). Only one at a time. */
+/*
+ * The year the school works in by default (lists, admission, attendance). One at a time per
+ * track: making a college year current leaves the school year alone.
+ */
 const setCurrentAcademicYear = async (schoolId: string, academicYearId: string) => {
-  await findYear(schoolId, academicYearId);
+  const year = await findYear(schoolId, academicYearId);
   return prisma.$transaction(async (tx) => {
-    await tx.academicYear.updateMany({ where: { schoolId, isCurrent: true }, data: { isCurrent: false } });
+    await tx.academicYear.updateMany({ where: { schoolId, track: year.track, isCurrent: true }, data: { isCurrent: false } });
     return tx.academicYear.update({
       where: { id: academicYearId },
       data: { isCurrent: true },

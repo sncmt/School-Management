@@ -21,8 +21,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears, type AcademicYear } from "@/lib/school/academicYears";
-import { useClasses } from "@/lib/school/classes";
+import { currentYearOf, useAcademicYears, yearsOfTrack, type AcademicYear } from "@/lib/school/academicYears";
+import { classesOfTrack, useClasses } from "@/lib/school/classes";
+import { useTrack } from "@/lib/school/tracks";
+import { TrackSwitch } from "@/components/school/years/TrackSwitch";
 import {
   useCopyFeeStructures,
   useDeleteFeeStructure,
@@ -95,12 +97,16 @@ export function FeeStructuresTab({ canManage, canSync, onOpenFeeTypes }: { canMa
   const remove = useDeleteFeeStructure();
   const [deleting, setDeleting] = useState<FeeStructure | null>(null);
 
-  const year = years.data?.find((y) => y.id === yearId) ?? years.data?.find((y) => y.isCurrent) ?? years.data?.[0];
-  // the year just before the chosen one: its class fees can be copied in
+  // school or college (an institution with both): its years and its classes
+  const { track, setTrack } = useTrack();
+  const trackYears = yearsOfTrack(years.data, track);
+  const trackClasses = classesOfTrack(classes.data?.items, track);
+  const year = trackYears.find((y) => y.id === yearId) ?? currentYearOf(trackYears, track) ?? trackYears[0];
+  // the year just before the chosen one (same track): its class fees can be copied in
   const previousYear = year
-    ? [...(years.data ?? [])].filter((y) => y.startDate < year.startDate).sort((a, b) => b.startDate.localeCompare(a.startDate))[0]
+    ? trackYears.filter((y) => y.startDate < year.startDate).sort((a, b) => b.startDate.localeCompare(a.startDate))[0]
     : undefined;
-  const schoolClass = classes.data?.items.find((c) => c.id === classId) ?? classes.data?.items[0];
+  const schoolClass = trackClasses.find((c) => c.id === classId) ?? trackClasses[0];
   const structures = useFeeStructures(year && schoolClass ? { academicYearId: year.id, classId: schoolClass.id } : null);
   const months = year ? yearMonths(year) : [];
 
@@ -139,12 +145,13 @@ export function FeeStructuresTab({ canManage, canSync, onOpenFeeTypes }: { canMa
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-2">
+        <TrackSwitch value={track} onChange={setTrack} className="self-end" />
         <Select value={year?.id ?? ""} onValueChange={setYearId}>
           <SelectTrigger className="w-40" label={t("year")} required>
             <SelectValue placeholder={t("year")} />
           </SelectTrigger>
           <SelectContent>
-            {years.data?.map((y) => (
+            {trackYears.map((y) => (
               <SelectItem key={y.id} value={y.id}>
                 {y.name}
               </SelectItem>
@@ -156,7 +163,7 @@ export function FeeStructuresTab({ canManage, canSync, onOpenFeeTypes }: { canMa
             <SelectValue placeholder={t("class")} />
           </SelectTrigger>
           <SelectContent>
-            {classes.data?.items.map((c) => (
+            {trackClasses.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
               </SelectItem>

@@ -31,7 +31,9 @@ import { dayKey } from "@/lib/dates";
 import { todayKey } from "@/lib/school/calendar";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears } from "@/lib/school/academicYears";
+import { currentYearOf, useAcademicYears } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
 import { useClasses } from "@/lib/school/classes";
 import { useGroups } from "@/lib/school/groups";
 import {
@@ -113,7 +115,8 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
   // the years a student can join: the current one and any not ended yet (next year, in December)
   const today = todayKey();
   const openYears = (years.data ?? []).filter((y) => dayKey(y.endDate) >= today).sort((a, b) => a.startDate.localeCompare(b.startDate));
-  const currentYear = classes.data?.academicYear ?? years.data?.find((y) => y.isCurrent) ?? null;
+  const { main } = useInstitutionTracks();
+  const yearLabel = useYearLabel();
   const groups = useGroups();
   const admit = useAdmitStudent();
   const update = useUpdateStudent();
@@ -135,14 +138,22 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
 
   const classId = useWatch({ control: form.control, name: "classId" });
   const chosenClass = classes.data?.items.find((c) => c.id === classId);
+  // a school class joins a school year, a college class a college year (its own track's)
+  const track = chosenClass?.track ?? main;
+  const trackYears = openYears.filter((y) => y.track === track);
+  const currentYear = currentYearOf(years.data, track) ?? (track === main ? (classes.data?.academicYear ?? null) : null);
   const yearId = useWatch({ control: form.control, name: "academicYearId" });
-  const chosenYear = openYears.find((y) => y.id === yearId) ?? currentYear;
+  const chosenYear = trackYears.find((y) => y.id === yearId) ?? currentYear;
   // a class without sections has only its automatic one, picked for you
   const realSections = chosenClass?.sections.filter((s) => !s.isDefault) ?? [];
   const noYear = !isEdit && classes.data && !classes.data.academicYear;
 
   const chooseClass = (id: string) => {
     form.setValue("classId", id, { shouldValidate: form.formState.isSubmitted });
+    // a year of the other track (school / college) doesn't fit the new class: back to its current year
+    const next = classes.data?.items.find((c) => c.id === id);
+    const year = years.data?.find((y) => y.id === form.getValues("academicYearId"));
+    if (next && year && year.track !== next.track) form.setValue("academicYearId", "");
     const sections = classes.data?.items.find((c) => c.id === id)?.sections ?? [];
     const onlyDefault = sections.length > 0 && sections.every((s) => s.isDefault);
     form.setValue("sectionId", onlyDefault ? sections[0].id : "", { shouldValidate: form.formState.isSubmitted });
@@ -291,7 +302,7 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
 
   return (
     // the header panel, then one sheet as wide as the page and at least as tall as the window
-    <div className="flex flex-1 flex-col gap-2 md:min-h-[calc(100svh-5.5rem)]">
+    <div className="flex flex-1 flex-col gap-2 md:min-h-[calc(100svh-6.25rem)]">
       <PageHero
         title={isEdit ? t("editTitle") : t("title")}
         description={isEdit ? t("editDescription") : t("description")}
@@ -357,11 +368,11 @@ export function StudentForm({ student }: { student?: StudentDetail }) {
           {!isEdit && (
             <Band title={t("sections.admission", { year: chosenYear?.name ?? "" })} hint={t("sectionHints.admission")}>
               <div className={FIELDS_GRID}>
-                {openYears.length > 1 &&
+                {trackYears.length > 1 &&
                   selectField(
                     "academicYearId",
                     t("academicYear"),
-                    openYears.map((y) => ({ value: y.id, label: y.isCurrent ? t("currentYearOption", { year: y.name }) : y.name })),
+                    trackYears.map((y) => ({ value: y.id, label: y.isCurrent ? t("currentYearOption", { year: yearLabel(y) }) : yearLabel(y) })),
                     // the current year is sent as "" (the server's default)
                     { emptyValue: currentYear?.id },
                   )}

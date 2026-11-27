@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { AddSectionsDialog } from "./AddSectionsDialog";
 import { RenameSectionDialog } from "./RenameSectionDialog";
 import { SectionSettingsDialog } from "./SectionSettingsDialog";
+import { PageHero } from "@/components/layout/PageHero";
 
 const ALL = "all";
 const COLUMNS = ["class", "section", "classTeacher", "students", "hours", "bellSchedule"] as const;
@@ -43,6 +44,10 @@ export function SectionsList() {
 
   const classes = classList?.items ?? [];
   const year = data?.academicYear ?? null;
+  // a section's settings belong to the current year of its class's track (school or college)
+  const currentYears = data?.currentYears?.length ? data.currentYears : year ? [year] : [];
+  const yearOf = (s: Section) =>
+    currentYears.find((y) => !("track" in y) || y.track === classes.find((c) => c.id === s.class.id)?.track) ?? null;
   const sections = (data?.items ?? []).filter((s) => classFilter === ALL || s.class.id === classFilter);
 
   const permissions = {
@@ -53,18 +58,20 @@ export function SectionsList() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {can("section:create") && (
-          <Button onClick={() => setAdding(true)} disabled={classes.length === 0}>
-            <Plus /> {t("add")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {can("section:create") && (
+              <Button onClick={() => setAdding(true)} disabled={classes.length === 0}>
+                <Plus /> {t("add")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <div className="flex flex-wrap items-end gap-3">
         <Select value={classFilter} onValueChange={setClassFilter}>
@@ -82,7 +89,7 @@ export function SectionsList() {
         </Select>
         {data && (
           <span className="text-sm text-muted-foreground">
-            {year ? t("settingsFor", { year: year.name }) : t("noYear")}
+            {year ? t("settingsFor", { year: currentYears.map((y) => y.name).join(" · ") }) : t("noYear")}
           </span>
         )}
       </div>
@@ -145,7 +152,7 @@ export function SectionsList() {
         onClose={() => setAdding(false)}
       />
       <RenameSectionDialog section={renaming} onClose={() => setRenaming(null)} />
-      <SectionSettingsDialog section={configuring} year={year} onClose={() => setConfiguring(null)} />
+      <SectionSettingsDialog section={configuring} year={configuring ? yearOf(configuring) : year} onClose={() => setConfiguring(null)} />
       <DeleteSectionDialog section={deleting} onClose={() => setDeleting(null)} />
     </div>
   );

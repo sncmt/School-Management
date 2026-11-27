@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AbsentRule, ResultSystem } from "../../../../generated/prisma/enums";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 
 const hasMaxTwoDecimals = (n: number) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6;
@@ -86,8 +87,9 @@ const copyScale = z.strictObject({
 // ------------------------------------------------------- class result settings
 
 const classSettingsQuery = z.object({
-  // defaults to the current academic year
+  // defaults to the current academic year of this track (or of the main track)
   academicYearId: z.string().trim().min(1).optional(),
+  track: trackSchema.optional(),
 });
 
 const setClassSetting = z

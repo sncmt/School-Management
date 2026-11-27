@@ -10,6 +10,7 @@ import { SpecialHours } from "./SpecialHours";
 import { Substitutes } from "./Substitutes";
 import { TeacherRoutine } from "./TeacherRoutine";
 import { Workload } from "./Workload";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** The class routine: timetables, teachers' weeks, substitutes, bell schedules and special hours. */
 export function RoutinePage() {
@@ -22,14 +23,11 @@ export function RoutinePage() {
   const [teacherId, setTeacherId] = useState<string | undefined>();
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+      <Tabs value={tab} onValueChange={setTab} className="gap-2">
+        <TabsList variant="strip">
           <TabsTrigger value="class">{t("tabs.class")}</TabsTrigger>
           <TabsTrigger value="teacher">{t("tabs.teacher")}</TabsTrigger>
           <TabsTrigger value="workload">{t("tabs.workload")}</TabsTrigger>

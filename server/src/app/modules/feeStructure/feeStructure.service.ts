@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertClassesInTrack } from "../../shared/academicYears";
 import {
   computeFeeStatus,
   expandMonthRange,
@@ -178,6 +179,8 @@ const createFeeStructure = async (schoolId: string, data: CreateFeeStructurePayl
   if (!schoolClass) throw new AppError("Class not found for this school", httpStatus.NOT_FOUND);
   if (!feeType) throw new AppError("Fee type not found for this school", httpStatus.NOT_FOUND);
   if (!feeType.isActive) throw new AppError("Fee type is inactive", httpStatus.BAD_REQUEST);
+  // a school class is charged in a school year, a college class in a college year
+  await assertClassesInTrack(prisma, schoolId, [schoolClass.id], academicYear);
 
   const schedule = data.monthlySchedule ?? [];
   if (schedule.length > 0 && feeType.frequency !== "MONTHLY") {
@@ -275,9 +278,13 @@ const copyFromYear = async (schoolId: string, data: CopyFeeStructuresPayload) =>
     if (!to) throw new AppError("Academic year not found for this school", httpStatus.NOT_FOUND);
     const from = data.fromAcademicYearId
       ? await tx.academicYear.findFirst({ where: { id: data.fromAcademicYearId, schoolId } })
-      : await tx.academicYear.findFirst({ where: { schoolId, startDate: { lt: to.startDate } }, orderBy: { startDate: "desc" } });
+      : // the year before in the same track (school or college)
+        await tx.academicYear.findFirst({ where: { schoolId, track: to.track, startDate: { lt: to.startDate } }, orderBy: { startDate: "desc" } });
     if (!from) throw new AppError("There is no earlier academic year to copy from", httpStatus.BAD_REQUEST);
     if (from.id === to.id) throw new AppError("Choose a different year to copy from", httpStatus.BAD_REQUEST);
+    if (from.track !== to.track) {
+      throw new AppError("Copy from a year of the same kind: a school year to a school year, a college year to a college year", httpStatus.BAD_REQUEST);
+    }
 
     const source = await tx.feeStructure.findMany({
       where: { schoolId, academicYearId: from.id, isActive: true, feeType: { isActive: true } },

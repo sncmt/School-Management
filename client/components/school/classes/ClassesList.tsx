@@ -17,8 +17,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCan, useIsSuperAdmin } from "@/lib/auth/hooks";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useClasses, useDeleteClass, type SchoolClass } from "@/lib/school/classes";
+import { useInstitutionTracks } from "@/lib/school/tracks";
 import { cn } from "@/lib/utils";
 import { ClassFormDialog } from "./ClassFormDialog";
+import { PageHero } from "@/components/layout/PageHero";
 
 const COLUMNS = ["level", "name", "sections", "students"] as const;
 
@@ -40,18 +42,20 @@ export function ClassesList() {
   const canDelete = useIsSuperAdmin();
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {can("class:create") && (
-          <Button onClick={() => setAdding(true)}>
-            <Plus /> {t("add")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {can("class:create") && (
+              <Button onClick={() => setAdding(true)}>
+                <Plus /> {t("add")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <div className={cn("rounded-md border transition-opacity", isFetching && !isPending && "opacity-60")}>
         <Table>
@@ -61,7 +65,12 @@ export function ClassesList() {
               <TableHead>{t("columns.name")}</TableHead>
               <TableHead>{t("columns.sections")}</TableHead>
               <TableHead>
-                {data?.academicYear ? t("studentsIn", { year: data.academicYear.name }) : t("columns.students")}
+                {/* each class counts in its own track's current year ("2026 · 2026-27" with both) */}
+                {data?.currentYears?.length
+                  ? t("studentsIn", { year: data.currentYears.map((y) => y.name).join(" · ") })
+                  : data?.academicYear
+                    ? t("studentsIn", { year: data.academicYear.name })
+                    : t("columns.students")}
               </TableHead>
               <TableHead className="w-12">
                 <span className="sr-only">{t("columns.actions")}</span>
@@ -147,6 +156,8 @@ function ClassRow({
   onDelete: () => void;
 }) {
   const t = useTranslations("school.classes");
+  const tTracks = useTranslations("school.tracks");
+  const { hasBoth } = useInstitutionTracks();
   const format = useFormatter();
   // the automatic section of a class without sections has no name worth showing
   const named = schoolClass.sections.filter((s) => !s.isDefault);
@@ -154,7 +165,16 @@ function ClassRow({
   return (
     <TableRow>
       <TableCell className="text-muted-foreground">{format.number(schoolClass.numericLevel)}</TableCell>
-      <TableCell className="font-medium">{schoolClass.name}</TableCell>
+      <TableCell className="font-medium">
+        <span className="inline-flex items-center gap-2">
+          {schoolClass.name}
+          {hasBoth && (
+            <Badge variant="outline" className="font-normal">
+              {tTracks(schoolClass.track)}
+            </Badge>
+          )}
+        </span>
+      </TableCell>
       <TableCell>
         {named.length === 0 ? (
           <span className="text-sm text-muted-foreground">{t("noSections")}</span>

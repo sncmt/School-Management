@@ -6,3 +6,4 @@ export type AssignSubjectsPayload = z.infer<typeof ClassSubjectValidation.assign
 export type ListClassSubjectsQuery = z.infer<typeof ClassSubjectValidation.listQuery>;
 export type UpdateClassSubjectPayload = z.infer<typeof ClassSubjectValidation.updateClassSubject>;
 export type SetMarksPayload = z.infer<typeof ClassSubjectValidation.setMarks>;
+export type SetElectiveRulePayload = z.infer<typeof ClassSubjectValidation.setElectiveRule>;

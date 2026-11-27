@@ -1,4 +1,4 @@
-/*
+/**
  * Attendance devices (fingerprint / RFID terminals, ZKTeco-type) that report punches over
  * the internet with the ADMS "push" protocol. A device knows itself only by its serial
  * number, so a school registers that number here; punches from unregistered numbers are
@@ -18,21 +18,21 @@ model AttendanceDevice {
   isActive     Boolean @default(true)
 
   // what the device last told us about itself
-  model      String?
-  firmware   String?
-  lastSeenAt DateTime?
-  lastIp     String?
+  model        String?
+  firmware     String?
+  lastSeenAt   DateTime?
+  lastIp       String?
   // the device's own counter of the punches it has sent (sent back in the handshake)
-  attlogStamp String?
+  attlogStamp  String?
   // the same for the people / fingerprints it sends us
   operlogStamp String?
 
   // when set, only requests from this internet address are taken (the protocol has no
   // password: a device is known by its serial number alone)
-  allowedIp      String?
+  allowedIp     String?
   // the last request refused for coming from another address (the school's address changed?)
-  lastRefusedIp  String?
-  lastRefusedAt  DateTime?
+  lastRefusedIp String?
+  lastRefusedAt DateTime?
 
   punches  DevicePunch[]
   commands DeviceCommand[]
@@ -43,7 +43,7 @@ model AttendanceDevice {
   @@index([schoolId])
 }
 
-/*
+/**
  * One punch exactly as a device sent it, kept even when it cannot be turned into attendance
  * (an unknown person, a holiday). pin is the person's number on the device; punchedAt is the
  * device's local Bangladesh time as a real moment. The same punch sent twice is kept once.
@@ -58,8 +58,8 @@ model DevicePunch {
   // Restrict: a device with punches is deactivated, never deleted
   device   AttendanceDevice @relation(fields: [deviceId], references: [id], onDelete: Restrict)
 
-  pin       String
-  punchedAt DateTime
+  pin        String
+  punchedAt  DateTime
   // the device's own codes: status (check-in / out…) and how the person was verified (finger, card…)
   status     Int?
   verifyType Int?
@@ -76,7 +76,7 @@ model DevicePunch {
   @@index([processedAt])
 }
 
-/*
+/**
  * A student or a teacher as the school's devices know them: a number (PIN, unique in the
  * school) and an RFID card. Fingerprints are taken on a device and kept here so every
  * device of the school recognises the person.
@@ -107,7 +107,7 @@ model DevicePerson {
   @@unique([schoolId, cardNumber])
 }
 
-/*
+/**
  * One finger's template as a device made it (vendor data, never an image), encrypted at
  * rest. Sent only to the same school's devices.
  */
@@ -140,7 +140,7 @@ enum DeviceCommandStatus {
   FAILED
 }
 
-/*
+/**
  * A command waiting for a device (add / change / remove a person, a fingerprint). A device
  * collects them when it polls; "seq" is the number it answers with.
  */
@@ -152,8 +152,8 @@ model DeviceCommand {
   deviceId String
   device   AttendanceDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 
-  body   String
-  status DeviceCommandStatus @default(PENDING)
+  body       String
+  status     DeviceCommandStatus @default(PENDING)
   // the device's answer: 0 done, below 0 an error
   returnCode Int?
 
@@ -164,7 +164,7 @@ model DeviceCommand {
   @@index([deviceId, status, seq])
 }
 
-/*
+/**
  * How a school's punches become attendance. Students are late after their section's start
  * time plus lateAfterMinutes; at studentAbsentAt everyone on roll who has not punched is
  * marked absent (only for sections where somebody punched that day, so a device that was

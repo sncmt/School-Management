@@ -19,7 +19,7 @@ enum NoticeStatus {
   PUBLISHED
 }
 
-/*
+/**
  * A school notice. It is on the board once PUBLISHED and its publishAt has come (null =
  * straight away), until its expiresAt (null = it stays); after that it is in the archive.
  */
@@ -59,7 +59,9 @@ model Notice {
   @@index([schoolId, isPublic])
 }
 
-/* A class (sectionId null: the whole class) or one section a families' notice is for. */
+/**
+ * A class (sectionId null: the whole class) or one section a families' notice is for.
+ */
 model NoticeTarget {
   id String @id @default(cuid())
 
@@ -76,7 +78,9 @@ model NoticeTarget {
   @@index([classId])
 }
 
-/* A PDF or image with a notice, kept privately in storage (the key) and shown by a signed link. */
+/**
+ * A PDF or image with a notice, kept privately in storage (the key) and shown by a signed link.
+ */
 model NoticeAttachment {
   id String @id @default(cuid())
 
@@ -94,7 +98,9 @@ model NoticeAttachment {
   @@index([noticeId])
 }
 
-/* Who has opened a notice: unread ones are marked on the board. */
+/**
+ * Who has opened a notice: unread ones are marked on the board.
+ */
 model NoticeRead {
   id String @id @default(cuid())
 

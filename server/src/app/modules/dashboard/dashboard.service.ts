@@ -4,6 +4,7 @@ import { checkPermission } from "../../middlewares/authorize";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { CalendarService } from "../calendar/calendar.service";
 import { currentMonth } from "../studentFee/studentFee.service";
+import { currentYears } from "../../shared/academicYears";
 
 /*
  * The school dashboard: a summary of what the person may see. Each part is there only
@@ -18,11 +19,11 @@ const MONTHS_IN_CHART = 6;
 const may = async (auth: Auth, code: string) => (await checkPermission(auth, code)) === "OK";
 
 /* Students on roll this year, boys and girls, and how many joined this year. */
-const people = async (schoolId: string, yearId: string) => {
-  const onRoll = { schoolId, status: "ACTIVE" as const, enrollments: { some: { academicYearId: yearId, status: "ACTIVE" as const } } };
+const people = async (schoolId: string, yearIds: string[]) => {
+  const onRoll = { schoolId, status: "ACTIVE" as const, enrollments: { some: { academicYearId: { in: yearIds }, status: "ACTIVE" as const } } };
   const [byGender, newThisYear] = await Promise.all([
     prisma.student.groupBy({ by: ["gender"], where: onRoll, _count: { _all: true } }),
-    prisma.enrollment.count({ where: { academicYearId: yearId, status: "ACTIVE", admissionType: "NEW", student: { schoolId, status: "ACTIVE" } } }),
+    prisma.enrollment.count({ where: { academicYearId: { in: yearIds }, status: "ACTIVE", admissionType: "NEW", student: { schoolId, status: "ACTIVE" } } }),
   ]);
   const count = (g: string) => byGender.find((x) => x.gender === g)?._count._all ?? 0;
   return { total: byGender.reduce((s, x) => s + x._count._all, 0), boys: count("MALE"), girls: count("FEMALE"), newThisYear };
@@ -39,17 +40,17 @@ const teachers = async (schoolId: string) => {
 };
 
 /* Today's roll calls: how many sections took it, and the students by status. */
-const attendanceToday = async (schoolId: string, yearId: string) => {
+const attendanceToday = async (schoolId: string, yearIds: string[]) => {
   const today = todayInBangladesh();
   const [byStatus, taken, sections] = await Promise.all([
     prisma.studentAttendance.groupBy({
       by: ["status"],
-      where: { session: { schoolId, academicYearId: yearId, date: today } },
+      where: { session: { schoolId, academicYearId: { in: yearIds }, date: today } },
       _count: { _all: true },
     }),
-    prisma.attendanceSession.count({ where: { schoolId, academicYearId: yearId, date: today } }),
+    prisma.attendanceSession.count({ where: { schoolId, academicYearId: { in: yearIds }, date: today } }),
     // sections with students this year
-    prisma.section.count({ where: { schoolId, enrollments: { some: { academicYearId: yearId, status: "ACTIVE" } } } }),
+    prisma.section.count({ where: { schoolId, enrollments: { some: { academicYearId: { in: yearIds }, status: "ACTIVE" } } } }),
   ]);
   const count = (s: string) => byStatus.find((x) => x.status === s)?._count._all ?? 0;
   const marked = byStatus.reduce((s, x) => s + x._count._all, 0);
@@ -69,7 +70,7 @@ const attendanceToday = async (schoolId: string, yearId: string) => {
 };
 
 /* Fees collected and money spent, this month and the last few, and what is owed now. */
-const money = async (schoolId: string, yearId: string) => {
+const money = async (schoolId: string, yearIds: string[]) => {
   const now = currentMonth();
   const first = new Date(Date.UTC(now.year, now.month - MONTHS_IN_CHART, 1));
   // the months of the chart, oldest first: "2026-05"...
@@ -103,7 +104,7 @@ const money = async (schoolId: string, yearId: string) => {
     prisma.studentFee.aggregate({
       where: {
         schoolId,
-        academicYearId: yearId,
+        academicYearId: { in: yearIds },
         status: { in: ["UNPAID", "PARTIAL"] },
         OR: [{ month: null }, { year: { lt: now.year } }, { year: now.year, month: { lte: now.month } }],
       },
@@ -156,16 +157,19 @@ export const upcomingHolidays = async (schoolId: string) => {
 
 const getSummary = async (auth: Auth) => {
   const schoolId = auth.schoolId!;
-  const year = await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } });
+  // the current year of every track: an institution with school and college counts both
+  const years = await currentYears(prisma, schoolId);
+  const year = years[0] ? { id: years[0].id, name: years[0].name } : null;
+  const yearIds = years.map((y) => y.id);
   const [canStudents, canTeachers, canAttendance, canMoney, canPayments, canCalendar] = await Promise.all(
     ["student:view", "teacher:view", "attendance:view", "finance_report:view", "payment:view", "holiday:view"].map((c) => may(auth, c)),
   );
 
   const [studentsPart, teachersPart, attendancePart, moneyPart, paymentsPart, upcomingPart] = await Promise.all([
-    canStudents && year ? people(schoolId, year.id) : null,
+    canStudents && year ? people(schoolId, yearIds) : null,
     canTeachers ? teachers(schoolId) : null,
-    canAttendance && year ? attendanceToday(schoolId, year.id) : null,
-    canMoney && year ? money(schoolId, year.id) : null,
+    canAttendance && year ? attendanceToday(schoolId, yearIds) : null,
+    canMoney && year ? money(schoolId, yearIds) : null,
     canPayments ? recentPayments(schoolId) : null,
     canCalendar ? upcomingHolidays(schoolId) : null,
   ]);
@@ -173,6 +177,7 @@ const getSummary = async (auth: Auth) => {
   // null: no permission (or no current year)
   return {
     academicYear: year,
+    academicYears: years.map((y) => ({ id: y.id, name: y.name, track: y.track })),
     students: studentsPart,
     teachers: teachersPart,
     attendance: attendancePart,

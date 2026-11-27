@@ -44,7 +44,7 @@ type Props = { mode: "create" } | { mode: "edit"; school: SchoolDetail };
 type SchoolFormValues = CreateSchoolValues | UpdateSchoolValues;
 
 const FIELDS: FieldPath<SchoolFormInput>[] = [
-  "nameEn", "nameBn", "subdomain", "email", "publicEmail", "phone", "website", "address", "language", "subscriptionPlan", "packageId", "discount",
+  "nameEn", "nameBn", "subdomain", "email", "publicEmail", "phone", "website", "address", "language", "institutionType", "subscriptionPlan", "packageId", "discount",
 ];
 
 // the form edits text; the server's Decimal values arrive as strings like "2500.00"
@@ -60,6 +60,7 @@ const initialValues = (school?: SchoolDetail): SchoolFormInput => ({
   website: school?.website ?? "",
   address: school?.address ?? "",
   language: school?.language ?? "BN",
+  institutionType: school?.institutionType ?? "SCHOOL",
   // a new school starts on monthly; one activated before plans has none ("")
   subscriptionPlan: school ? (school.subscriptionPlan ?? "") : "MONTHLY",
   packageId: school?.packageId ?? "",
@@ -210,6 +211,32 @@ export function SchoolForm(props: Props) {
                     </SelectContent>
                   </Select>
                   <FormDescription>{t("languageHint")}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="institutionType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required>{t("institutionType")}</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full sm:w-60">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(["SCHOOL", "COLLEGE", "SCHOOL_AND_COLLEGE"] as const).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {t(`institutionTypes.${type}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>{t("institutionTypeHint")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

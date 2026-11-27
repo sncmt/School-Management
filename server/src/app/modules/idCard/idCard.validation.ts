@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackSchema } from "../../shared/academicYears";
 
 export const ID_CARD_TEMPLATES = ["CLASSIC", "MODERN", "MINIMAL", "BOLD", "ELEGANT"] as const;
 
@@ -25,8 +26,9 @@ export const idCardSettingsSchema = z.object({
 export type IdCardSettings = z.output<typeof idCardSettingsSchema>;
 
 const cardsQuery = z.object({
-  // left out: the current year
+  // left out: the current year (of the class's or section's track, or of this track)
   academicYearId: z.string().trim().min(1).optional(),
+  track: trackSchema.optional(),
   classId: z.string().trim().min(1).optional(),
   sectionId: z.string().trim().min(1).optional(),
   enrollmentId: z.string().trim().min(1).optional(),

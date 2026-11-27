@@ -14,6 +14,7 @@ import { AttendanceService } from "../attendance/attendance.service";
 import { dayStatus, eachDay, loadCalendar } from "../calendar/calendar.resolver";
 import { ExamResultService } from "../exam/examResult.service";
 import { RoutineService } from "../routine/routine.service";
+import { currentYears } from "../../shared/academicYears";
 
 /*
  * The family login's home: the children on this account in this school, each with their
@@ -42,8 +43,9 @@ const getHome = async (auth: Auth) => {
   const firstOfMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
   const now = currentMonth();
 
-  const [year, students] = await Promise.all([
-    prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true, startDate: true } }),
+  // the current year of each track (school and college: a family may have a child in each)
+  const [years, students] = await Promise.all([
+    currentYears(prisma, schoolId),
     prisma.student.findMany({
       where: { schoolId, userId: auth.userId },
       orderBy: [{ status: "asc" }, { nameEn: "asc" }],
@@ -68,7 +70,8 @@ const getHome = async (auth: Auth) => {
             sectionId: true,
             groupId: true,
             optionalSubject: { select: { classSubjectId: true } },
-            academicYear: { select: { id: true, name: true, startDate: true, isCurrent: true } },
+            mainSubjects: { select: { classSubjectId: true } },
+            academicYear: { select: { id: true, name: true, startDate: true, isCurrent: true, track: true } },
             class: { select: { id: true, name: true } },
             section: { select: { id: true, name: true, isDefault: true } },
             group: { select: { id: true, nameEn: true, nameBn: true } },
@@ -78,12 +81,18 @@ const getHome = async (auth: Auth) => {
     }),
   ]);
 
+  const year = years[0] ?? null;
+  const currentOf = new Map(years.map((y) => [y.track, y]));
   const children = await Promise.all(
     students.map(async ({ enrollments, photo, religion, ...student }) => {
-      // this year's class; else the next year's (admitted early); else the latest
+      // this year's class (the current year of its own track); else the next year's in that
+      // track (admitted early); else the latest
       const enrollment =
         enrollments.find((e) => e.academicYear.isCurrent) ??
-        (year ? [...enrollments].reverse().find((e) => e.academicYear.startDate > year.startDate) : undefined) ??
+        [...enrollments].reverse().find((e) => {
+          const current = currentOf.get(e.academicYear.track);
+          return current ? e.academicYear.startDate > current.startDate : false;
+        }) ??
         enrollments[0] ??
         null;
 
@@ -156,6 +165,8 @@ const getHome = async (auth: Auth) => {
   return {
     today: dayKey(today),
     academicYear: year ? { id: year.id, name: year.name } : null,
+    // every track's current year: a child's enrollment in any of them is "this year"
+    academicYears: years.map((y) => ({ id: y.id, name: y.name, track: y.track })),
     children,
     upcoming: await upcomingHolidays(schoolId),
     // "Pay fees" shows only when the school takes payments online
@@ -288,9 +299,17 @@ const getRoutine = async (auth: Auth, studentId: string) => {
     select: {
       religion: true,
       enrollments: {
+        // the current year of the child's track (the latest, if somehow in both)
         where: { academicYear: { isCurrent: true } },
+        orderBy: { academicYear: { startDate: "desc" } },
         take: 1,
-        select: { sectionId: true, groupId: true, academicYearId: true, optionalSubject: { select: { classSubjectId: true } } },
+        select: {
+          sectionId: true,
+          groupId: true,
+          academicYearId: true,
+          optionalSubject: { select: { classSubjectId: true } },
+          mainSubjects: { select: { classSubjectId: true } },
+        },
       },
     },
   });
@@ -303,6 +322,7 @@ const getRoutine = async (auth: Auth, studentId: string) => {
     academicYearId: enrollment.academicYearId,
   });
   const optionalId = enrollment.optionalSubject?.classSubjectId ?? null;
+  const mainIds = enrollment.mainSubjects.map((m) => m.classSubjectId);
 
   return {
     ...week,
@@ -311,7 +331,9 @@ const getRoutine = async (auth: Auth, studentId: string) => {
         (e) =>
           (!e.group || e.group.id === enrollment.groupId) &&
           (!e.subject.religion || e.subject.religion === student.religion) &&
-          (!e.isOptional || e.classSubjectId === optionalId),
+          (!e.isOptional || e.classSubjectId === optionalId) &&
+          // a "main or 4th" subject: taken as main or as the 4th
+          (!e.isElective || mainIds.includes(e.classSubjectId) || e.classSubjectId === optionalId),
       )
       .map(({ teacher, sections: _sections, class: _class, ...e }) => ({
         ...e,

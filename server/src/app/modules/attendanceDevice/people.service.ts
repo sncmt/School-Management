@@ -5,6 +5,7 @@ import { AppError } from "../../errorHandler/AppError";
 import { open, seal } from "../../shared/secretBox";
 import { WORKING_STATUSES } from "../teacher/teacher.service";
 import type { PeopleQuery } from "./device.validation";
+import { currentYears } from "../../shared/academicYears";
 
 /*
  * The people on a school's devices. Each student (on roll this year) and each working
@@ -52,11 +53,16 @@ export const queueDeviceRemoval = (db: Prisma.TransactionClient | typeof prisma,
 
 // ------------------------------------------------------------------ people
 
-/* Who belongs on the devices: students on roll this year, working teachers. */
-const currentYearId = async (schoolId: string) =>
-  (await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } }))?.id ?? null;
+/*
+ * Who belongs on the devices: students on roll this year (the current year of their track:
+ * school or college), working teachers. A filter on the enrollment's year; null: no current year.
+ */
+const currentYearId = async (schoolId: string) => {
+  const ids = (await currentYears(prisma, schoolId)).map((y) => y.id);
+  return ids.length > 0 ? { in: ids } : null;
+};
 
-const onRollStudents = (schoolId: string, yearId: string | null): Prisma.StudentWhereInput => ({
+const onRollStudents = (schoolId: string, yearId: { in: string[] } | null): Prisma.StudentWhereInput => ({
   schoolId,
   status: "ACTIVE",
   enrollments: { some: { status: "ACTIVE", ...(yearId ? { academicYearId: yearId } : {}) } },

@@ -126,6 +126,8 @@ export function TabulationView({ examId, classId }: { examId: string; classId: s
                             <>
                               {num(line.marks)}
                               {line.grade && <span className="block text-[12px] text-muted-foreground">{line.grade}</span>}
+                              {/* a "main or 4th" subject that is this student's 4th */}
+                              {line.isOptional && !s.isOptional && <span className="block text-[11px] text-muted-foreground">{t("optional")}</span>}
                             </>
                           )}
                         </td>

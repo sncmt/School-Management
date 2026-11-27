@@ -5,7 +5,7 @@ enum TeacherStatus {
   RETIRED // same as RESIGNED
 }
 
-/*
+/**
  * A teacher is an ordinary account (User, logs in with a mobile number) with a membership
  * in the school, the TEACHER role, and this profile. The profile belongs to the membership,
  * so a person teaching at two schools has one account and one profile per school. The phone
@@ -55,7 +55,7 @@ model TeacherProfile {
   @@index([schoolId, status])
 }
 
-/*
+/**
  * Who teaches a class subject in a section in one academic year. Several teachers can
  * share one (theory and practical), and one teacher can teach any number of subjects in
  * any number of sections. A change replaces the list; a new academic year starts with a

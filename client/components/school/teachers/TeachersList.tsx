@@ -76,7 +76,7 @@ export function TeachersList() {
 
   return (
     // the header panel, then one sheet (toolbar, table, pages) down to the bottom of the window
-    <div className="flex flex-1 flex-col gap-2 md:min-h-[calc(100svh-5.5rem)]">
+    <div className="flex flex-1 flex-col gap-2 md:min-h-[calc(100svh-6.25rem)]">
       <PageHero
         title={t("title")}
         description={t("description")}

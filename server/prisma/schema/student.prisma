@@ -29,15 +29,15 @@ model Student {
   // SetNull: deleting a user must never delete the student
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  enrollments Enrollment[]
-  studentFees StudentFee[]
-  attendance  StudentAttendance[]
-  examMarks   ExamMark[]
-  examResults ExamResult[]
-  finalResults FinalResult[]
-  payments    Payment[]
-  notifications Notification[]
-  smsMessages   SmsMessage[]
+  enrollments    Enrollment[]
+  studentFees    StudentFee[]
+  attendance     StudentAttendance[]
+  examMarks      ExamMark[]
+  examResults    ExamResult[]
+  finalResults   FinalResult[]
+  payments       Payment[]
+  notifications  Notification[]
+  smsMessages    SmsMessage[]
   homeworkChecks HomeworkCheck[]
   devicePerson   DevicePerson?
   onlinePayments OnlinePayment[]
@@ -73,20 +73,21 @@ model Enrollment {
 
   rollNumber String? // roll number within class/section for this year
 
-  status     EnrollmentStatus @default(ACTIVE)
+  status EnrollmentStatus @default(ACTIVE)
 
   // new to the school this year (pays the admission fee) or an old student (re-admission fee)
-  admissionType AdmissionType @default(NEW)
-  attendance StudentAttendance[]
+  admissionType   AdmissionType           @default(NEW)
+  attendance      StudentAttendance[]
   optionalSubject StudentOptionalSubject?
+  mainSubjects    StudentMainSubject[]
   examMarks       ExamMark[]
   examResults     ExamResult[]
   examRemarks     ExamRemark[]
   finalResults    FinalResult[]
   homeworkChecks  HomeworkCheck[]
   seats           Seat[]
-  enrolledAt DateTime         @default(now())
-  leftAt     DateTime?
+  enrolledAt      DateTime                @default(now())
+  leftAt          DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

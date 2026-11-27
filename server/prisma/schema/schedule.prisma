@@ -59,7 +59,7 @@ model ScheduleOverrideRule {
 
 // ============================================================ class routine
 
-/*
+/**
  * A bell schedule: the periods of a school day ("1st period 08:00-08:45", "Tiffin" as a
  * break). A section uses one per year (SectionYearConfig); a schedule change can swap in
  * another for some days (Ramadan). Templates line up by period number, so period 3 is
@@ -101,7 +101,7 @@ model TemplatePeriod {
   @@unique([templateId, number])
 }
 
-/*
+/**
  * One class in the weekly routine: on a weekday, in a period, a class subject is taught by
  * a teacher to one section, or to several sections of the class together (combined).
  * Several entries can share a section's period when they are for different students:
@@ -152,7 +152,9 @@ model RoutineEntrySection {
   @@index([sectionId])
 }
 
-/* Another teacher takes a routine class on one date (the regular teacher is absent). */
+/**
+ * Another teacher takes a routine class on one date (the regular teacher is absent).
+ */
 model RoutineSubstitution {
   id String @id @default(cuid())
 

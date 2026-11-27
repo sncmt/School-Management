@@ -93,7 +93,7 @@ export function SmsSettingsTab() {
         </div>
       </div>
 
-      <fieldset className="space-y-3 p-5">
+      <fieldset className="min-w-0 space-y-3 p-5">
         <legend className="mb-3 text-sm font-medium">{t("language")}</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           {(["BN", "EN"] as const).map((lang) => (

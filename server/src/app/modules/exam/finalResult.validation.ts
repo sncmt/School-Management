@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { FinalComponentMethod } from "../../../../generated/prisma/enums";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 import { schoolLanguageNames } from "../../shared/names";
 import { dateOnlySchema } from "../../shared/scheduleSchemas";
@@ -87,8 +88,9 @@ const updateFormula = z.strictObject(formulaFields).superRefine(formulaRules);
 const formulaIdParams = z.object({ formulaId: idSchema("Final result formula id") });
 
 const listQuery = z.object({
-  // defaults to the current academic year
+  // defaults to the current academic year (of the class's track, or of this track)
   academicYearId: z.string().trim().min(1).optional(),
+  track: trackSchema.optional(),
   classId: z.string().trim().min(1).optional(),
 });
 

@@ -259,7 +259,7 @@ const getMe = async (auth: AuthContext) => {
   const schoolId = auth.schoolId!;
   const membershipId = auth.membershipId!;
 
-  const [school, userRoles, enabledModules, currentYear] = await Promise.all([
+  const [school, userRoles, enabledModules, current] = await Promise.all([
     prisma.school.findUnique({
       where: { id: schoolId },
       select: {
@@ -270,6 +270,8 @@ const getMe = async (auth: AuthContext) => {
         language: true,
         logo: true,
         favicon: true,
+        // SCHOOL_AND_COLLEGE: two year tracks, so pages show a school / college switch
+        institutionType: true,
       },
     }),
     prisma.userRole.findMany({
@@ -291,8 +293,12 @@ const getMe = async (auth: AuthContext) => {
       where: { schoolId, isEnabled: true, module: { isActive: true } },
       select: { moduleId: true, module: { select: { code: true } } },
     }),
-    // shown in the sidebar to everyone of the school
-    prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } }),
+    // shown in the sidebar to everyone of the school: the current year of each track
+    prisma.academicYear.findMany({
+      where: { schoolId, isCurrent: true },
+      orderBy: { track: "asc" },
+      select: { id: true, name: true, track: true },
+    }),
   ]);
 
   const enabledModuleIds = new Set(enabledModules.map((m) => m.moduleId));
@@ -328,7 +334,9 @@ const getMe = async (auth: AuthContext) => {
     isSuperAdmin,
     permissions: permissions.sort(),
     modules: enabledModules.map((m) => m.module.code).sort(),
-    academicYear: currentYear,
+    // the main track's current year (older clients read only this one)
+    academicYear: current[0] ? { id: current[0].id, name: current[0].name } : null,
+    academicYears: current,
     // with the current password: guardians only (see mayChangeOwnPassword)
     canChangeOwnPassword: await mayChangeOwnPassword(auth),
   };

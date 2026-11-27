@@ -24,8 +24,9 @@ import { applyServerErrors } from "@/lib/auth/formErrors";
 import { dayKey } from "@/lib/dates";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import type { AcademicYear } from "@/lib/school/academicYears";
-import { useClasses } from "@/lib/school/classes";
+import { currentYearOf, type AcademicYear } from "@/lib/school/academicYears";
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
+import { classesOfTrack, useClasses } from "@/lib/school/classes";
 import { usePeriodTemplateList } from "@/lib/school/routine";
 import { useCreateScheduleOverride, useUpdateScheduleOverride, type ScheduleOverride } from "@/lib/school/schedule";
 import { overrideFormSchema, type OverrideFormInput, type OverrideFormValues } from "@/zod/routine";
@@ -68,6 +69,7 @@ function OverrideForm({
 }) {
   const t = useTranslations("school.routine.special.form");
   const tAll = useTranslations();
+  const yearLabel = useYearLabel();
   const describeError = useErrorMessage();
   const name = useLocalizedName();
   const classes = useClasses();
@@ -93,7 +95,7 @@ function OverrideForm({
           })),
         }
       : {
-          academicYearId: defaultYearId ?? years.find((y) => y.isCurrent)?.id ?? years[0]?.id ?? "",
+          academicYearId: defaultYearId ?? currentYearOf(years)?.id ?? years[0]?.id ?? "",
           name: "",
           fromDate: "",
           toDate: "",
@@ -106,7 +108,8 @@ function OverrideForm({
   // the whole school, each class, and each named section
   const targets = [
     { value: "school", label: t("wholeSchool") },
-    ...(classes.data?.items ?? []).flatMap((c) => [
+    // a school year's change is for school classes, a college year's for college ones
+    ...classesOfTrack(classes.data?.items, year?.track).flatMap((c) => [
       { value: `class:${c.id}`, label: t("classTarget", { name: c.name }) },
       ...c.sections.filter((s) => !s.isDefault).map((s) => ({ value: `section:${s.id}`, label: t("sectionTarget", { class: c.name, name: s.name }) })),
     ]),
@@ -202,7 +205,7 @@ function OverrideForm({
                     <SelectContent>
                       {years.map((y) => (
                         <SelectItem key={y.id} value={y.id}>
-                          {y.name}
+                          {yearLabel(y)}
                         </SelectItem>
                       ))}
                     </SelectContent>

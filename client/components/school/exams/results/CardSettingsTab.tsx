@@ -1,11 +1,11 @@
 "use client";
 
-import { Plus, RotateCcw, Save, Trash2 } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useState, type ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import { IdCard, ListChecks, Palette, PenLine, Plus, RotateCcw, Save, Table2, Trash2 } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +20,9 @@ import { sampleCards } from "./sampleCard";
 
 const LAYOUTS: CardLayout[] = ["CLASSIC", "MODERN", "COMPACT"];
 const COLOURS = ["#1e3a8a", "#0f766e", "#166534", "#7c2d12", "#7e22ce", "#be123c", "#111827"];
+
+// the page's sticky top bar (72px): the save bar and the preview's bar stay just under it
+const TOP_BAR = 72;
 
 /** The school's result card design, with a live preview on a sample student. */
 export function CardSettingsTab({ canManage }: { canManage: boolean }) {
@@ -41,12 +44,18 @@ export function CardSettingsTab({ canManage }: { canManage: boolean }) {
   }
   return (
     <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">{t("description")}</p>
+      <p className="px-0.5 text-sm text-muted-foreground">{t("description")}</p>
       <Designer key={dataUpdatedAt} saved={data} canManage={canManage} />
     </div>
   );
 }
 
+/*
+ * One sheet: the settings down the left (the save bar staying at their top), the preview on a
+ * grey desk on the right, staying in view while the settings scroll. The card is drawn at its
+ * printed width and zoomed to fit the preview (FitCard), so it never runs off the screen;
+ * "Actual size" shows it unzoomed. Below 1024px the preview comes first, the settings under it.
+ */
 function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolean }) {
   const t = useTranslations("school.exams.cardSettings");
   const describeError = useErrorMessage();
@@ -54,14 +63,15 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
   const save = useSaveCardSettings();
   const [s, setS] = useState(saved);
   const set = <K extends keyof CardSettings>(key: K, value: CardSettings[K]) => setS((x) => ({ ...x, [key]: value }));
-  const dirty = JSON.stringify(s) !== JSON.stringify(saved);
-  // preview an exam's card or a final result's
+  const changes = (Object.keys(s) as (keyof CardSettings)[]).filter((k) => JSON.stringify(s[k]) !== JSON.stringify(saved[k])).length;
+  // preview an exam's card or a final result's; zoomed to fit, or at its printed size
   const [final, setFinal] = useState(false);
+  const [actual, setActual] = useState(false);
   const sample = sampleCards(s, me?.school, final);
 
-  const toggle = (key: keyof CardSettings, label: string) => (
-    <label className="flex items-center justify-between gap-3 py-1 text-sm">
-      {label}
+  const toggle = (key: keyof CardSettings, label: string, wide = false) => (
+    <label className={cn("flex items-center justify-between gap-3 py-1.5 text-sm", wide && "col-span-2")}>
+      <span className="min-w-0">{label}</span>
       <Switch checked={s[key] as boolean} onCheckedChange={(v) => set(key, v as never)} disabled={!canManage} />
     </label>
   );
@@ -73,21 +83,25 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
     );
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
-      {/* ----------------------------------------------------------- options */}
-      <div className="space-y-3">
+    <div className="grid rounded-2xl border border-border/60 bg-card lg:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[21.25rem_minmax(0,1fr)]">
+      {/* ----------------------------------------------------------- settings */}
+      <div className="min-w-0 max-lg:border-t max-lg:border-border/60 lg:border-r lg:border-border/60">
         {canManage && (
-          <div className="flex gap-2">
-            <Button onClick={submit} disabled={!dirty || save.isPending}>
+          <div
+            className="z-10 flex items-center gap-2 border-b border-border/60 bg-card/95 px-4 py-3 backdrop-blur lg:sticky lg:rounded-tl-2xl"
+            style={{ top: TOP_BAR }}
+          >
+            <Button onClick={submit} disabled={changes === 0 || save.isPending}>
               <Save /> {save.isPending ? t("saving") : t("save")}
             </Button>
-            <Button variant="ghost" onClick={() => setS(saved)} disabled={!dirty}>
+            <Button variant="ghost" onClick={() => setS(saved)} disabled={changes === 0} className="px-2.5 text-muted-foreground">
               <RotateCcw /> {t("undo")}
             </Button>
+            {changes > 0 && <span className="ml-auto text-[13px] text-muted-foreground">{t("changes", { count: changes })}</span>}
           </div>
         )}
 
-        <Group title={t("groups.look")}>
+        <Group icon={Palette} title={t("groups.look")}>
           <div className="grid grid-cols-3 gap-2">
             {LAYOUTS.map((l) => (
               <button
@@ -95,12 +109,14 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
                 type="button"
                 disabled={!canManage}
                 onClick={() => set("layout", l)}
+                aria-pressed={s.layout === l}
                 className={cn(
-                  "cursor-pointer rounded-md border p-2 text-center text-xs transition-colors disabled:cursor-default",
-                  s.layout === l ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted",
+                  "cursor-pointer rounded-lg border px-1.5 pt-2 pb-1.5 text-center text-[13.5px] transition-colors disabled:cursor-default",
+                  s.layout === l ? "border-navy bg-brand-soft font-bold text-navy ring-1 ring-navy" : "border-border hover:bg-muted",
                 )}
               >
-                <div className="font-medium">{t(`layouts.${l}`)}</div>
+                <LayoutSketch layout={l} colour={s.accentColor} />
+                {t(`layouts.${l}`)}
               </button>
             ))}
           </div>
@@ -114,7 +130,8 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
                   disabled={!canManage}
                   onClick={() => set("accentColor", c)}
                   aria-label={c}
-                  className={cn("size-7 cursor-pointer rounded-full border-2 disabled:cursor-default", s.accentColor === c ? "border-foreground" : "border-transparent")}
+                  aria-pressed={s.accentColor === c}
+                  className={cn("size-7 cursor-pointer rounded-full border-2 shadow-[inset_0_0_0_2px_white] disabled:cursor-default", s.accentColor === c ? "border-foreground" : "border-transparent")}
                   style={{ backgroundColor: c }}
                 />
               ))}
@@ -134,22 +151,27 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
           </div>
         </Group>
 
-        <Group title={t("groups.header")}>
-          {toggle("showLogo", t("showLogo"))}
-          {toggle("showAddress", t("showAddress"))}
-          {toggle("showPhoto", t("showPhoto"))}
-          {toggle("showParents", t("showParents"))}
-          {toggle("showAdmissionNo", t("showAdmissionNo"))}
+        {/* short switches two to a row; the long ones take the whole row */}
+        <Group icon={IdCard} title={t("groups.header")}>
+          <div className="grid grid-cols-2 gap-x-5">
+            {toggle("showLogo", t("showLogo"))}
+            {toggle("showAddress", t("showAddress"))}
+            {toggle("showPhoto", t("showPhoto"))}
+            {toggle("showParents", t("showParents"))}
+            {toggle("showAdmissionNo", t("showAdmissionNo"))}
+          </div>
         </Group>
 
-        <Group title={t("groups.columns")}>
-          {toggle("showCode", t("showCode"))}
-          {toggle("showFullMarks", t("showFullMarks"))}
-          {toggle("showPassMarks", t("showPassMarks"))}
-          {toggle("showParts", t("showParts"))}
-          {toggle("showGrade", t("showGrade"))}
-          {toggle("showPoint", t("showPoint"))}
-          {toggle("showComponents", t("showComponents"))}
+        <Group icon={Table2} title={t("groups.columns")}>
+          <div className="grid grid-cols-2 gap-x-5">
+            {toggle("showCode", t("showCode"))}
+            {toggle("showFullMarks", t("showFullMarks"))}
+            {toggle("showPassMarks", t("showPassMarks"))}
+            {toggle("showGrade", t("showGrade"))}
+            {toggle("showPoint", t("showPoint"))}
+            {toggle("showParts", t("showParts"), true)}
+            {toggle("showComponents", t("showComponents"), true)}
+          </div>
           <ChoiceRow
             label={t("highestMarks")}
             value={s.highestMarks}
@@ -159,7 +181,7 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
           />
         </Group>
 
-        <Group title={t("groups.summary")}>
+        <Group icon={ListChecks} title={t("groups.summary")}>
           <ChoiceRow
             label={t("position")}
             value={s.position}
@@ -167,12 +189,14 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
             options={(["NONE", "SECTION", "CLASS", "BOTH"] as const).map((v) => ({ value: v, label: t(`positions.${v}`) }))}
             disabled={!canManage}
           />
-          {toggle("showAttendance", t("showAttendance"))}
-          {toggle("showRemarks", t("showRemarks"))}
-          {toggle("showGradingTable", t("showGradingTable"))}
+          <div className="grid grid-cols-2 gap-x-5">
+            {toggle("showAttendance", t("showAttendance"))}
+            {toggle("showRemarks", t("showRemarks"))}
+            {toggle("showGradingTable", t("showGradingTable"), true)}
+          </div>
         </Group>
 
-        <Group title={t("groups.footer")}>
+        <Group icon={PenLine} title={t("groups.footer")} last>
           <div className="space-y-1.5">
             <Label>{t("signatures")}</Label>
             {s.signatures.map((label, i) => (
@@ -205,41 +229,172 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
       </div>
 
       {/* ----------------------------------------------------------- preview */}
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-sm font-medium">{t("preview")}</div>
-          <div className="inline-flex rounded-md border p-0.5 text-xs">
-            {[false, true].map((f) => (
-              <button
-                key={String(f)}
-                type="button"
-                onClick={() => setFinal(f)}
-                className={cn("cursor-pointer rounded px-2.5 py-1 transition-colors", final === f ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
-              >
-                {t(f ? "previewFinal" : "previewExam")}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="overflow-auto rounded-md bg-muted/40 p-4">
-          <div className="origin-top-left shadow-sm" style={{ width: "190mm" }}>
-            <ResultCardView data={sample} card={sample.cards[0]} />
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">{t("previewNote")}</p>
+      <div className="flex min-w-0 flex-col bg-muted/50 max-lg:order-first max-lg:rounded-t-2xl lg:rounded-r-2xl">
+        <FitCard
+          actual={actual}
+          note={t("previewNote")}
+          bar={(size) => (
+            <>
+              <span className="text-[15px] font-semibold">{t("preview")}</span>
+              <Segmented
+                value={final ? "final" : "exam"}
+                onChange={(v) => setFinal(v === "final")}
+                options={[
+                  { value: "exam", label: t("previewExam") },
+                  { value: "final", label: t("previewFinal") },
+                ]}
+              />
+              <Segmented
+                value={actual ? "actual" : "fit"}
+                onChange={(v) => setActual(v === "actual")}
+                options={[
+                  { value: "fit", label: t("fitScreen") },
+                  { value: "actual", label: t("actualSize") },
+                ]}
+              />
+              {size && <span className="ml-auto text-[13px] text-muted-foreground tabular-nums">{t("size", { size })}</span>}
+            </>
+          )}
+        >
+          <ResultCardView data={sample} card={sample.cards[0]} />
+        </FitCard>
       </div>
     </div>
   );
 }
 
-function Group({ title, children }: { title: string; children: ReactNode }) {
+/*
+ * The preview's bar and stage. The card is drawn at its printed width (190mm) and zoomed (zoom,
+ * so the room it takes shrinks too) to fill the stage's width, as big as it can be. From 1024px the
+ * stage stays in view while the settings scroll: under the bars when it fits the window, otherwise
+ * it scrolls until its bottom shows and stays there (a negative sticky top), so every part of the
+ * card can be seen. The note under the card stays with it. "Actual size" draws it unzoomed,
+ * scrolling sideways when it's wider than the stage.
+ */
+function FitCard({
+  actual,
+  note,
+  bar,
+  children,
+}: {
+  actual: boolean;
+  note: string;
+  bar: (size: string | null) => ReactNode;
+  children: ReactNode;
+}) {
+  const format = useFormatter();
+  const stage = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  const head = useRef<HTMLDivElement>(null);
+  const caption = useRef<HTMLParagraphElement>(null);
+  // where the stage sticks: just under the bar (which wraps to two rows on a narrow screen), or
+  // higher (negative) when the card is taller than the window, so its bottom can show
+  const [stageTop, setStageTop] = useState(TOP_BAR + 56);
+  const [zoom, setZoom] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const box = stage.current;
+    const drawing = card.current;
+    if (!box || !drawing) return;
+    const fit = () => {
+      if (actual) {
+        drawing.style.zoom = "";
+        setZoom(1);
+      } else {
+        drawing.style.zoom = "1";
+        const style = getComputedStyle(box);
+        const room = box.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        const z = Math.max(0.3, Math.min(1, room / drawing.offsetWidth));
+        drawing.style.zoom = String(Math.floor(z * 1000) / 1000);
+        setZoom(z);
+      }
+      const underBar = TOP_BAR + (head.current?.offsetHeight ?? 56);
+      setStageTop(Math.min(underBar, window.innerHeight - box.offsetHeight));
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(box);
+    observer.observe(drawing);
+    if (head.current) observer.observe(head.current);
+    window.addEventListener("resize", fit);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [actual]);
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">{children}</CardContent>
-    </Card>
+    <>
+      <div
+        ref={head}
+        className="z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border/60 bg-muted/90 px-4 py-2.5 backdrop-blur lg:sticky lg:rounded-tr-2xl"
+        style={{ top: TOP_BAR }}
+      >
+        {bar(zoom === null ? null : format.number(zoom, { style: "percent" }))}
+      </div>
+      {/* the card and its note stay in view together */}
+      <div
+        ref={stage}
+        className={cn("flex flex-col gap-3 p-3 sm:p-4 lg:sticky", actual ? "items-start overflow-x-auto" : "items-center")}
+        style={{ top: stageTop }}
+      >
+        <div ref={card} className="shrink-0 shadow-[0_18px_40px_-22px_rgb(15_23_42/0.45),0_0_0_1px_rgb(15_23_42/0.06)]">
+          {children}
+        </div>
+        <p ref={caption} className="max-w-xl self-center text-center text-xs text-muted-foreground">
+          {note}
+        </p>
+      </div>
+    </>
+  );
+}
+
+function Segmented({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
+  return (
+    <div className="inline-flex gap-0.5 rounded-lg border border-border/70 bg-card p-0.5 text-[13px]">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          aria-pressed={value === o.value}
+          className={cn(
+            "cursor-pointer rounded-md px-2.5 py-1 transition-colors",
+            value === o.value ? "bg-primary font-semibold text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// a tiny drawing of each layout: the title band in the chosen colour over a few lines
+function LayoutSketch({ layout, colour }: { layout: CardLayout; colour: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn("mx-auto mb-1.5 block h-8 w-full max-w-16 overflow-hidden rounded-sm bg-white ring-1 ring-border", layout === "MODERN" && "border-l-4")}
+      style={{ borderColor: colour }}
+    >
+      <span className={cn("mx-1.5 mt-1.5 block rounded-[1px]", layout === "COMPACT" ? "h-1" : "h-1.5")} style={{ backgroundColor: colour }} />
+      {Array.from({ length: layout === "COMPACT" ? 4 : 3 }, (_, i) => (
+        <span key={i} className={cn("mx-1.5 block h-px bg-border", layout === "COMPACT" ? "mt-1" : "mt-1.5")} />
+      ))}
+    </span>
+  );
+}
+
+function Group({ icon: Icon, title, last, children }: { icon: LucideIcon; title: string; last?: boolean; children: ReactNode }) {
+  return (
+    <section className={cn("space-y-3 px-4 py-4", !last && "border-b border-border/60")}>
+      <h3 className="flex items-center gap-2 text-[15px] font-semibold text-navy">
+        <Icon className="size-4 text-muted-foreground" />
+        {title}
+      </h3>
+      {children}
+    </section>
   );
 }
 

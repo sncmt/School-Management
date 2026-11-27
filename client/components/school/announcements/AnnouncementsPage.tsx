@@ -16,6 +16,7 @@ import {
 } from "@/lib/school/announcements";
 import { cn } from "@/lib/utils";
 import { AnnouncementItem } from "./AnnouncementItem";
+import { PageHero } from "@/components/layout/PageHero";
 
 const PAGE_SIZES = [20, 50];
 
@@ -46,20 +47,22 @@ export function AnnouncementsPage() {
   if (me && !allowed) return <p className="py-12 text-center text-sm text-muted-foreground">{t("superAdminOnly")}</p>;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="page-title">{t("pageTitle")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {unread > 0 && (
-          <Button variant="outline" onClick={() => markAll.mutate(undefined)} disabled={markAll.isPending}>
-            <CheckCheck /> {t("markAllRead")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("pageTitle")}
+        description={t("description")}
+        actions={
+          <>
+            {unread > 0 && (
+              <Button variant="outline" onClick={() => markAll.mutate(undefined)} disabled={markAll.isPending}>
+                <CheckCheck /> {t("markAllRead")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
-      <section className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+      <section className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/70 bg-card">
         <div className={cn("divide-y transition-opacity", isFetching && !isPending && "opacity-60")}>
           {isPending ? (
             Array.from({ length: 4 }, (_, i) => (

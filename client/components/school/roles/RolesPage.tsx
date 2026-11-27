@@ -34,6 +34,7 @@ import { localPhone } from "@/lib/school/students";
 import { cn } from "@/lib/utils";
 import { ListState } from "../finance/shared";
 import { RoleEditorDialog } from "./RoleEditorDialog";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** The school's roles and the people who work there (super admin only). */
 export function RolesPage() {
@@ -43,13 +44,10 @@ export function RolesPage() {
     return <p className="py-12 text-center text-sm text-muted-foreground">{t("superAdminOnly")}</p>;
   }
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
-      <Tabs defaultValue="staff">
-        <TabsList>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
+      <Tabs defaultValue="staff" className="gap-2">
+        <TabsList variant="strip">
           <TabsTrigger value="staff">{t("tabs.staff")}</TabsTrigger>
           <TabsTrigger value="roles">{t("tabs.roles")}</TabsTrigger>
         </TabsList>

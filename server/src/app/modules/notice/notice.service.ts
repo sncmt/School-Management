@@ -7,6 +7,7 @@ import { GUARDIAN_ROLE } from "../../shared/schoolAccounts";
 import { deleteFile, fileKey, fileUrl, putFile } from "../../shared/storage";
 import { prepareAttachment } from "../../shared/attachmentUpload";
 import type { CreateNoticePayload, NoticeBoardQuery, NoticeListQuery, UpdateNoticePayload } from "./notice.validation";
+import { currentYears } from "../../shared/academicYears";
 
 /*
  * School notices. A notice is on the board once PUBLISHED and its publishAt has come,
@@ -60,13 +61,17 @@ const readerOf = async (auth: Auth) => {
   const staff = roles.some((r) => !(r.role.isSystem && r.role.name === GUARDIAN_ROLE.name));
   if (!family) return { staff, family, places: [] };
 
-  const current = await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { startDate: true } });
+  // each track's current year (school and college)
+  const current = await currentYears(prisma, schoolId);
   const enrollments = await prisma.enrollment.findMany({
     where: {
       status: "ACTIVE",
       student: { schoolId, userId: auth.userId, status: "ACTIVE" },
-      // this year's class, and next year's for a child admitted early
-      academicYear: current ? { startDate: { gte: current.startDate } } : { isCurrent: true },
+      // this year's class, and next year's for a child admitted early (in the same track)
+      academicYear:
+        current.length > 0
+          ? { OR: current.map((y) => ({ track: y.track, startDate: { gte: y.startDate } })) }
+          : { isCurrent: true },
     },
     select: { classId: true, sectionId: true },
   });

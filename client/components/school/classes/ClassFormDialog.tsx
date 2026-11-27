@@ -27,7 +27,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { applyServerErrors } from "@/lib/auth/formErrors";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
+import type { AcademicTrack } from "@/lib/school/academicYears";
 import { useCreateClass, useUpdateClass, type SchoolClass } from "@/lib/school/classes";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { TrackSwitch } from "@/components/school/years/TrackSwitch";
 import { classFormSchema, type ClassFormInput, type ClassFormValues } from "@/zod/schoolSetup";
 
 type Props = {
@@ -74,6 +77,12 @@ function ClassForm({
   const update = useUpdateClass();
   const [formError, setFormError] = useState<string | null>(null);
   const saving = create.isPending || update.isPending;
+  const tTracks = useTranslations("school.tracks");
+  const { hasBoth, main } = useInstitutionTracks();
+  // school or college (an institution with both); a new class from level 11 up is likely college
+  const [track, setTrack] = useState<AcademicTrack>(
+    schoolClass?.track ?? (hasBoth && nextLevel >= 11 ? "COLLEGE" : main),
+  );
 
   const form = useForm<ClassFormInput, unknown, ClassFormValues>({
     resolver: zodResolver(classFormSchema),
@@ -87,10 +96,13 @@ function ClassForm({
     setFormError(null);
     try {
       if (schoolClass) {
-        await update.mutateAsync({ classId: schoolClass.id, body: values });
+        await update.mutateAsync({
+          classId: schoolClass.id,
+          body: { ...values, ...(hasBoth && track !== schoolClass.track ? { track } : {}) },
+        });
         toast.success(t("updated", { name: values.name }));
       } else {
-        await create.mutateAsync(values);
+        await create.mutateAsync({ ...values, ...(hasBoth ? { track } : {}) });
         toast.success(t("created", { name: values.name }));
       }
       onDone();
@@ -132,6 +144,14 @@ function ClassForm({
             </FormItem>
           )}
         />
+
+        {hasBoth && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{tTracks("classTrack")}</p>
+            <TrackSwitch value={track} onChange={setTrack} />
+            <p className="text-xs text-muted-foreground">{tTracks("classTrackHint")}</p>
+          </div>
+        )}
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onDone} disabled={saving}>

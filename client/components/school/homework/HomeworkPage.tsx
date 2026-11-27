@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFamilyRole } from "@/lib/school/family";
 import { FamilyHomework } from "./FamilyHomework";
 import { StaffHomework } from "./StaffHomework";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** Homework: the family's children's, the staff's classes', or both for a teacher who is a parent here. */
 export function HomeworkPage() {
@@ -16,11 +17,8 @@ export function HomeworkPage() {
 
   if (!isStaff) {
     return (
-      <div className="space-y-4">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("family.description")}</p>
-        </div>
+      <div className="space-y-2">
+        <PageHero title={t("title")} description={t("family.description")} />
         <FamilyHomework />
       </div>
     );

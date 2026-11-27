@@ -41,7 +41,15 @@ export type SubjectInput = {
 export type MarkInput = { isAbsent: boolean; total: number | null; partMarks: Record<string, number> | null };
 
 export type PartLine = { name: string; fullMarks: number; passMarks: number; marks: number | null; passed: boolean };
-export type PaperLine = SubjectInfo & { fullMarks: number; marks: number | null; isAbsent: boolean };
+// a paper of a combined subject (Bangla 1st Paper), as shown under it on result cards; passMarks
+// and parts are kept from results published after they were added (older ones lack them)
+export type PaperLine = SubjectInfo & {
+  fullMarks: number;
+  passMarks?: number;
+  marks: number | null;
+  isAbsent: boolean;
+  parts?: PartLine[] | null;
+};
 
 export type SubjectLine = SubjectInfo & {
   isOptional: boolean;
@@ -150,7 +158,17 @@ const buildUnits = (rules: ResultRules, subjects: SubjectInput[], marks: Map<str
       marks: isAbsent ? null : round2(lines.reduce((s, l) => s + (l.marks ?? 0), 0)),
       isAbsent,
       scale: lines[0].scale,
-      papers: lines.map((l) => ({ ...l.info, fullMarks: l.fullMarks, marks: l.marks, isAbsent: l.isAbsent })),
+      papers: lines.map((l) => ({
+        ...l.info,
+        fullMarks: l.fullMarks,
+        passMarks: l.passMarks,
+        marks: l.marks,
+        isAbsent: l.isAbsent,
+        parts:
+          l.parts.length > 0
+            ? l.parts.map((p) => ({ ...p, passed: !l.isAbsent && (p.marks ?? 0) >= p.passMarks }))
+            : null,
+      })),
     });
   }
 

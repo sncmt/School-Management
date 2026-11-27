@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertClassesInTrack, trackOfClass } from "../../shared/academicYears";
 import { endOfBangladeshDay } from "../../shared/scheduleSchemas";
 import { NotificationService, notifyInBackground, type PromotionMove } from "../notification/notification.service";
 import { assertStudentRoom } from "../package/package.service";
@@ -21,32 +22,38 @@ const TX_OPTIONS = { maxWait: 10_000, timeout: 120_000 };
 
 const sectionSelect = { id: true, name: true, isDefault: true } as const;
 
-/* The year being finished (the current one by default) and the year after it, if made yet. */
-const resolveYears = async (db: Db, schoolId: string, academicYearId?: string) => {
+/*
+ * The year being finished (by default the current year of the class's track: school or
+ * college) and the year after it in the same track, if made yet. School students never move
+ * into a college year: joining the college is a new admission.
+ */
+const resolveYears = async (db: Db, schoolId: string, academicYearId: string | undefined, classId: string) => {
+  const track = academicYearId ? undefined : ((await trackOfClass(db, schoolId, classId)) ?? undefined);
   const from = academicYearId
     ? await db.academicYear.findFirst({ where: { id: academicYearId, schoolId } })
-    : await db.academicYear.findFirst({ where: { schoolId, isCurrent: true } });
+    : await db.academicYear.findFirst({ where: { schoolId, isCurrent: true, ...(track ? { track } : {}) } });
   if (!from) {
     throw academicYearId
       ? new AppError("Academic year not found for this school", httpStatus.NOT_FOUND)
       : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
   }
+  await assertClassesInTrack(db, schoolId, [classId], from);
   const to = await db.academicYear.findFirst({
-    where: { schoolId, startDate: { gt: from.startDate } },
+    where: { schoolId, track: from.track, startDate: { gt: from.startDate } },
     orderBy: { startDate: "asc" },
   });
   return { from, to };
 };
 
-/* The class, and the next one up (none for the last class: its students graduate). */
+/* The class, and the next one up in its track (none for the track's last class: its students graduate). */
 const resolveClasses = async (db: Db, schoolId: string, classId: string) => {
   const schoolClass = await db.schoolClass.findFirst({
     where: { id: classId, schoolId },
-    select: { id: true, name: true, numericLevel: true, sections: { select: sectionSelect, orderBy: { name: "asc" } } },
+    select: { id: true, name: true, numericLevel: true, track: true, sections: { select: sectionSelect, orderBy: { name: "asc" } } },
   });
   if (!schoolClass) throw new AppError("Class not found for this school", httpStatus.NOT_FOUND);
   const nextClass = await db.schoolClass.findFirst({
-    where: { schoolId, numericLevel: { gt: schoolClass.numericLevel } },
+    where: { schoolId, track: schoolClass.track, numericLevel: { gt: schoolClass.numericLevel } },
     orderBy: { numericLevel: "asc" },
     select: { id: true, name: true, numericLevel: true, sections: { select: sectionSelect, orderBy: { name: "asc" } } },
   });
@@ -60,7 +67,7 @@ const resolveClasses = async (db: Db, schoolId: string, classId: string) => {
  * one is published, and for those already done, where they went.
  */
 const getPreview = async (schoolId: string, query: PromotionPreviewQuery) => {
-  const { from, to } = await resolveYears(prisma, schoolId, query.academicYearId);
+  const { from, to } = await resolveYears(prisma, schoolId, query.academicYearId, query.classId);
   const { schoolClass, nextClass } = await resolveClasses(prisma, schoolId, query.classId);
 
   const formulas = await prisma.finalResultFormula.findMany({
@@ -133,7 +140,7 @@ const getPreview = async (schoolId: string, query: PromotionPreviewQuery) => {
 
 const promote = async (schoolId: string, data: PromotePayload) => {
   const { result, moves, toYearId, fromClassName } = await prisma.$transaction(async (tx) => {
-    const { from, to } = await resolveYears(tx, schoolId, data.academicYearId);
+    const { from, to } = await resolveYears(tx, schoolId, data.academicYearId, data.classId);
     if (!to) throw new AppError("Make the next academic year first: students move into it", httpStatus.BAD_REQUEST);
     const { schoolClass, nextClass } = await resolveClasses(tx, schoolId, data.classId);
 
@@ -246,13 +253,13 @@ const undo = async (schoolId: string, enrollmentId: string) => {
   const result = await prisma.$transaction(async (tx) => {
     const old = await tx.enrollment.findFirst({
       where: { id: enrollmentId, student: { schoolId } },
-      select: { id: true, status: true, studentId: true, classId: true, academicYearId: true, academicYear: { select: { startDate: true } } },
+      select: { id: true, status: true, studentId: true, classId: true, academicYearId: true, academicYear: { select: { startDate: true, track: true } } },
     });
     if (!old) throw new AppError("Enrollment not found", httpStatus.NOT_FOUND);
     if (old.status === "ACTIVE") throw new AppError("This student hasn't been moved yet", httpStatus.CONFLICT);
 
     const to = await tx.academicYear.findFirst({
-      where: { schoolId, startDate: { gt: old.academicYear.startDate } },
+      where: { schoolId, track: old.academicYear.track, startDate: { gt: old.academicYear.startDate } },
       orderBy: { startDate: "asc" },
       select: { id: true },
     });

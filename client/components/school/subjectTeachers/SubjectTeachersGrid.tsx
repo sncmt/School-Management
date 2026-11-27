@@ -30,6 +30,7 @@ import { useWorkingTeachers, type TeacherOption } from "@/lib/school/pickers";
 import { useSections, type Section } from "@/lib/school/sections";
 import { useSetSubjectTeachers, useSubjectTeachers } from "@/lib/school/subjectTeachers";
 import { cn } from "@/lib/utils";
+import { PageHero } from "@/components/layout/PageHero";
 
 type Cell = { classSubject: ClassSubject; section: Section; teacherIds: string[] };
 
@@ -81,11 +82,8 @@ export function SubjectTeachersGrid() {
   const rows = subjects.data?.items ?? [];
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
 
       <div className="flex flex-wrap items-end gap-3">
         <Select value={classId ?? ""} onValueChange={chooseClass} disabled={classes.length === 0}>

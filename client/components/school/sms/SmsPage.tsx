@@ -11,6 +11,7 @@ import { SmsActivitiesTab } from "./SmsActivitiesTab";
 import { SmsLogTab } from "./SmsLogTab";
 import { SmsSendTab } from "./SmsSendTab";
 import { SmsSettingsTab } from "./SmsSettingsTab";
+import { PageHero } from "@/components/layout/PageHero";
 
 type Tab = "activities" | "send" | "log" | "settings";
 
@@ -31,36 +32,38 @@ export function SmsPage() {
 
   const on = settings.data?.isActive;
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {settings.data && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
-                on
-                  ? "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-950/40 dark:text-emerald-300"
-                  : "bg-muted text-muted-foreground ring-border",
-              )}
-            >
-              <span className={cn("size-1.5 rounded-full", on ? "bg-emerald-500" : "bg-muted-foreground/60")} />
-              {t(on ? "status.on" : "status.off")}
-            </span>
-            {settings.data.provider === "TEST" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-600/15 ring-inset dark:bg-amber-950/40 dark:text-amber-300">
-                <FlaskConical className="size-3.5" /> {t("status.testMode")}
-              </span>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {settings.data && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
+                    on
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-950/40 dark:text-emerald-300"
+                      : "bg-muted text-muted-foreground ring-border",
+                  )}
+                >
+                  <span className={cn("size-1.5 rounded-full", on ? "bg-emerald-500" : "bg-muted-foreground/60")} />
+                  {t(on ? "status.on" : "status.off")}
+                </span>
+                {settings.data.provider === "TEST" && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-600/15 ring-inset dark:bg-amber-950/40 dark:text-amber-300">
+                    <FlaskConical className="size-3.5" /> {t("status.testMode")}
+                  </span>
+                )}
+              </div>
             )}
-          </div>
-        )}
-      </div>
+          </>
+        }
+      />
 
-      <Tabs value={current} onValueChange={(v) => setTab(v as Tab)}>
-        <TabsList>
+      <Tabs value={current} onValueChange={(v) => setTab(v as Tab)} className="gap-2">
+        <TabsList variant="strip">
           {tabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {t(`tabs.${name}`)}

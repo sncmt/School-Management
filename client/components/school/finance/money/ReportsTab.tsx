@@ -8,7 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCan } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
-import { useAcademicYears } from "@/lib/school/academicYears";
+import { currentYearOf, useAcademicYears } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
 import { bdDayEnd, bdDayStart } from "@/lib/school/collection";
 import { useMoney, useMonthName } from "@/lib/school/finance";
 import { useClassDues, useCollectionReport, useStudentDues } from "@/lib/school/ledger";
@@ -121,18 +123,21 @@ export function CollectionReport() {
 export function DuesReport({ onCollect }: { onCollect: (studentId: string) => void }) {
   const [classId, setClassId] = useState<string | null>(null);
   const years = useAcademicYears();
+  const { main } = useInstitutionTracks();
+  const yearLabel = useYearLabel();
   const [yearId, setYearId] = useState<string | undefined>();
-  const year = years.data?.find((y) => y.id === yearId) ?? years.data?.find((y) => y.isCurrent);
+  // the main track's current year (school and college: a year of each can be chosen)
+  const year = years.data?.find((y) => y.id === yearId) ?? currentYearOf(years.data, main) ?? currentYearOf(years.data);
 
   const yearSelect = (
     <Select value={year?.id ?? ""} onValueChange={setYearId}>
-      <SelectTrigger className="no-print w-36">
+      <SelectTrigger className="no-print w-44">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {years.data?.map((y) => (
           <SelectItem key={y.id} value={y.id}>
-            {y.name}
+            {yearLabel(y)}
           </SelectItem>
         ))}
       </SelectContent>

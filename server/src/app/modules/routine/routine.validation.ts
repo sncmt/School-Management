@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 import { schoolLanguageNames } from "../../shared/names";
 import { dateOnlySchema, timeSchema } from "../../shared/scheduleSchemas";
@@ -80,7 +81,8 @@ const teacherWeekQuery = z.object({
   academicYearId: optionalId,
 });
 
-const yearQuery = z.object({ academicYearId: optionalId });
+// no year and no track: the current years of every track together (a teacher's load)
+const yearQuery = z.object({ academicYearId: optionalId, track: trackSchema.optional() });
 
 /* One date: a section's or a teacher's routine that day. */
 const dayQuery = z

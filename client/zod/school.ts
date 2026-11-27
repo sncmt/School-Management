@@ -33,6 +33,8 @@ const nameEn = z.string().trim().min(1, "validation.nameEnRequired").min(2, "val
 const nameBn = z.string().trim().min(1, "validation.banglaNameRequired").min(2, "validation.nameMin").max(200);
 const email = z.string().trim().min(1, "validation.emailRequired").pipe(z.email("validation.emailInvalid"));
 const language = z.enum(["BN", "EN"]);
+// school, college, or both (two academic-year tracks)
+const institutionType = z.enum(["SCHOOL", "COLLEGE", "SCHOOL_AND_COLLEGE"]);
 const discountRule = z
   .number("validation.numberInvalid")
   .min(0, "validation.discountRange")
@@ -57,6 +59,7 @@ export const createSchoolSchema = z.object({
   website: optionalText(z.url("validation.websiteInvalid")),
   address: optionalText(z.string().max(500)),
   language,
+  institutionType,
   subscriptionPlan: z.string().pipe(planRule),
   // the package: its student limit and price a month (a year is twelve months)
   packageId: z.string().min(1, "validation.packageRequired"),
@@ -75,6 +78,7 @@ export const updateSchoolSchema = z.object({
   website: clearableText(z.url("validation.websiteInvalid")),
   address: clearableText(z.string().max(500)),
   language,
+  institutionType,
   // a school activated before plans has none: left empty, it isn't sent (it stays as it is)
   subscriptionPlan: z
     .string()

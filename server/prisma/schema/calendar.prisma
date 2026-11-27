@@ -1,12 +1,11 @@
-/*
+/**
  * The school calendar: which days are school days.
- *
  * For a class on a date, the first match decides:
- *   1. a school HOLIDAY entry covering that class
- *   2. a WORKING_DAY entry covering that class (a make-up day on a weekly or national holiday)
- *   3. a national holiday the school has not switched off
- *   4. the weekly holiday rule in force that day
- *   5. otherwise a school day
+ * 1. a school HOLIDAY entry covering that class
+ * 2. a WORKING_DAY entry covering that class (a make-up day on a weekly or national holiday)
+ * 3. a national holiday the school has not switched off
+ * 4. the weekly holiday rule in force that day
+ * 5. otherwise a school day
  * For teachers the same, except a school holiday counts only when it covers all classes
  * and has teachersOff = true (teachers can work on some holidays, e.g. exam duty).
  */
@@ -22,7 +21,7 @@ enum HolidayType {
   VACATION // summer, Ramadan, winter vacation
 }
 
-/*
+/**
  * The weekly days off, from a date on. The latest rule that has started applies, so a
  * change never rewrites what past days were. No rule = no weekly holiday.
  */
@@ -42,7 +41,9 @@ model WeeklyHolidayRule {
   @@unique([schoolId, effectiveFrom])
 }
 
-/* National public holidays, kept by the platform admin for every school. */
+/**
+ * National public holidays, kept by the platform admin for every school.
+ */
 model NationalHoliday {
   id String @id @default(cuid())
 
@@ -61,7 +62,9 @@ model NationalHoliday {
   @@index([fromDate, toDate])
 }
 
-/* A school that stays open on a national holiday (it "removed" it from its calendar). */
+/**
+ * A school that stays open on a national holiday (it "removed" it from its calendar).
+ */
 model NationalHolidayExclusion {
   id String @id @default(cuid())
 
@@ -77,7 +80,7 @@ model NationalHolidayExclusion {
   @@unique([schoolId, nationalHolidayId])
 }
 
-/*
+/**
  * A school's own holiday, vacation or make-up working day; one day (fromDate = toDate) or
  * several. It covers all classes, or only the classes listed.
  */

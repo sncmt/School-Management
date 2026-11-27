@@ -5,6 +5,7 @@ import { dayStatus, loadCalendar } from "../calendar/calendar.resolver";
 import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import { resolveSectionHours } from "../schedule/schedule.service";
 import { WORKING_STATUSES } from "../teacher/teacher.service";
+import { yearsCovering } from "../../shared/academicYears";
 
 /*
  * Punches into attendance. Each punch is claimed once (so two servers, or a restart, never
@@ -88,7 +89,8 @@ const claim = async (schoolId: string): Promise<Punch[]> => {
 
 /* What one run of a school needs again and again: years, calendars, section hours. */
 const makeCache = (schoolId: string) => {
-  const years = new Map<string, Promise<{ id: string } | null>>();
+  // the years covering a day: the school year and the college year (an institution with both)
+  const years = new Map<string, Promise<string[]>>();
   const calendars = new Map<string, ReturnType<typeof loadCalendar>>();
   return {
     year: (day: Date) => {
@@ -96,7 +98,7 @@ const makeCache = (schoolId: string) => {
       if (!years.has(k)) {
         years.set(
           k,
-          prisma.academicYear.findFirst({ where: { schoolId, startDate: { lte: day }, endDate: { gte: day } }, orderBy: { startDate: "desc" }, select: { id: true } }),
+          yearsCovering(prisma, schoolId, day).then((ys) => ys.map((y) => y.id)),
         );
       }
       return years.get(k)!;
@@ -145,19 +147,21 @@ const applyPunch = (
 
 const handleStudent = async (punch: Punch, studentId: string, rules: DeviceRules, cache: Cache, touched: Map<string, Date>): Promise<Outcome> => {
   const day = bdDay(punch.punchedAt);
-  const year = await cache.year(day);
-  if (!year) return "NO_YEAR";
+  const yearIds = await cache.year(day);
+  if (yearIds.length === 0) return "NO_YEAR";
+  // the student's enrollment in the year of their own track that covers the day
   const enrollment = await prisma.enrollment.findFirst({
     where: {
       studentId,
-      academicYearId: year.id,
+      academicYearId: { in: yearIds },
       enrolledAt: { lt: endOfBangladeshDay(day) },
       OR: [{ status: "ACTIVE" }, { leftAt: { gte: day } }],
       student: { schoolId: punch.schoolId },
     },
-    select: { id: true, sectionId: true, classId: true },
+    select: { id: true, sectionId: true, classId: true, academicYearId: true },
   });
   if (!enrollment) return "NOT_ON_ROLL";
+  const year = { id: enrollment.academicYearId };
   if (!dayStatus(await cache.calendar(day), day, { classId: enrollment.classId }).isSchoolDay) return "DAY_OFF";
 
   let session = await prisma.attendanceSession.findUnique({ where: { sectionId_date: { sectionId: enrollment.sectionId, date: day } }, select: { id: true, startTime: true } });

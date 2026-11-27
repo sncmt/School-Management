@@ -26,10 +26,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCan, useIsSuperAdmin } from "@/lib/auth/hooks";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears, useMakeAcademicYearCurrent, type AcademicYear } from "@/lib/school/academicYears";
+import { ACADEMIC_TRACKS, useAcademicYears, useMakeAcademicYearCurrent, type AcademicYear } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
 import { cn } from "@/lib/utils";
 import { AcademicYearFormDialog } from "./AcademicYearFormDialog";
 import { DeleteAcademicYearDialog } from "./DeleteAcademicYearDialog";
+import { PageHero } from "@/components/layout/PageHero";
 
 const COLUMNS = ["name", "dates", "students", "exams"] as const;
 
@@ -45,24 +47,31 @@ export function AcademicYearsList() {
   const [makingCurrent, setMakingCurrent] = useState<AcademicYear | null>(null);
   const [deleting, setDeleting] = useState<AcademicYear | null>(null);
 
-  const years = data ?? [];
+  const { hasBoth } = useInstitutionTracks();
+  // with school and college: the school years first, then the college years (newest first in each)
+  const years = hasBoth
+    ? [...(data ?? [])].sort((a, b) => ACADEMIC_TRACKS.indexOf(a.track) - ACADEMIC_TRACKS.indexOf(b.track))
+    : (data ?? []);
+  const columnCount = COLUMNS.length + (hasBoth ? 2 : 1);
   const canUpdate = can("academic_year:update");
   // the super admin only, and only a year with nothing in it (the dialog says why not)
   const canDelete = useIsSuperAdmin();
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {can("academic_year:create") && (
-          <Button onClick={() => setAdding(true)}>
-            <Plus /> {t("add")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {can("academic_year:create") && (
+              <Button onClick={() => setAdding(true)}>
+                <Plus /> {t("add")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <div className={cn("rounded-md border transition-opacity", isFetching && !isPending && "opacity-60")}>
         <Table>
@@ -71,6 +80,7 @@ export function AcademicYearsList() {
               {COLUMNS.map((column) => (
                 <TableHead key={column}>{t(`columns.${column}`)}</TableHead>
               ))}
+              {hasBoth && <TableHead>{t("columns.track")}</TableHead>}
               <TableHead className="w-12">
                 <span className="sr-only">{t("columns.actions")}</span>
               </TableHead>
@@ -80,7 +90,7 @@ export function AcademicYearsList() {
             {isPending ? (
               Array.from({ length: 3 }, (_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: COLUMNS.length + 1 }, (_, j) => (
+                  {Array.from({ length: columnCount }, (_, j) => (
                     <TableCell key={j}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
@@ -88,7 +98,7 @@ export function AcademicYearsList() {
                 </TableRow>
               ))
             ) : isError ? (
-              <MessageRow>
+              <MessageRow colSpan={columnCount}>
                 <p>{t("loadFailed")}</p>
                 <p className="text-xs">{describeError(error)}</p>
                 <Button variant="outline" size="sm" onClick={() => refetch()}>
@@ -96,7 +106,7 @@ export function AcademicYearsList() {
                 </Button>
               </MessageRow>
             ) : years.length === 0 ? (
-              <MessageRow>
+              <MessageRow colSpan={columnCount}>
                 <p>{t("empty")}</p>
               </MessageRow>
             ) : (
@@ -104,6 +114,7 @@ export function AcademicYearsList() {
                 <YearRow
                   key={year.id}
                   year={year}
+                  showTrack={hasBoth}
                   canUpdate={canUpdate}
                   canDelete={canDelete}
                   onEdit={() => setEditing(year)}
@@ -119,7 +130,7 @@ export function AcademicYearsList() {
       <AcademicYearFormDialog
         open={adding || !!editing}
         year={editing}
-        isFirstYear={years.length === 0}
+        years={years}
         onClose={() => {
           setAdding(false);
           setEditing(null);
@@ -131,10 +142,10 @@ export function AcademicYearsList() {
   );
 }
 
-function MessageRow({ children }: { children: React.ReactNode }) {
+function MessageRow({ colSpan, children }: { colSpan: number; children: React.ReactNode }) {
   return (
     <TableRow className="hover:bg-transparent">
-      <TableCell colSpan={COLUMNS.length + 1} className="h-32">
+      <TableCell colSpan={colSpan} className="h-32">
         <div className="flex flex-col items-center justify-center gap-2 text-center text-muted-foreground">
           {children}
         </div>
@@ -145,6 +156,7 @@ function MessageRow({ children }: { children: React.ReactNode }) {
 
 function YearRow({
   year,
+  showTrack,
   canUpdate,
   canDelete,
   onEdit,
@@ -152,6 +164,7 @@ function YearRow({
   onDelete,
 }: {
   year: AcademicYear;
+  showTrack: boolean;
   canUpdate: boolean;
   canDelete: boolean;
   onEdit: () => void;
@@ -159,6 +172,7 @@ function YearRow({
   onDelete: () => void;
 }) {
   const t = useTranslations("school.years");
+  const tTracks = useTranslations("school.tracks");
   const tDelete = useTranslations("deletes.year");
   const format = useFormatter();
   // calendar dates: format them as the UTC day the server stored
@@ -177,6 +191,11 @@ function YearRow({
       </TableCell>
       <TableCell>{format.number(year._count.enrollments)}</TableCell>
       <TableCell>{format.number(year._count.exams)}</TableCell>
+      {showTrack && (
+        <TableCell>
+          <Badge variant="outline">{tTracks(year.track)}</Badge>
+        </TableCell>
+      )}
       <TableCell>
         {(canUpdate || canDelete) && (
           <DropdownMenu>

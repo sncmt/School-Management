@@ -271,9 +271,10 @@
  * --tab-out short of its edge, a line marks the paper's edge, and the strip beyond shows the page's
  * own colours (the top bar's white with its line, then the canvas). The current page's row reaches
  * into it (SidebarShell). The strip is drawn under the menu's rows and scrollbar.
+ * 8px wide, so with the page's 6px left padding the page has the same 14px gap on every side.
  */
 .school-menu:not([data-mobile]) {
-  --tab-out: 14px;
+  --tab-out: 8px;
 }
 .school-menu:not([data-mobile]) [data-slot="sidebar-inner"] {
   position: relative;
@@ -544,6 +545,39 @@
 }
 
 /* ---------------------------------------------------------------- dashboard pages */
+
+/*
+ * A page's actions in its header panel (PageHero), so pages can pass ordinary buttons: the main
+ * one solid white with the accent's words, the others outlined in 35% white; selects likewise.
+ */
+.page-hero-actions [data-slot="button"][data-variant="default"] {
+  background: #fff;
+  color: var(--brand-ink);
+  box-shadow: none;
+}
+.page-hero-actions [data-slot="button"][data-variant="default"]:hover {
+  background: rgb(255 255 255 / 0.9);
+}
+.page-hero-actions [data-slot="button"]:is([data-variant="outline"], [data-variant="ghost"], [data-variant="secondary"]),
+.page-hero-actions [data-slot="select-trigger"] {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  color: #fff;
+  box-shadow: none;
+}
+.page-hero-actions [data-slot="button"]:is([data-variant="outline"], [data-variant="ghost"], [data-variant="secondary"]):hover,
+.page-hero-actions [data-slot="select-trigger"]:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+.page-hero-actions [data-slot="select-trigger"] svg {
+  color: rgb(255 255 255 / 0.7);
+}
+@media (max-width: 639px) {
+  /* on a phone the actions share a full row */
+  .page-hero-actions > [data-slot="button"]:not([data-size^="icon"]) {
+    flex: 1;
+  }
+}
 
 /* every page's title: a short accent bar above it, then the name, tight and bold */
 .page-title {

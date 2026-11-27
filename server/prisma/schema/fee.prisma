@@ -2,23 +2,23 @@ model FeeType {
   id String @id @default(cuid())
 
   schoolId String
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   fundId String
-  fund Fund @relation(fields: [fundId], references: [id])
+  fund   Fund   @relation(fields: [fundId], references: [id])
 
   // the name in the school's language is required; the other is optional (apps fall back to it)
-  nameEn String?
-  nameBn String?
+  nameEn      String?
+  nameBn      String?
   description String?
 
   frequency FeeFrequency
   // who is charged: every student, or only new / only old students of the year (by their enrollment)
   appliesTo FeeAppliesTo @default(ALL)
-  isActive Boolean @default(true)
+  isActive  Boolean      @default(true)
 
   feeStructures FeeStructure[]
-  studentFees StudentFee[]
+  studentFees   StudentFee[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -33,22 +33,22 @@ model FeeStructure {
   id String @id @default(cuid())
 
   schoolId String
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   academicYearId String
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
 
-  classId String
+  classId     String
   schoolClass SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   feeTypeId String
-  feeType FeeType @relation(fields: [feeTypeId], references: [id])
+  feeType   FeeType @relation(fields: [feeTypeId], references: [id])
 
   // base amount; for MONTHLY fees, monthlyAmounts overrides it month by month
   amount Decimal @db.Decimal(12, 2)
 
   monthlyAmounts FeeStructureMonth[]
-  studentFees StudentFee[]
+  studentFees    StudentFee[]
 
   isActive Boolean @default(true)
 
@@ -66,9 +66,9 @@ model FeeStructureMonth {
   id String @id @default(cuid())
 
   feeStructureId String
-  feeStructure FeeStructure @relation(fields: [feeStructureId], references: [id], onDelete: Cascade)
+  feeStructure   FeeStructure @relation(fields: [feeStructureId], references: [id], onDelete: Cascade)
 
-  month Int // 1-12
+  month  Int // 1-12
   amount Decimal @db.Decimal(10, 2)
 
   @@unique([feeStructureId, month])
@@ -79,44 +79,44 @@ model StudentFee {
   id String @id @default(cuid())
 
   schoolId String
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   studentId String
   // Restrict: a student with fee history can be deactivated but not hard-deleted
-  student Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
 
   academicYearId String
   // Restrict: an academic year with fees cannot be deleted
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
 
   classId String?
-  class SchoolClass? @relation(fields: [classId], references: [id])
+  class   SchoolClass? @relation(fields: [classId], references: [id])
 
   // null for custom fees that belong to one student only
   feeStructureId String?
-  feeStructure FeeStructure? @relation(fields: [feeStructureId], references: [id], onDelete: SetNull)
+  feeStructure   FeeStructure? @relation(fields: [feeStructureId], references: [id], onDelete: SetNull)
 
   feeTypeId String
-  feeType FeeType @relation(fields: [feeTypeId], references: [id])
+  feeType   FeeType @relation(fields: [feeTypeId], references: [id])
 
   fundId String
-  fund Fund @relation(fields: [fundId], references: [id])
+  fund   Fund   @relation(fields: [fundId], references: [id])
 
   // payable = amount - discountAmount
   amount Decimal @db.Decimal(10, 2)
 
-  discountAmount Decimal @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal   @default(0) @db.Decimal(12, 2)
   discountReason String?
-  discountedBy String?
-  discountedAt DateTime?
+  discountedBy   String?
+  discountedAt   DateTime?
 
   paidAmount Decimal @default(0) @db.Decimal(10, 2)
 
   month Int?
-  year Int?
+  year  Int?
 
-  status FeeStatus @default(UNPAID)
-  dueDate DateTime?
+  status      FeeStatus @default(UNPAID)
+  dueDate     DateTime?
   description String? // e.g. the reason for a fine
 
   allocations PaymentAllocation[]
@@ -138,25 +138,25 @@ model Payment {
   id String @id @default(cuid())
 
   schoolId String
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   studentId String
   // Restrict: payment history must survive
-  student Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
 
   // the money receipt's number, per school and year: "2026-000123"
   receiptNo String
 
-  amount Decimal @db.Decimal(10, 2)
-  method PaymentMethod @default(CASH)
-  status PaymentStatus @default(SUCCESS)
+  amount         Decimal       @db.Decimal(10, 2)
+  method         PaymentMethod @default(CASH)
+  status         PaymentStatus @default(SUCCESS)
   transactionRef String?
-  receivedBy String?
-  paidAt DateTime @default(now())
+  receivedBy     String?
+  paidAt         DateTime      @default(now())
 
   // a cancelled payment is kept and reversed, never deleted
-  cancelledAt DateTime?
-  cancelledBy String?
+  cancelledAt  DateTime?
+  cancelledBy  String?
   cancelReason String?
 
   allocations PaymentAllocation[]
@@ -177,10 +177,10 @@ model PaymentAllocation {
   id String @id @default(cuid())
 
   paymentId String
-  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   studentFeeId String
-  studentFee StudentFee @relation(fields: [studentFeeId], references: [id])
+  studentFee   StudentFee @relation(fields: [studentFeeId], references: [id])
 
   amount Decimal @db.Decimal(10, 2)
 
@@ -193,7 +193,7 @@ model PaymentAllocation {
   @@index([studentFeeId])
 }
 
-/*
+/**
  * Per-school counters (receipt numbers and similar).
  * key example: "receipt:2026"
  */
@@ -201,16 +201,18 @@ model SchoolSequence {
   id String @id @default(cuid())
 
   schoolId String
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  key String
-  value Int @default(0)
+  key   String
+  value Int    @default(0)
 
   @@unique([schoolId, key])
   @@index([schoolId])
 }
 
-/* A school's finance rules. One row per school; missing = the defaults. */
+/**
+ * A school's finance rules. One row per school; missing = the defaults.
+ */
 model FinanceSetting {
   id String @id @default(cuid())
 

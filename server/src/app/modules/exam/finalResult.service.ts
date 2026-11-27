@@ -3,6 +3,8 @@ import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { fileUrl } from "../../shared/storage";
+import type { AcademicTrack } from "../../../../generated/prisma/enums";
+import { requireYear } from "../../shared/academicYears";
 import { assertSchoolLanguageNames, displayName, type Names } from "../../shared/names";
 import { dayKey } from "../../shared/scheduleSchemas";
 import { rankResults, type ResultRules, round2, type ScaleRules } from "./examResult.calc";
@@ -31,17 +33,9 @@ const formulaInclude = {
 
 // ------------------------------------------------------------------- helpers
 
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true } });
-  if (!year) {
-    throw academicYearId
-      ? new AppError("Academic year not found for this school", httpStatus.NOT_FOUND)
-      : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
-  }
-  return year;
-};
+/* The given year, or the current one of the class's track (or of the track asked for). */
+const resolveYear = (schoolId: string, academicYearId?: string, opts: { classId?: string; track?: AcademicTrack } = {}) =>
+  requireYear(prisma, schoolId, { academicYearId, ...opts });
 
 const findFormula = async (schoolId: string, formulaId: string) => {
   const formula = await prisma.finalResultFormula.findFirst({ where: { id: formulaId, schoolId }, include: formulaInclude });
@@ -111,7 +105,7 @@ const assertFormulaNames = (schoolId: string, data: UpdateFormulaPayload) =>
 // ------------------------------------------------------------------- formulas
 
 const createFormula = async (schoolId: string, userId: string, data: CreateFormulaPayload) => {
-  const year = await resolveYear(schoolId, data.academicYearId);
+  const year = await resolveYear(schoolId, data.academicYearId, { classId: data.classId });
   const schoolClass = await prisma.schoolClass.findFirst({ where: { id: data.classId, schoolId }, select: { id: true } });
   if (!schoolClass) throw new AppError("Class not found for this school", httpStatus.NOT_FOUND);
 
@@ -137,7 +131,7 @@ const createFormula = async (schoolId: string, userId: string, data: CreateFormu
 };
 
 const getFormulas = async (schoolId: string, query: FinalListQuery) => {
-  const year = await resolveYear(schoolId, query.academicYearId);
+  const year = await resolveYear(schoolId, query.academicYearId, { classId: query.classId, track: query.track });
   const items = await prisma.finalResultFormula.findMany({
     where: { schoolId, academicYearId: year.id, ...(query.classId ? { classId: query.classId } : {}) },
     orderBy: [{ class: { numericLevel: "asc" } }, { createdAt: "asc" }],
@@ -487,8 +481,12 @@ const getTabulation = async (schoolId: string, formulaId: string, query: FinalTa
   const columns = new Map<string, { subjectId: string; nameEn: string | null; nameBn: string | null; code: string | null; isOptional: boolean; sortOrder: number }>();
   for (const r of results) {
     for (const s of r.subjects) {
-      if (!columns.has(s.subjectId)) {
+      const column = columns.get(s.subjectId);
+      if (!column) {
         columns.set(s.subjectId, { subjectId: s.subjectId, nameEn: s.nameEn, nameBn: s.nameBn, code: s.code, isOptional: s.isOptional, sortOrder: s.sortOrder });
+      } else if (!s.isOptional) {
+        // a "main or 4th" subject: a 4th column only when it is every student's 4th (each cell says)
+        column.isOptional = false;
       }
     }
   }

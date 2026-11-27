@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowDownUp, ClipboardList, GripVertical, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { ArrowDownUp, ClipboardList, GripVertical, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -52,12 +52,16 @@ import {
   useRemoveClassSubject,
   useReorderClassSubjects,
   useSetClassSubjectType,
+  useSetElectiveRule,
+  type ClassSubjectList,
   type ClassSubject,
 } from "@/lib/school/classSubjects";
 import { useClasses } from "@/lib/school/classes";
 import { cn } from "@/lib/utils";
 import { AddClassSubjectsDialog } from "./AddClassSubjectsDialog";
 import { MarksSetupDialog } from "./MarksSetupDialog";
+import { EditClassSubjectDialog } from "./EditClassSubjectDialog";
+import { PageHero } from "@/components/layout/PageHero";
 
 const COLUMN_COUNT = 7; // handle, code, subject, for, type, marks, actions
 
@@ -80,6 +84,7 @@ export function ClassSubjectsList() {
 
   const [adding, setAdding] = useState(false);
   const [settingMarks, setSettingMarks] = useState<ClassSubject | null>(null);
+  const [editing, setEditing] = useState<ClassSubject | null>(null);
   const [removing, setRemoving] = useState<ClassSubject | null>(null);
 
   const items = data?.items ?? [];
@@ -114,18 +119,20 @@ export function ClassSubjectsList() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {canManage && (
-          <Button onClick={() => setAdding(true)} disabled={!schoolClass || noYear}>
-            <Plus /> {t("add")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {canManage && (
+              <Button onClick={() => setAdding(true)} disabled={!schoolClass || noYear}>
+                <Plus /> {t("add")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <div className="flex flex-wrap items-end gap-3">
         <Select value={classId ?? ""} onValueChange={chooseClass} disabled={classes.length === 0}>
@@ -147,6 +154,8 @@ export function ClassSubjectsList() {
           </span>
         )}
       </div>
+
+      {data && classId && <ElectiveRules data={data} classId={classId} canManage={canManage} />}
 
       <div className={cn("rounded-md border transition-opacity", (isFetching || reorder.isPending) && !isPending && "opacity-60")}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -203,6 +212,7 @@ export function ClassSubjectsList() {
                       item={item}
                       permissions={permissions}
                       onMarks={() => setSettingMarks(item)}
+                      onEdit={() => setEditing(item)}
                       onRemove={() => setRemoving(item)}
                     />
                   ))}
@@ -215,6 +225,7 @@ export function ClassSubjectsList() {
 
       <AddClassSubjectsDialog open={adding} schoolClass={schoolClass} assigned={items} onClose={() => setAdding(false)} />
       <MarksSetupDialog classSubject={settingMarks} onClose={() => setSettingMarks(null)} />
+      <EditClassSubjectDialog item={editing} onClose={() => setEditing(null)} />
       <RemoveDialog item={removing} className={schoolClass?.name ?? ""} onClose={() => setRemoving(null)} />
     </div>
   );
@@ -236,11 +247,13 @@ function ClassSubjectRow({
   item,
   permissions,
   onMarks,
+  onEdit,
   onRemove,
 }: {
   item: ClassSubject;
   permissions: { manage: boolean; marks: boolean };
   onMarks: () => void;
+  onEdit: () => void;
   onRemove: () => void;
 }) {
   const t = useTranslations("school.classSubjects");
@@ -253,12 +266,13 @@ function ClassSubjectRow({
     disabled: !permissions.manage,
   });
 
-  const otherType = item.type === "COMPULSORY" ? "OPTIONAL" : "COMPULSORY";
-  const changeType = () =>
+  // the other two kinds it can become
+  const otherTypes = (["COMPULSORY", "OPTIONAL", "ELECTIVE"] as const).filter((type) => type !== item.type);
+  const changeType = (type: (typeof otherTypes)[number]) =>
     setType.mutate(
-      { classSubjectId: item.id, type: otherType },
+      { classSubjectId: item.id, type },
       {
-        onSuccess: () => toast.success(t("typeChanged", { subject: name(item.subject), type: t(`types.${otherType}`) })),
+        onSuccess: () => toast.success(t("typeChanged", { subject: name(item.subject), type: t(`types.${type}`) })),
         onError: (e) => toast.error(describeError(e)),
       },
     );
@@ -297,7 +311,9 @@ function ClassSubjectRow({
         {item.group ? <Badge variant="secondary">{name(item.group)}</Badge> : <span className="text-muted-foreground">{t("wholeClass")}</span>}
       </TableCell>
       <TableCell>
-        <Badge variant={item.type === "OPTIONAL" ? "outline" : "default"}>{t(`types.${item.type}`)}</Badge>
+        <Badge variant={item.type === "OPTIONAL" ? "outline" : item.type === "ELECTIVE" ? "secondary" : "default"}>
+          {t(`types.${item.type}`)}
+        </Badge>
       </TableCell>
       <TableCell className="text-sm">
         {marks ? (
@@ -332,9 +348,15 @@ function ClassSubjectRow({
               )}
               {permissions.manage && (
                 <>
-                  <DropdownMenuItem onSelect={changeType} disabled={setType.isPending}>
-                    <ArrowDownUp /> {item.type === "COMPULSORY" ? t("actions.makeOptional") : t("actions.makeCompulsory")}
+                  <DropdownMenuItem onSelect={onEdit}>
+                    <Pencil /> {t("actions.edit")}
                   </DropdownMenuItem>
+                  {otherTypes.map((type) => (
+                    <DropdownMenuItem key={type} onSelect={() => changeType(type)} disabled={setType.isPending}>
+                      <ArrowDownUp />{" "}
+                      {type === "COMPULSORY" ? t("actions.makeCompulsory") : type === "OPTIONAL" ? t("actions.makeOptional") : t("actions.makeElective")}
+                    </DropdownMenuItem>
+                  ))}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onSelect={onRemove}>
                     <Trash2 /> {t("actions.remove")}
@@ -382,5 +404,75 @@ function RemoveDialog({ item, className, onClose }: { item: ClassSubject | null;
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+/*
+ * For each group (or the whole class) with "main or 4th" subjects: how many its students take
+ * as main. At least one has to be left for the 4th list, so the most is one less than there are.
+ */
+function ElectiveRules({ data, classId, canManage }: { data: ClassSubjectList; classId: string; canManage: boolean }) {
+  const t = useTranslations("school.classSubjects.electives");
+  const name = useLocalizedName();
+  const describeError = useErrorMessage();
+  const setRule = useSetElectiveRule();
+
+  const electives = data.items.filter((i) => i.type === "ELECTIVE");
+  if (electives.length === 0) return null;
+
+  // the whole-class ones count for every group
+  const wholeClass = electives.filter((e) => !e.group);
+  const groups = [...new Map(electives.flatMap((e) => (e.group ? [[e.group.id, e.group] as const] : []))).values()];
+  const rows = [
+    ...(wholeClass.length > 0 || groups.length === 0 ? [{ groupId: null, label: t("wholeClass"), subjects: wholeClass }] : []),
+    ...groups.map((g) => ({ groupId: g.id, label: name(g), subjects: [...wholeClass, ...electives.filter((e) => e.group?.id === g.id)] })),
+  ];
+  const countOf = (groupId: string | null) =>
+    data.electiveRules?.find((r) => r.classId === classId && r.groupId === groupId)?.mainCount ??
+    data.electiveRules?.find((r) => r.classId === classId && r.groupId === null)?.mainCount ??
+    1;
+
+  const save = (groupId: string | null, mainCount: number) =>
+    setRule.mutate(
+      { academicYearId: data.academicYear.id, classId, groupId, mainCount },
+      { onSuccess: () => toast.success(t("saved")), onError: (e) => toast.error(describeError(e)) },
+    );
+
+  return (
+    <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+      <p className="text-sm font-medium">{t("title")}</p>
+      <p className="text-xs text-muted-foreground">{t("hint")}</p>
+      <div className="space-y-2">
+        {rows.map((row) => {
+          const most = Math.max(1, row.subjects.length - 1);
+          return (
+            <div key={row.groupId ?? "class"} className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="min-w-28 font-medium">{row.label}</span>
+              <span className="text-muted-foreground">{t("takes")}</span>
+              <Select
+                value={String(Math.min(countOf(row.groupId), most))}
+                onValueChange={(v) => save(row.groupId, Number(v))}
+                disabled={!canManage || row.subjects.length < 2 || setRule.isPending}
+              >
+                <SelectTrigger className="h-8 w-16">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: most }, (_, i) => i + 1).map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-muted-foreground">
+                {t("ofThese", { subjects: row.subjects.map((s) => name(s.subject)).join(", ") })}
+              </span>
+              {row.subjects.length < 2 && <span className="text-xs text-amber-700 dark:text-amber-400">{t("needTwo")}</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

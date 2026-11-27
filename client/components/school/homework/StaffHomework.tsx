@@ -17,6 +17,7 @@ import { todayKey, useHomeworkList, useHomeworkOptions, type HomeworkRow } from 
 import { Pager } from "../finance/collect/PaymentsTab";
 import { HomeworkFormDialog } from "./HomeworkFormDialog";
 import { DueLabel, sectionNames, useDay } from "./shared";
+import { PageHero } from "@/components/layout/PageHero";
 
 const COLUMNS = ["due", "class", "homework", "ticked"] as const;
 const PAGE_SIZE = 20;
@@ -54,18 +55,20 @@ export function StaffHomework() {
   const reset = () => setPage(1);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {canGive && (
-          <Button onClick={() => setGiving(true)}>
-            <Plus /> {t("give")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {canGive && (
+              <Button onClick={() => setGiving(true)}>
+                <Plus /> {t("give")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex h-9 items-center rounded-md border bg-card p-0.5 text-sm">

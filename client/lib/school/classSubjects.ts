@@ -5,7 +5,9 @@ import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
 import type { Religion } from "@/lib/subjects";
 
-export type ClassSubjectType = "COMPULSORY" | "OPTIONAL";
+// COMPULSORY: everyone (of the group); OPTIONAL: a fixed 4th subject; ELECTIVE: "main or 4th"
+// (each student takes a set number as main, the rest join their 4th list)
+export type ClassSubjectType = "COMPULSORY" | "OPTIONAL" | "ELECTIVE";
 
 type NameBrief = { id: string; nameEn: string | null; nameBn: string | null };
 
@@ -36,6 +38,8 @@ export type ClassSubject = {
 export type ClassSubjectList = {
   academicYear: { id: string; name: string };
   items: ClassSubject[];
+  // how many "main or 4th" subjects a class (or group) takes as main; none listed = 1
+  electiveRules?: { classId: string; groupId: string | null; mainCount: number }[];
 };
 
 export type MarksSetupBody = {
@@ -59,6 +63,10 @@ export const classSubjectsApi = {
   reorder: async (body: { classId: string; classSubjectIds: string[] }) =>
     (await httpClient.put<ApiResponse<ClassSubjectList>>("/class-subject/reorder", body)).data.data,
 
+  // who it is for (null: the whole class) and/or its kind
+  update: async ({ classSubjectId, body }: { classSubjectId: string; body: { type?: ClassSubjectType; groupId?: string | null } }) =>
+    (await httpClient.patch<ApiResponse<ClassSubject>>(`/class-subject/${classSubjectId}`, body)).data.data,
+
   setType: async ({ classSubjectId, type }: { classSubjectId: string; type: ClassSubjectType }) =>
     (await httpClient.patch<ApiResponse<ClassSubject>>(`/class-subject/${classSubjectId}`, { type })).data.data,
 
@@ -68,6 +76,11 @@ export const classSubjectsApi = {
   remove: async (classSubjectId: string) => {
     await httpClient.delete(`/class-subject/${classSubjectId}`);
   },
+
+  // how many of a class's (or group's) "main or 4th" subjects its students take as main
+  setElectiveRule: async (body: { academicYearId: string; classId: string; groupId: string | null; mainCount: number }) =>
+    (await httpClient.put<ApiResponse<{ classId: string; groupId: string | null; mainCount: number }>>("/class-subject/elective-rule", body))
+      .data.data,
 };
 
 const classSubjectsKey = ["school", "class-subjects"] as const;
@@ -93,7 +106,9 @@ const useClassSubjectMutation = <TArgs, TResult>(mutationFn: (args: TArgs) => Pr
 
 export const useAssignClassSubjects = () => useClassSubjectMutation(classSubjectsApi.assign);
 export const useSetClassSubjectType = () => useClassSubjectMutation(classSubjectsApi.setType);
+export const useUpdateClassSubject = () => useClassSubjectMutation(classSubjectsApi.update);
 export const useSetClassSubjectMarks = () => useClassSubjectMutation(classSubjectsApi.setMarks);
+export const useSetElectiveRule = () => useClassSubjectMutation(classSubjectsApi.setElectiveRule);
 export const useRemoveClassSubject = () => useClassSubjectMutation(classSubjectsApi.remove);
 
 /*

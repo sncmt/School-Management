@@ -2,6 +2,8 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import type { AcademicTrack } from "../../../../generated/prisma/enums";
+import { currentYears, requireYear, yearsCovering } from "../../shared/academicYears";
 import { displayName } from "../../shared/names";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, loadCalendar, weeklyHolidaysOn } from "../calendar/calendar.resolver";
@@ -54,25 +56,28 @@ const teacherName = (t: { nameEn: string } | null) => t?.nameEn ?? null;
 
 // ------------------------------------------------------------------- helpers
 
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true } });
-  if (!year) {
-    throw academicYearId
-      ? new AppError("Academic year not found for this school", httpStatus.NOT_FOUND)
-      : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
-  }
-  return year;
+/* The given year, or the current one of the class's track (or of the track asked for). */
+const resolveYear = (schoolId: string, academicYearId?: string, opts: { classId?: string; track?: AcademicTrack } = {}) =>
+  requireYear(prisma, schoolId, { academicYearId, ...opts });
+
+/*
+ * A teacher's routine years: the given year, or the current year of every track (a teacher
+ * may teach school and college classes). `year` is the given one or the main track's.
+ */
+const teacherYears = async (schoolId: string, academicYearId?: string, track?: AcademicTrack) => {
+  const years =
+    academicYearId || track
+      ? [await resolveYear(schoolId, academicYearId, { track })]
+      : await currentYears(prisma, schoolId);
+  if (years.length === 0) throw new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
+  return { year: { id: years[0]!.id, name: years[0]!.name }, yearIds: years.map((y) => y.id) };
 };
 
-const yearCovering = async (schoolId: string, date: Date) => {
-  const year = await prisma.academicYear.findFirst({
-    where: { schoolId, startDate: { lte: date }, endDate: { gte: date } },
-    orderBy: { startDate: "desc" },
-  });
-  if (!year) throw new AppError("No academic year covers this date", httpStatus.BAD_REQUEST);
-  return year;
+/* The school year and the college year of a date (one of them for an ordinary school). */
+const yearsOn = async (schoolId: string, date: Date) => {
+  const years = await yearsCovering(prisma, schoolId, date);
+  if (years.length === 0) throw new AppError("No academic year covers this date", httpStatus.BAD_REQUEST);
+  return years;
 };
 
 const toTemplate = (t: { id: string; nameEn: string | null; nameBn: string | null; periods: Period[] }): Template => ({
@@ -84,10 +89,10 @@ const toTemplate = (t: { id: string; nameEn: string | null; nameBn: string | nul
 
 const periodSelect = { number: true, nameEn: true, nameBn: true, startTime: true, endTime: true, isBreak: true } satisfies Prisma.TemplatePeriodSelect;
 
-/* Each section's own (regular) period template in a year. */
-const regularTemplates = async (academicYearId: string, sectionIds: string[]) => {
+/* Each section's own (regular) period template in a year (or in the years: one per track). */
+const regularTemplates = async (yearIds: string | string[], sectionIds: string[]) => {
   const configs = await prisma.sectionYearConfig.findMany({
-    where: { academicYearId, sectionId: { in: sectionIds } },
+    where: { academicYearId: { in: typeof yearIds === "string" ? [yearIds] : yearIds }, sectionId: { in: sectionIds } },
     select: {
       sectionId: true,
       periodTemplate: { select: { id: true, nameEn: true, nameBn: true, periods: { select: periodSelect } } },
@@ -125,6 +130,8 @@ const entryView = (e: Entry, time: { startTime: string; endTime: string } | null
   subject: e.classSubject.subject,
   group: e.classSubject.group,
   isOptional: e.classSubject.type === "OPTIONAL",
+  // "main or 4th": only the students who took it as main or as their 4th
+  isElective: e.classSubject.type === "ELECTIVE",
   teacher: e.teacher,
 });
 
@@ -143,7 +150,7 @@ const saveEntry = async (schoolId: string, data: EntryPayload, entryId?: string)
     const existing = await prisma.routineEntry.findFirst({ where: { id: entryId, schoolId }, select: { id: true } });
     if (!existing) throw new AppError("Routine entry not found", httpStatus.NOT_FOUND);
   }
-  const year = await resolveYear(schoolId, data.academicYearId);
+  const year = await resolveYear(schoolId, data.academicYearId, { classId: data.classId });
   const weekdayName = WEEKDAYS[data.weekday];
 
   const [sections, classSubject, teacher, weeklyOff] = await Promise.all([
@@ -209,13 +216,19 @@ const saveEntry = async (schoolId: string, data: EntryPayload, entryId?: string)
     }
   }
 
-  // the teacher cannot be in two places at once
+  // the teacher cannot be in two places at once: in this year, nor in the other track's year
+  // running at the same time (a teacher of school and college classes)
   if (data.teacherId) {
+    const sameTime = await prisma.academicYear.findMany({
+      where: { schoolId, startDate: { lte: year.endDate }, endDate: { gte: year.startDate } },
+      select: { id: true },
+    });
+    const yearIds = [...new Set([year.id, ...sameTime.map((y) => y.id)])];
     const teacherEntries = await prisma.routineEntry.findMany({
-      where: { academicYearId: year.id, weekday: data.weekday, teacherId: data.teacherId, ...(entryId ? { id: { not: entryId } } : {}) },
+      where: { academicYearId: { in: yearIds }, weekday: data.weekday, teacherId: data.teacherId, ...(entryId ? { id: { not: entryId } } : {}) },
       include: entryInclude,
     });
-    const theirTemplates = await regularTemplates(year.id, [...new Set(teacherEntries.map((e) => e.sections[0].section.id))]);
+    const theirTemplates = await regularTemplates(yearIds, [...new Set(teacherEntries.map((e) => e.sections[0].section.id))]);
     for (const other of teacherEntries) {
       const period = theirTemplates.get(other.sections[0].section.id)?.periods.get(other.periodNumber);
       if (period && timesOverlap(period, time!)) {
@@ -269,7 +282,7 @@ const getSectionWeek = async (schoolId: string, query: SectionWeekQuery) => {
     select: { id: true, name: true, isDefault: true, class: { select: { id: true, name: true } } },
   });
   if (!section) throw new AppError("Section not found", httpStatus.NOT_FOUND);
-  const year = await resolveYear(schoolId, query.academicYearId);
+  const year = await resolveYear(schoolId, query.academicYearId, { classId: section.class.id });
 
   const [templates, entries, weeklyOff] = await Promise.all([
     regularTemplates(year.id, [section.id]),
@@ -296,9 +309,9 @@ const getSectionWeek = async (schoolId: string, query: SectionWeekQuery) => {
   };
 };
 
-const teacherWeek = async (teacherId: string, academicYearId: string) => {
-  const entries = await prisma.routineEntry.findMany({ where: { academicYearId, teacherId }, include: entryInclude });
-  const templates = await regularTemplates(academicYearId, [...new Set(entries.map((e) => e.sections[0].section.id))]);
+const teacherWeek = async (teacherId: string, yearIds: string[]) => {
+  const entries = await prisma.routineEntry.findMany({ where: { academicYearId: { in: yearIds }, teacherId }, include: entryInclude });
+  const templates = await regularTemplates(yearIds, [...new Set(entries.map((e) => e.sections[0].section.id))]);
 
   const items = entries
     .map((e) => {
@@ -315,18 +328,19 @@ const teacherWeek = async (teacherId: string, academicYearId: string) => {
 const getTeacherWeek = async (schoolId: string, query: TeacherWeekQuery) => {
   const teacher = await prisma.teacherProfile.findFirst({ where: { id: query.teacherId, schoolId }, select: teacherBrief });
   if (!teacher) throw new AppError("Teacher not found", httpStatus.NOT_FOUND);
-  const year = await resolveYear(schoolId, query.academicYearId);
-  return { academicYear: { id: year.id, name: year.name }, teacher, ...(await teacherWeek(teacher.id, year.id)) };
+  const { year, yearIds } = await teacherYears(schoolId, query.academicYearId);
+  return { academicYear: year, teacher, ...(await teacherWeek(teacher.id, yearIds)) };
 };
 
 /* Every working teacher's number of periods per week (and per day). */
 const getWorkload = async (schoolId: string, query: YearQuery) => {
-  const year = await resolveYear(schoolId, query.academicYearId);
+  // a teacher's load counts both tracks unless one year or track is asked for
+  const { year, yearIds } = await teacherYears(schoolId, query.academicYearId, query.track);
   const [teachers, counts] = await Promise.all([
     prisma.teacherProfile.findMany({ where: { schoolId, status: { in: WORKING_STATUSES } }, select: { ...teacherBrief, status: true } }),
     prisma.routineEntry.groupBy({
       by: ["teacherId", "weekday"],
-      where: { academicYearId: year.id, teacherId: { not: null } },
+      where: { academicYearId: { in: yearIds }, teacherId: { not: null } },
       _count: { _all: true },
     }),
   ]);
@@ -342,7 +356,7 @@ const getWorkload = async (schoolId: string, query: YearQuery) => {
   return {
     academicYear: { id: year.id, name: year.name },
     // routine classes still without a teacher
-    unassigned: await prisma.routineEntry.count({ where: { academicYearId: year.id, schoolId, teacherId: null } }),
+    unassigned: await prisma.routineEntry.count({ where: { academicYearId: { in: yearIds }, schoolId, teacherId: null } }),
     items: items.sort((a, b) => b.periodsPerWeek - a.periodsPerWeek),
   };
 };
@@ -355,16 +369,17 @@ const getWorkload = async (schoolId: string, query: YearQuery) => {
  * substitutions.
  */
 const loadDay = async (schoolId: string, date: Date) => {
-  const year = await yearCovering(schoolId, date);
+  const years = await yearsOn(schoolId, date);
+  const yearIds = years.map((y) => y.id);
   const weekday = date.getUTCDay();
 
-  const entries = await prisma.routineEntry.findMany({ where: { academicYearId: year.id, weekday }, include: entryInclude });
+  const entries = await prisma.routineEntry.findMany({ where: { academicYearId: { in: yearIds }, weekday }, include: entryInclude });
   const sections = [
     ...new Map(entries.flatMap((e) => e.sections.map((s) => [s.section.id, { id: s.section.id, classId: e.classId }] as const))).values(),
   ];
 
   const [hours, calendar, substitutions] = await Promise.all([
-    resolveSectionHours(prisma, schoolId, year.id, date, sections),
+    resolveSectionHours(prisma, schoolId, yearIds, date, sections),
     loadCalendar(prisma, schoolId, date, date),
     prisma.routineSubstitution.findMany({
       where: { schoolId, date, entryId: { in: entries.map((e) => e.id) } },
@@ -387,7 +402,7 @@ const loadDay = async (schoolId: string, date: Date) => {
   /* Who actually teaches the entry that day: the substitute, else the routine's teacher. */
   const teacherOn = (e: Entry) => substitutionOf.get(e.id)?.teacherId ?? e.teacherId;
 
-  return { year, weekday, entries, calendar, templateOf, timeOf, isHeld, teacherOn, substitutionOf };
+  return { yearIds, weekday, entries, calendar, templateOf, timeOf, isHeld, teacherOn, substitutionOf };
 };
 
 const dayEntryView = (day: Awaited<ReturnType<typeof loadDay>>, e: Entry) => {
@@ -415,7 +430,7 @@ const getDay = async (schoolId: string, query: DayQuery) => {
     if (!section) throw new AppError("Section not found", httpStatus.NOT_FOUND);
 
     const status = dayStatus(day.calendar, date, { classId: section.classId });
-    const template = day.templateOf(section.id) ?? (await regularTemplates(day.year.id, [section.id])).get(section.id) ?? null;
+    const template = day.templateOf(section.id) ?? (await regularTemplates(day.yearIds, [section.id])).get(section.id) ?? null;
     return {
       ...base,
       section,
@@ -487,7 +502,7 @@ const getFreeTeachers = async (schoolId: string, query: FreeTeachersQuery) => {
   if (!dayStatus(day.calendar, query.date, { classId: section.classId }).isSchoolDay) {
     throw new AppError("This is not a school day for the section", httpStatus.BAD_REQUEST);
   }
-  const template = day.templateOf(section.id) ?? (await regularTemplates(day.year.id, [section.id])).get(section.id) ?? null;
+  const template = day.templateOf(section.id) ?? (await regularTemplates(day.yearIds, [section.id])).get(section.id) ?? null;
   const period = template?.periods.get(query.periodNumber);
   if (!period || period.isBreak) throw new AppError("The section has no such class period that day", httpStatus.BAD_REQUEST);
 
@@ -523,7 +538,7 @@ const createSubstitution = async (auth: Auth, data: SubstitutionPayload) => {
   if (data.teacherId === entry.teacherId) throw new AppError("That is the class's own teacher", httpStatus.BAD_REQUEST);
 
   const day = await loadDay(schoolId, data.date);
-  if (day.year.id !== entry.academicYearId) throw new AppError("The date is outside this routine's academic year", httpStatus.BAD_REQUEST);
+  if (!day.yearIds.includes(entry.academicYearId)) throw new AppError("The date is outside this routine's academic year", httpStatus.BAD_REQUEST);
   const time = day.timeOf(entry);
   if (!day.isHeld(entry) || !time) throw new AppError("This class does not take place on that date", httpStatus.BAD_REQUEST);
 
@@ -581,8 +596,8 @@ const findMyTeacherId = async (auth: Auth) => {
 /* The logged-in teacher's weekly routine. */
 const getMyWeek = async (auth: Auth) => {
   const teacherId = await findMyTeacherId(auth);
-  const year = await resolveYear(auth.schoolId!);
-  return { academicYear: { id: year.id, name: year.name }, ...(await teacherWeek(teacherId, year.id)) };
+  const { year, yearIds } = await teacherYears(auth.schoolId!);
+  return { academicYear: year, ...(await teacherWeek(teacherId, yearIds)) };
 };
 
 /* The logged-in teacher's classes on a date (default today), substitutions included. */

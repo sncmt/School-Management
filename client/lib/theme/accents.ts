@@ -1,3 +1,5 @@
+import { withRgbFallback } from "./oklch";
+
 /*
  * A school's own colours, for its dashboard and public homepage:
  *
@@ -174,7 +176,8 @@ export const schoolColorsCss = ({ accent, sidebar }: SchoolColors) => {
       `:root{--school-sidebar:${color}}` +
       `:root .school-menu{--sidebar:${color};--sidebar-foreground:oklch(0.95 0.01 250);--sidebar-accent:oklch(1 0 0 / 10%);--sidebar-accent-foreground:${WHITE};--sidebar-border:oklch(1 0 0 / 14%);--sidebar-ring:oklch(0.82 0.14 82)}`;
   }
-  return css;
+  // older phone browsers get the same colours in rgb()
+  return withRgbFallback(css);
 };
 
 // the <style> element carrying a school's colours (written by the school layout, replaced on a change)

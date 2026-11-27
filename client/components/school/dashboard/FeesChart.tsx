@@ -124,26 +124,29 @@ export function FeesChart({ months }: { months: Month[] }) {
         </div>
       </div>
 
-      {/* the same numbers for screen readers */}
-      <table className="sr-only">
-        <caption>{t("aria")}</caption>
-        <thead>
-          <tr>
-            <th>{t("month")}</th>
-            <th>{t("collected")}</th>
-            <th>{t("spent")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.month}>
-              <td>{label(r.month, "long")}</td>
-              <td>{money(r.collected)}</td>
-              <td>{money(r.spent)}</td>
+      {/* the same numbers for screen readers; in a hidden box, as a table ignores sr-only's 1px
+          width and, with the longer English words, pushed the phone's page wider than the screen */}
+      <div className="sr-only">
+        <table>
+          <caption>{t("aria")}</caption>
+          <thead>
+            <tr>
+              <th>{t("month")}</th>
+              <th>{t("collected")}</th>
+              <th>{t("spent")}</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.month}>
+                <td>{label(r.month, "long")}</td>
+                <td>{money(r.collected)}</td>
+                <td>{money(r.spent)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

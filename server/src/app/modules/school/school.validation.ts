@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { withFilters } from "../../utils/querySchema";
-import { SchoolStatus, SubscriptionPlan } from "../../../../generated/prisma/enums";
+import { InstitutionType, SchoolStatus, SubscriptionPlan } from "../../../../generated/prisma/enums";
 import { caseInsensitiveEnum } from "../../utils/caseInsensitiveEnum";
 import { emailSchema } from "../../utils/identity";
 
@@ -33,6 +33,8 @@ export const createSchoolSchema = z.object({
     website: websiteSchema.optional(),
     address: z.string().optional(),
     language: z.enum(["EN", "BN"]).optional(),
+    // school, college, or both (two academic-year tracks); school when not given
+    institutionType: z.enum(InstitutionType, { error: "Choose school, college or both" }).optional(),
     // monthly or yearly, and the package (student limit and price a month: yearly is twelve times it)
     subscriptionPlan: z.enum(SubscriptionPlan, { error: "Choose monthly or yearly" }),
     packageId: z.string({ error: "Choose a package" }).trim().min(1, "Choose a package"),
@@ -85,6 +87,8 @@ const updateSchoolSchema = z
     website: websiteSchema.nullable().optional(),
     address: z.string().trim().max(500).nullable().optional(),
     language: z.enum(["EN", "BN"]).optional(),
+    // school, college or both; the service checks what the school already has
+    institutionType: z.enum(InstitutionType, { error: "Choose school, college or both" }).optional(),
     // can change, not be cleared (payments already recorded keep their own plan and amount)
     subscriptionPlan: z.enum(SubscriptionPlan).optional(),
     packageId: z.string().trim().min(1).optional(),

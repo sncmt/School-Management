@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { currentYears, findYear } from "../../shared/academicYears";
 import { assertSchoolLanguageName } from "../../shared/names";
 import { isForeignKeyViolation, isUniqueViolation } from "../../utils/prismaError";
 import type { CreateGroupPayload, GroupQuery, UpdateGroupPayload } from "./group.type";
@@ -34,20 +35,23 @@ const assertNamesFree = async (
   if (clash) throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
 };
 
-/* The given year, or the current one when none is given. null when the school has no current year. */
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId }, select: { id: true, name: true } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } });
-
-  if (academicYearId && !year) {
+/*
+ * The year the counts are for: the given year, or the current year of the given track.
+ * Neither: the current year of every track (a group such as Science is used by school and
+ * college classes alike), with academicYear the main track's. null: no current year.
+ */
+const resolveYear = async (schoolId: string, query: GroupQuery) => {
+  const year = await findYear(prisma, schoolId, query);
+  if (query.academicYearId && !year) {
     throw new AppError("Academic year not found for this school", httpStatus.NOT_FOUND);
   }
-  return year;
+  const countYears = query.academicYearId || query.track ? (year ? [year] : []) : await currentYears(prisma, schoolId);
+  return { year: year && { id: year.id, name: year.name, track: year.track }, countYearIds: countYears.map((y) => y.id) };
 };
 
-/* Active students and assigned subjects of each group in one year. */
-const loadYearCounts = async (academicYearId: string, groupIds: string[]) => {
+/* Active students and assigned subjects of each group in the years. */
+const loadYearCounts = async (yearIds: string[], groupIds: string[]) => {
+  const academicYearId = { in: yearIds };
   const [students, subjects] = await Promise.all([
     prisma.enrollment.groupBy({
       by: ["groupId"],
@@ -87,13 +91,13 @@ const createGroup = async (schoolId: string, data: CreateGroupPayload) => {
 };
 
 const getGroups = async (schoolId: string, query: GroupQuery) => {
-  const year = await resolveYear(schoolId, query.academicYearId);
+  const { year, countYearIds } = await resolveYear(schoolId, query);
 
   const groups = await prisma.group.findMany({
     where: { schoolId },
     orderBy: [{ nameEn: { sort: "asc", nulls: "last" } }, { nameBn: "asc" }],
   });
-  const countsOf = year ? await loadYearCounts(year.id, groups.map((g) => g.id)) : null;
+  const countsOf = countYearIds.length > 0 ? await loadYearCounts(countYearIds, groups.map((g) => g.id)) : null;
 
   return {
     academicYear: year,
@@ -102,11 +106,8 @@ const getGroups = async (schoolId: string, query: GroupQuery) => {
 };
 
 const getGroupById = async (schoolId: string, groupId: string, query: GroupQuery) => {
-  const [group, year] = await Promise.all([
-    findGroup(schoolId, groupId),
-    resolveYear(schoolId, query.academicYearId),
-  ]);
-  const countsOf = year ? await loadYearCounts(year.id, [group.id]) : null;
+  const [group, { year, countYearIds }] = await Promise.all([findGroup(schoolId, groupId), resolveYear(schoolId, query)]);
+  const countsOf = countYearIds.length > 0 ? await loadYearCounts(countYearIds, [group.id]) : null;
 
   return { ...group, academicYear: year, yearInfo: countsOf ? countsOf(group.id) : null };
 };

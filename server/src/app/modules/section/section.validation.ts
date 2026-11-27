@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 import { timeSchema as time } from "../../shared/scheduleSchemas";
 
@@ -44,6 +45,8 @@ const listSectionsQuery = z.object({
   classId: optionalId,
   // teacher, capacity, class hours and student counts are for this year; defaults to the current year
   academicYearId: optionalId,
+  // only this track's sections, in its current year (an institution with school and college)
+  track: trackSchema.optional(),
 });
 
 const sectionQuery = z.object({

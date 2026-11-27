@@ -1,4 +1,4 @@
-/*
+/**
  * A record of every deletion and every money reversal in a school: what it was, who did it
  * (a platform admin working inside the school too), why, and a copy of the record as it was.
  * Written in the same transaction as the change, so neither happens without the other.

@@ -11,6 +11,9 @@ import { GUARDIAN_ROLE } from "../../shared/schoolAccounts";
 import { deleteFile, fileKey, fileUrl, putFile } from "../../shared/storage";
 import { WORKING_STATUSES } from "../teacher/teacher.service";
 import type { CreateHomeworkPayload, FamilyHomeworkQuery, HomeworkListQuery, SaveChecksPayload, UpdateHomeworkPayload } from "./homework.validation";
+import { currentYears } from "../../shared/academicYears";
+import { choicesOf, takesSubject } from "../../shared/subjectChoice";
+import type { SubjectType } from "../../../../generated/prisma/enums";
 
 /*
  * Homework for one subject of a class, given to some of its sections. Who may do what:
@@ -146,13 +149,13 @@ const sheetStudents = async (hw: SheetHomework) => {
       section: { select: { id: true, name: true, isDefault: true } },
       student: { select: { id: true, nameEn: true, nameBn: true, photo: true, religion: true } },
       optionalSubject: { select: { classSubjectId: true } },
+      mainSubjects: { select: { classSubjectId: true } },
     },
   });
   const cs = hw.classSubject;
+  // the subject's students: its group and religion, and for a 4th or "main or 4th" subject, who took it
   const takes = (e: (typeof enrollments)[number]) =>
-    (!cs.groupId || e.groupId === cs.groupId) &&
-    (!cs.subject.religion || e.student.religion === cs.subject.religion) &&
-    (cs.type !== "OPTIONAL" || e.optionalSubject?.classSubjectId === cs.id);
+    takesSubject({ ...cs, type: cs.type as SubjectType }, choicesOf(e));
 
   const roll = (r: string | null) => (r && /^\d+$/.test(r) ? Number(r) : Number.MAX_SAFE_INTEGER);
   return enrollments
@@ -168,6 +171,8 @@ export const homeworkForEnrollment = (e: {
   groupId: string | null;
   religion: Religion | null;
   optionalClassSubjectId: string | null;
+  // the main subjects among the class's "main or 4th" ones
+  mainClassSubjectIds?: string[];
 }): Prisma.HomeworkWhereInput => ({
   academicYearId: e.academicYearId,
   classId: e.classId,
@@ -176,7 +181,15 @@ export const homeworkForEnrollment = (e: {
     AND: [
       { OR: [{ groupId: null }, ...(e.groupId ? [{ groupId: e.groupId }] : [])] },
       { subject: { OR: [{ religion: null }, ...(e.religion ? [{ religion: e.religion }] : [])] } },
-      { OR: [{ type: "COMPULSORY" }, ...(e.optionalClassSubjectId ? [{ id: e.optionalClassSubjectId }] : [])] },
+      {
+        OR: [
+          { type: "COMPULSORY" },
+          // the 4th subject, and the "main or 4th" ones taken as main
+          ...(e.optionalClassSubjectId || e.mainClassSubjectIds?.length
+            ? [{ id: { in: [...(e.optionalClassSubjectId ? [e.optionalClassSubjectId] : []), ...(e.mainClassSubjectIds ?? [])] } }]
+            : []),
+        ],
+      },
     ],
   },
 });
@@ -186,17 +199,19 @@ export const homeworkForEnrollment = (e: {
 /* What the person may give homework for this year: each class subject with its sections. */
 const getOptions = async (auth: Auth) => {
   const schoolId = auth.schoolId!;
-  const year = await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } });
-  if (!year) return { academicYear: null, subjects: [] };
+  // the current year of each track: a teacher may give homework to school and college classes
+  const years = await currentYears(prisma, schoolId);
+  const year = years[0] ? { id: years[0].id, name: years[0].name } : null;
+  if (!year) return { academicYear: null, academicYears: [], subjects: [] };
   const reach = await reachOf(auth);
 
   const classSubjects = await prisma.classSubject.findMany({
     where: {
       schoolId,
-      academicYearId: year.id,
+      academicYearId: { in: years.map((y) => y.id) },
       ...(reach.manageAll ? {} : { id: { in: [...new Set(reach.pairs.map((p) => p.classSubjectId))] } }),
     },
-    orderBy: [{ class: { numericLevel: "asc" } }, { sortOrder: "asc" }],
+    orderBy: [{ class: { track: "asc" } }, { class: { numericLevel: "asc" } }, { sortOrder: "asc" }],
     select: {
       ...subjectSelect,
       class: { select: { id: true, name: true, numericLevel: true, sections: { orderBy: { name: "asc" }, select: { id: true, name: true, isDefault: true } } } },
@@ -212,7 +227,7 @@ const getOptions = async (auth: Auth) => {
       sections: cls.sections.filter((s) => teaches(reach, cs.id, s.id)),
     }))
     .filter((s) => s.sections.length > 0);
-  return { academicYear: year, subjects };
+  return { academicYear: year, academicYears: years.map((y) => ({ id: y.id, name: y.name, track: y.track })), subjects };
 };
 
 /* The homework the person may see, newest due first. */
@@ -547,7 +562,15 @@ const familyChild = async (auth: Auth, studentId: string) => {
           enrollments: {
             orderBy: { academicYear: { startDate: "desc" } },
             take: 3,
-            select: { id: true, academicYearId: true, classId: true, sectionId: true, groupId: true, optionalSubject: { select: { classSubjectId: true } } },
+            select: {
+              id: true,
+              academicYearId: true,
+              classId: true,
+              sectionId: true,
+              groupId: true,
+              optionalSubject: { select: { classSubjectId: true } },
+              mainSubjects: { select: { classSubjectId: true } },
+            },
           },
         },
       })
@@ -568,6 +591,7 @@ export const childHomeworkWhere = (student: Awaited<ReturnType<typeof familyChil
             groupId: e.groupId,
             religion: student.religion,
             optionalClassSubjectId: e.optionalSubject?.classSubjectId ?? null,
+            mainClassSubjectIds: e.mainSubjects.map((m) => m.classSubjectId),
           }),
         ),
       };

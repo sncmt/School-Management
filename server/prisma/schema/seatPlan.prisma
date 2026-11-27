@@ -1,4 +1,4 @@
-/*
+/**
  * A room of the school, by its number ("101", "Lab 2"), with how many students it seats.
  * Seats are numbered 1..capacity: neighbouring numbers sit side by side. Used by exam
  * seat plans; a room already in a plan is deactivated rather than deleted.
@@ -26,7 +26,7 @@ model Room {
   @@index([schoolId, isActive])
 }
 
-/*
+/**
  * An exam's seat plan: each student keeps one seat for the whole exam. Classes are put in
  * groups that share rooms; inside a group seats alternate between its classes, so students
  * side by side write different papers.
@@ -52,7 +52,9 @@ model SeatPlan {
   updatedAt   DateTime @updatedAt
 }
 
-/* A room used by a plan, in fill order, with its seats as they were when the plan was made. */
+/**
+ * A room used by a plan, in fill order, with its seats as they were when the plan was made.
+ */
 model SeatPlanRoom {
   id String @id @default(cuid())
 
@@ -69,7 +71,9 @@ model SeatPlanRoom {
   @@unique([planId, roomId])
 }
 
-/* One student's seat: room and seat number (1..seats). */
+/**
+ * One student's seat: room and seat number (1..seats).
+ */
 model Seat {
   id String @id @default(cuid())
 
@@ -89,7 +93,7 @@ model Seat {
   @@index([roomId])
 }
 
-/*
+/**
  * A teacher on invigilation duty in a room at one sitting of the exam (a date and a start
  * time from the routine). A teacher is in one room at a time.
  */

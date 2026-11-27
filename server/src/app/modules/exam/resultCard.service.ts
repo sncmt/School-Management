@@ -6,6 +6,7 @@ import { checkPermission } from "../../middlewares/authorize";
 import { fileUrl } from "../../shared/storage";
 import { attendancePercent, findExamClass } from "./examResult.service";
 import { loadExamStudents } from "./examStudents";
+import type { PaperLine } from "./examResult.calc";
 import {
   cardSettingsSchema,
   type CardSettings,
@@ -87,6 +88,13 @@ const getCards = async (schoolId: string, query: CardsQuery) => {
       classTop.set(s.subjectId, Math.max(classTop.get(s.subjectId) ?? 0, m));
       const k = `${r.sectionId}:${s.subjectId}`;
       sectionTop.set(k, Math.max(sectionTop.get(k) ?? 0, m));
+      // each paper of a combined subject too (Bangla 1st Paper)
+      for (const p of (s.papers as PaperLine[] | null) ?? []) {
+        if (p.marks === null) continue;
+        classTop.set(p.id, Math.max(classTop.get(p.id) ?? 0, p.marks));
+        const pk = `${r.sectionId}:${p.id}`;
+        sectionTop.set(pk, Math.max(sectionTop.get(pk) ?? 0, p.marks));
+      }
     }
   }
   const sectionCount = new Map<string, number>();
@@ -147,6 +155,12 @@ const getCards = async (schoolId: string, query: CardsQuery) => {
           ...s,
           highestInSection: sectionTop.get(`${r.sectionId}:${s.subjectId}`) ?? null,
           highestInClass: classTop.get(s.subjectId) ?? null,
+          papers:
+            ((s.papers as PaperLine[] | null) ?? null)?.map((p) => ({
+              ...p,
+              highestInSection: sectionTop.get(`${r.sectionId}:${p.id}`) ?? null,
+              highestInClass: classTop.get(p.id) ?? null,
+            })) ?? null,
         })),
       })),
     ),

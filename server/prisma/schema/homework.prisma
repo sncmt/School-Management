@@ -6,7 +6,7 @@ enum HomeworkCheckStatus {
   EXCUSED // absent or let off: not counted against the student
 }
 
-/*
+/**
  * Homework for one subject of a class, given to one or more of its sections. Students do
  * it on paper; the teacher ticks each one (HomeworkCheck), with optional marks out of
  * fullMarks and a comment the family sees. Homework marks never count in exam results.
@@ -64,7 +64,9 @@ model HomeworkSection {
   @@index([sectionId])
 }
 
-/* A PDF or image with a homework (a worksheet, a photo of the board), shown by a signed link. */
+/**
+ * A PDF or image with a homework (a worksheet, a photo of the board), shown by a signed link.
+ */
 model HomeworkAttachment {
   id String @id @default(cuid())
 
@@ -82,7 +84,9 @@ model HomeworkAttachment {
   @@index([homeworkId])
 }
 
-/* One student's homework, as the teacher ticked it. */
+/**
+ * One student's homework, as the teacher ticked it.
+ */
 model HomeworkCheck {
   id String @id @default(cuid())
 

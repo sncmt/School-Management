@@ -105,7 +105,8 @@ const IndexTabs = createContext(false);
 const rowClass = (active: boolean, tabs = false) =>
   cn(
     // a little more room before the icon (20 px) than after the text
-    "relative flex h-10 w-full items-center gap-3 rounded-lg pr-3 pl-5 text-left text-[16.5px] transition-colors [&:lang(en)]:text-[15.5px]",
+    // a little tighter in the phone's drawer, so more of the menu fits on the screen
+    "relative flex h-10 w-full items-center gap-3 rounded-lg pr-3 pl-5 text-left text-[16.5px] transition-colors in-data-[mobile=true]:h-9 [&:lang(en)]:text-[15.5px]",
     tabs
       ? // folded to icons: every icon in the same place, so the tab's icon stays put as it reaches out
         "group-data-[collapsible=icon]:pl-3"
@@ -189,7 +190,8 @@ export function SidebarShell({
         <SidebarHeader
           className={cn(
             "flex-row items-center gap-0 border-b border-sidebar-foreground/20 px-5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
-            "h-[72px] py-0",
+            // the drawer's is shorter on a phone, leaving the rows more room
+            "h-[72px] py-0 in-data-[mobile=true]:h-14",
             // a school's stops at the paper's edge (its line too), clear of the strip
             tabs &&
               cn(
@@ -233,9 +235,12 @@ export function SidebarShell({
 
         <SidebarContent
           className={cn(
-            "sidebar-scroll gap-0 pt-3 pb-6",
+            "sidebar-scroll gap-0 pt-3 pb-6 in-data-[mobile=true]:pt-1.5",
             // a school's rows keep clear of the strip their tab reaches into
             tabs ? "pr-[calc(var(--tab-out,0px)+0.75rem)] pl-3" : "px-3",
+            // the phone's drawer is often shorter than the menu: its foot fades, so the rows below
+            // (Administration, the help line) are seen to be there, a scroll away
+            "in-data-[mobile=true]:pb-8 in-data-[mobile=true]:[mask-image:linear-gradient(to_bottom,black_calc(100%-1.5rem),transparent)]",
           )}
         >
           {!tabs && (
@@ -244,11 +249,17 @@ export function SidebarShell({
             </p>
           )}
           <Menu groups={groups} pathname={pathname} />
+          {/* in the phone's drawer the help line scrolls with the menu, leaving the rows more room */}
+          {footer && (
+            <div className="mt-3 hidden border-t border-sidebar-border px-5 pt-3 text-[14px] leading-snug text-sidebar-foreground/75 in-data-[mobile=true]:block">
+              {footer}
+            </div>
+          )}
         </SidebarContent>
         {footer && (
           <SidebarFooter
             className={cn(
-              "border-t border-sidebar-border px-5 py-3 text-[14px] leading-snug text-sidebar-foreground/75 group-data-[collapsible=icon]:hidden",
+              "border-t border-sidebar-border px-5 py-3 text-[14px] leading-snug text-sidebar-foreground/75 group-data-[collapsible=icon]:hidden in-data-[mobile=true]:hidden",
               tabs && "mr-(--tab-out)",
             )}
           >
@@ -280,13 +291,14 @@ export function SidebarShell({
             <AccountMenu session={session} />
           </div>
         </header>
-        {/* on a phone with the bottom bar, room under the page so the bar never covers it */}
-        {/* 8px around the page (6px on a phone); on a phone with the bottom bar, room under the
-            page so the bar never covers it */}
+        {/* the same 14px gap on every side of the page (6px on a phone). A school's menu tab
+            already takes 8px of the left, so its left padding is 6px. On a phone with the bottom
+            bar, room under the page so the bar never covers it */}
         <main
           className={cn(
-            "flex flex-1 flex-col p-1.5 md:p-2",
-            bottomNav && "pb-28 md:pb-2",
+            "flex flex-1 flex-col p-1.5 md:p-3.5",
+            tabs && "md:pl-1.5",
+            bottomNav && "pb-28 md:pb-3.5",
           )}
         >
           {/* the trail; a page with its own header panel (PageHero) shows it there instead */}
@@ -352,7 +364,7 @@ function Menu({
   const folded = state === "collapsed" && !isMobile;
   // the rule that closes a cluster (a school's menu), never before the first row
   const rule = (group: MenuGroup, i: number) =>
-    tabs && group.divider && i > 0 ? <div role="separator" className="mx-3 my-2 h-px shrink-0 bg-sidebar-border" /> : null;
+    tabs && group.divider && i > 0 ? <div role="separator" className="mx-3 my-2 h-px shrink-0 bg-sidebar-border in-data-[mobile=true]:my-1" /> : null;
   const activeGroup = groups.find((g) =>
     g.items.some((i) => isActive(i.href, pathname)),
   )?.label;
@@ -412,7 +424,7 @@ function Menu({
     );
 
   return (
-    <nav className="grid gap-1">
+    <nav className="grid gap-1 in-data-[mobile=true]:gap-0">
       {groups.map((group, i) => {
         if (!group.label || group.items.length === 1)
           return (

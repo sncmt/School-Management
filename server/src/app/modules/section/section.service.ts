@@ -2,6 +2,8 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import type { AcademicTrack } from "../../../../generated/prisma/enums";
+import { currentYears, findYear, requireYear as requireTrackYear } from "../../shared/academicYears";
 import { isUniqueViolation } from "../../utils/prismaError";
 import type {
   CreateSectionPayload,
@@ -17,7 +19,7 @@ type Db = Prisma.TransactionClient;
 const DUPLICATE_MESSAGE = "A section with this name already exists for this class";
 
 const sectionInclude = {
-  class: { select: { id: true, name: true, numericLevel: true } },
+  class: { select: { id: true, name: true, numericLevel: true, track: true } },
 } satisfies Prisma.SectionInclude;
 
 const yearConfigSelect = {
@@ -81,31 +83,31 @@ const removeUnusedDefaults = async (db: Db, schoolId: string, classId: string) =
   return result.count;
 };
 
-/* The given year, or the current one when none is given. null when the school has no current year. */
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({
-        where: { id: academicYearId, schoolId },
-        select: { id: true, name: true },
-      })
-    : await prisma.academicYear.findFirst({
-        where: { schoolId, isCurrent: true },
-        select: { id: true, name: true },
-      });
-
-  if (academicYearId && !year) {
+/*
+ * The given year, or the current one of the given track (or of the main track) when none is
+ * given. null when there is no current year.
+ */
+const resolveYear = async (schoolId: string, query: { academicYearId?: string; track?: AcademicTrack }) => {
+  const year = await findYear(prisma, schoolId, query);
+  if (query.academicYearId && !year) {
     throw new AppError("Academic year not found for this school", httpStatus.NOT_FOUND);
   }
-  return year;
+  return year && { id: year.id, name: year.name, track: year.track };
 };
 
-const requireYear = async (schoolId: string, academicYearId: string) => {
-  const year = await resolveYear(schoolId, academicYearId);
-  return year!;
+/* The given year; the section's class must be taught in it (its track). */
+const requireYear = async (schoolId: string, academicYearId: string, classId: string) => {
+  const year = await requireTrackYear(prisma, schoolId, { academicYearId, classId });
+  return { id: year.id, name: year.name, track: year.track };
 };
 
-/* Teacher, capacity, class hours and active student count of the given sections in one year. */
-const loadYearData = async (academicYearId: string, sectionIds: string[]) => {
+/*
+ * Teacher, capacity, class hours and active student count of the given sections in the
+ * year(s). Several years: the current year of each track (a section has data only in years of
+ * its class's track, so they never mix).
+ */
+const loadYearData = async (yearIds: string | string[], sectionIds: string[]) => {
+  const academicYearId = { in: typeof yearIds === "string" ? [yearIds] : yearIds };
   const [configs, counts] = await Promise.all([
     prisma.sectionYearConfig.findMany({
       where: { academicYearId, sectionId: { in: sectionIds } },
@@ -193,18 +195,31 @@ const createSections = async (schoolId: string, data: CreateSectionPayload) => {
 // ------------------------------------------------------------------- reading
 
 const getSections = async (schoolId: string, query: ListSectionsQuery) => {
-  const year = await resolveYear(schoolId, query.academicYearId);
+  // a year or track asked for: that track's sections in that year. Neither: every section,
+  // each with the current year of its own track (one track: the school's current year)
+  const scoped = !!(query.academicYearId || query.track);
+  const year = await resolveYear(schoolId, query);
+  const current = scoped ? [] : await currentYears(prisma, schoolId);
+  const yearIds = scoped ? (year ? [year.id] : []) : current.map((y) => y.id);
+  const track = year?.track ?? query.track;
 
   const sections = await prisma.section.findMany({
-    where: { schoolId, ...(query.classId ? { classId: query.classId } : {}) },
-    orderBy: [{ class: { numericLevel: "asc" } }, { name: "asc" }],
+    where: {
+      schoolId,
+      ...(query.classId ? { classId: query.classId } : {}),
+      ...(scoped && track ? { class: { track } } : {}),
+    },
+    orderBy: [{ class: { track: "asc" } }, { class: { numericLevel: "asc" } }, { name: "asc" }],
     include: sectionInclude,
   });
 
-  const yearData = year ? await loadYearData(year.id, sections.map((s) => s.id)) : null;
+  const yearData = yearIds.length > 0 ? await loadYearData(yearIds, sections.map((s) => s.id)) : null;
 
   return {
     academicYear: year,
+    // the current year of each track (no year or track asked for): a section's settings
+    // belong to the current year of its class's track
+    currentYears: current.map((y) => ({ id: y.id, name: y.name, track: y.track })),
     items: sections.map((section) => ({
       ...section,
       yearInfo: yearData ? yearData(section.id) : null,
@@ -213,10 +228,9 @@ const getSections = async (schoolId: string, query: ListSectionsQuery) => {
 };
 
 const getSectionById = async (schoolId: string, sectionId: string, query: SectionQuery) => {
-  const [section, year] = await Promise.all([
-    findSection(schoolId, sectionId),
-    resolveYear(schoolId, query.academicYearId),
-  ]);
+  const section = await findSection(schoolId, sectionId);
+  // no year given: the current year of the section's own track
+  const year = await resolveYear(schoolId, { academicYearId: query.academicYearId, track: section.class.track });
 
   const yearData = year ? await loadYearData(year.id, [section.id]) : null;
 
@@ -260,8 +274,8 @@ const updateSection = async (schoolId: string, sectionId: string, data: UpdateSe
 const setYearConfig = async (schoolId: string, sectionId: string, data: SetYearConfigPayload) => {
   const { academicYearId, classTeacherMembershipId, capacity, startTime, endTime, periodTemplateId } = data;
 
-  await findSection(schoolId, sectionId);
-  const year = await requireYear(schoolId, academicYearId);
+  const section = await findSection(schoolId, sectionId);
+  const year = await requireYear(schoolId, academicYearId, section.classId);
 
   if (classTeacherMembershipId) {
     // only a teacher who still works here (on leave included) and can log in
@@ -355,8 +369,8 @@ const setYearConfig = async (schoolId: string, sectionId: string, data: SetYearC
 };
 
 const getYearConfig = async (schoolId: string, sectionId: string, query: YearConfigQuery) => {
-  await findSection(schoolId, sectionId);
-  const year = await requireYear(schoolId, query.academicYearId);
+  const section = await findSection(schoolId, sectionId);
+  const year = await requireYear(schoolId, query.academicYearId, section.classId);
 
   const yearData = await loadYearData(year.id, [sectionId]);
   // config is null when nothing has been set for this year yet

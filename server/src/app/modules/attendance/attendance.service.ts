@@ -1,6 +1,7 @@
 import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
-import type { AttendanceStatus } from "../../../../generated/prisma/enums";
+import type { AcademicTrack, AttendanceStatus } from "../../../../generated/prisma/enums";
+import { yearCovering as trackYearCovering, yearsCovering } from "../../shared/academicYears";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { displayName } from "../../shared/names";
@@ -52,20 +53,17 @@ const assertEditable = async (auth: Auth, date: Date) => {
   if (!window.editable) throw new AppError(window.reason!, httpStatus.FORBIDDEN);
 };
 
-const yearCovering = async (schoolId: string, date: Date) => {
-  const year = await prisma.academicYear.findFirst({
-    where: { schoolId, startDate: { lte: date }, endDate: { gte: date } },
-    orderBy: { startDate: "desc" },
-    select: { id: true, name: true },
-  });
+/* The year of the section's track (school or college) that covers the date. */
+const yearCovering = async (schoolId: string, date: Date, track: AcademicTrack) => {
+  const year = await trackYearCovering(prisma, schoolId, date, track);
   if (!year) throw new AppError("No academic year covers this date", httpStatus.BAD_REQUEST);
-  return year;
+  return { id: year.id, name: year.name };
 };
 
 const findSection = async (schoolId: string, sectionId: string) => {
   const section = await prisma.section.findFirst({
     where: { id: sectionId, schoolId },
-    select: { id: true, name: true, isDefault: true, classId: true, class: { select: { id: true, name: true } } },
+    select: { id: true, name: true, isDefault: true, classId: true, class: { select: { id: true, name: true, track: true } } },
   });
   if (!section) throw new AppError("Section not found", httpStatus.NOT_FOUND);
   return section;
@@ -152,7 +150,7 @@ const getStudentSheet = async (auth: Auth, query: StudentSheetQuery) => {
   const schoolId = auth.schoolId!;
   const date = query.date ?? todayInBangladesh();
   const section = await findSection(schoolId, query.sectionId);
-  const year = await yearCovering(schoolId, date);
+  const year = await yearCovering(schoolId, date, section.class.track);
 
   const [calendar, roll, session, window] = await Promise.all([
     loadCalendar(prisma, schoolId, date, date),
@@ -215,7 +213,7 @@ const saveStudentSheet = async (auth: Auth, data: SaveStudentSheetPayload) => {
   const schoolId = auth.schoolId!;
   const { date } = data;
   const section = await findSection(schoolId, data.sectionId);
-  const year = await yearCovering(schoolId, date);
+  const year = await yearCovering(schoolId, date, section.class.track);
 
   const calendar = await loadCalendar(prisma, schoolId, date, date);
   const day = dayStatus(calendar, date, { classId: section.classId });
@@ -300,11 +298,19 @@ const saveStudentSheet = async (auth: Auth, data: SaveStudentSheetPayload) => {
 /* A day at a glance: every section's roll call (taken or not, counts), and teachers. */
 const getDaySummary = async (schoolId: string, query: DayQuery) => {
   const date = query.date ?? todayInBangladesh();
-  const year = await yearCovering(schoolId, date);
+  // the school year and the college year of the date (an institution with both): each
+  // section counts in the year of its own track
+  const years = await yearsCovering(prisma, schoolId, date);
+  if (years.length === 0) throw new AppError("No academic year covers this date", httpStatus.BAD_REQUEST);
+  const year = { id: years[0]!.id, name: years[0]!.name };
 
   const sections = await prisma.section.findMany({
-    where: { schoolId, ...(query.classId ? { classId: query.classId } : {}) },
-    orderBy: [{ class: { numericLevel: "asc" } }, { name: "asc" }],
+    where: {
+      schoolId,
+      ...(query.classId ? { classId: query.classId } : {}),
+      class: { track: { in: years.map((y) => y.track) } },
+    },
+    orderBy: [{ class: { track: "asc" } }, { class: { numericLevel: "asc" } }, { name: "asc" }],
     select: { id: true, name: true, isDefault: true, classId: true, class: { select: { id: true, name: true } } },
   });
   const sectionIds = sections.map((s) => s.id);
@@ -315,7 +321,7 @@ const getDaySummary = async (schoolId: string, query: DayQuery) => {
       by: ["sectionId"],
       where: {
         sectionId: { in: sectionIds },
-        academicYearId: year.id,
+        academicYearId: { in: years.map((y) => y.id) },
         enrolledAt: { lt: endOfBangladeshDay(date) },
         OR: [{ status: "ACTIVE" }, { leftAt: { gte: date } }],
       },
@@ -382,6 +388,7 @@ const getDaySummary = async (schoolId: string, query: DayQuery) => {
     date: dayKey(date),
     weekday: WEEKDAYS[date.getUTCDay()],
     academicYear: year,
+    academicYears: years.map((y) => ({ id: y.id, name: y.name, track: y.track })),
     students: { ...totals, percentage: percent(totals.PRESENT + totals.LATE, totals.onRoll), sections: items },
     teachers: {
       day: dayStatus(calendar, date, "TEACHERS"),

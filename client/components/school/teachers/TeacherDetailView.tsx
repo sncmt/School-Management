@@ -151,16 +151,16 @@ function Detail({ teacher }: { teacher: TeacherDetail }) {
         </Link>
       </Button>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4 dark rounded-2xl bg-brand-ink px-4 py-4 text-white sm:px-5">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="page-title">{teacherName}</h1>
+            <h1 className="text-[1.625rem] leading-tight font-bold tracking-[-0.02em] text-balance sm:text-[1.75rem]">{teacherName}</h1>
             <TeacherStatusBadge status={teacher.status} />
           </div>
           {teacher.designation && <p className="text-muted-foreground">{teacher.designation}</p>}
           {teacher.leftAt && <p className="text-sm text-muted-foreground">{t("left", { date: date(teacher.leftAt)! })}</p>}
         </div>
-        <div className="flex gap-2">
+        <div className="page-hero-actions flex flex-wrap gap-2">
           {actions.edit && (
             <Button variant="outline" onClick={() => setEditing(true)}>
               <Pencil /> {t("actions.edit")}

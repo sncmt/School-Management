@@ -1,4 +1,4 @@
-/*
+/**
  * Daily attendance, taken by hand for now. Every record keeps its source and check-in /
  * check-out times, so a fingerprint machine can feed the same tables later (a manual
  * entry always wins over the machine).
@@ -16,7 +16,7 @@ enum AttendanceSource {
   DEVICE // fingerprint machine (later)
 }
 
-/*
+/**
  * One roll call per section per day. The class hours in force that day are copied in
  * when it is first taken, so later changes to the schedule never rewrite it.
  */
@@ -36,9 +36,9 @@ model AttendanceSession {
   date DateTime @db.Date
 
   // copied from the schedule when first taken ("HH:mm"; null if the section has no hours)
-  startTime     String?
-  endTime       String?
-  scheduleNote  String? // the schedule change in force that day, e.g. "Ramadan timing"
+  startTime    String?
+  endTime      String?
+  scheduleNote String? // the schedule change in force that day, e.g. "Ramadan timing"
 
   takenBy   String // user id
   updatedBy String?
@@ -83,7 +83,9 @@ model StudentAttendance {
   @@index([enrollmentId])
 }
 
-/* One record per teacher per day. */
+/**
+ * One record per teacher per day.
+ */
 model TeacherAttendance {
   id String @id @default(cuid())
 

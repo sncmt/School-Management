@@ -27,6 +27,7 @@ import { useTaka } from "@/lib/i18n/useCurrency";
 export function SchoolDetailView({ school }: { school: SchoolDetail }) {
   const t = useTranslations("platform.schoolDetail");
   const tLanguage = useTranslations("languages");
+  const tForm = useTranslations("platform.schoolForm");
   const tPlans = useTranslations("platform.subscriptions.plans");
   const format = useFormatter();
   const taka = useTaka();
@@ -141,6 +142,7 @@ export function SchoolDetailView({ school }: { school: SchoolDetail }) {
             )}
           </Field>
           <Field label={t("fields.language")}>{tLanguage(school.language)}</Field>
+          <Field label={t("fields.institutionType")}>{tForm(`institutionTypes.${school.institutionType ?? "SCHOOL"}`)}</Field>
           <Field label={t("fields.created")}>{date(school.createdAt)}</Field>
           <Field label={t("fields.activated")}>
             {date(school.activationDate) ?? <span className="text-muted-foreground">{t("notActivated")}</span>}

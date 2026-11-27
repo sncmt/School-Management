@@ -28,8 +28,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useIsSuperAdmin } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears } from "@/lib/school/academicYears";
-import { useClasses } from "@/lib/school/classes";
+import { useAcademicYears, yearsOfTrack } from "@/lib/school/academicYears";
+import { useTrack } from "@/lib/school/tracks";
+import { TrackSwitch } from "@/components/school/years/TrackSwitch";
+import { classesOfTrack, useClasses } from "@/lib/school/classes";
 import {
   useAddExamClasses,
   useExam,
@@ -75,21 +77,26 @@ function ExamList({ canManage, onOpen }: { canManage: boolean; onOpen: (id: stri
   const describeError = useErrorMessage();
   const name = useLocalizedName();
   const years = useAcademicYears();
-  const [yearId, setYearId] = useState<string | undefined>();
-  const { data, isPending, isError, error, refetch } = useExams(yearId);
+  // school or college (an institution with both): its years and exams
+  const { track, setTrack, hasBoth } = useTrack();
+  const trackYears = yearsOfTrack(years.data, track);
+  const [chosenYearId, setYearId] = useState<string | undefined>();
+  const yearId = chosenYearId && trackYears.some((y) => y.id === chosenYearId) ? chosenYearId : undefined;
+  const { data, isPending, isError, error, refetch } = useExams(yearId, hasBoth ? { track } : undefined);
   const [adding, setAdding] = useState(false);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          {(years.data?.length ?? 0) > 1 && (
+          <TrackSwitch value={track} onChange={setTrack} />
+          {trackYears.length > 1 && (
             <Select value={yearId ?? data?.academicYear.id} onValueChange={setYearId}>
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {years.data?.map((y) => (
+                {trackYears.map((y) => (
                   <SelectItem key={y.id} value={y.id}>
                     {y.name}
                   </SelectItem>
@@ -142,7 +149,14 @@ function ExamList({ canManage, onOpen }: { canManage: boolean; onOpen: (id: stri
         </div>
       )}
 
-      <ExamFormDialog open={adding} exam={null} onClose={() => setAdding(false)} onCreated={(exam) => onOpen(exam.id)} />
+      <ExamFormDialog
+        open={adding}
+        exam={null}
+        // the new exam is for the year shown (with school and college: that track's)
+        year={data?.academicYear}
+        onClose={() => setAdding(false)}
+        onCreated={(exam) => onOpen(exam.id)}
+      />
     </div>
   );
 }
@@ -332,7 +346,8 @@ function AddClassesDialog({ exam, onClose }: { exam: Exam | null; onClose: () =>
   const add = useAddExamClasses();
   const [chosen, setChosen] = useState<string[]>([]);
   const inExam = new Set(exam?.classes.map((c) => c.class.id));
-  const available = (classes.data?.items ?? []).filter((c) => !inExam.has(c.id));
+  // the exam's own track's classes (a school year's exam: school classes)
+  const available = classesOfTrack(classes.data?.items, exam?.academicYear.track).filter((c) => !inExam.has(c.id));
 
   const close = () => {
     setChosen([]);

@@ -228,10 +228,11 @@ function EntryChip({
       <div className={cn("text-xs leading-tight", entry.teacher ? "text-muted-foreground" : "text-amber-600")}>
         {entry.teacher ? name(entry.teacher) : t("noTeacher")}
       </div>
-      {(entry.group || entry.isOptional || others.length > 0) && (
+      {(entry.group || entry.isOptional || entry.isElective || others.length > 0) && (
         <div className="mt-0.5 flex flex-wrap gap-x-2 text-[13px] text-muted-foreground">
           {entry.group && <span>{name(entry.group)}</span>}
           {entry.isOptional && <span>{t("optional")}</span>}
+          {entry.isElective && <span>{t("elective")}</span>}
           {others.length > 0 && (
             <span className="flex items-center gap-0.5">
               <Link2 className="size-3" />

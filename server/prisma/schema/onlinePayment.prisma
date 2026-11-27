@@ -1,4 +1,4 @@
-/*
+/**
  * A school's SSLCommerz store, for guardians paying fees online. Each school has its own
  * merchant account, so the money settles straight into its bank; we only keep the store's
  * credentials (the password encrypted) and the school's choice of convenience charge.
@@ -38,7 +38,7 @@ enum OnlinePaymentStatus {
   CANCELLED // the guardian left the SSLCommerz page
 }
 
-/*
+/**
  * One attempt by a guardian to pay fees online. It is recorded as a normal payment (with a
  * receipt) only once SSLCommerz's validation API confirms it, and only once, however many
  * times SSLCommerz tells us. If some of the chosen fees were paid at the office meanwhile,

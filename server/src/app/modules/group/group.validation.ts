@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 import { schoolLanguageNames } from "../../shared/names";
 
@@ -19,6 +20,8 @@ const groupIdParams = z.object({ groupId: idSchema("Group id") });
 const groupQuery = z.object({
   // student and subject counts are for this year; defaults to the current year
   academicYearId: z.string().trim().min(1).optional(),
+  // with no year: that track's current year; neither: every track's current year together
+  track: trackSchema.optional(),
 });
 
 export const GroupValidation = {

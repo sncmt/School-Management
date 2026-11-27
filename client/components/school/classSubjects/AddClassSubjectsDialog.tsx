@@ -167,12 +167,14 @@ function AddForm({ classId, assigned, onDone }: { classId: string; assigned: Cla
             <SelectContent>
               <SelectItem value="COMPULSORY">{tTypes("COMPULSORY")}</SelectItem>
               <SelectItem value="OPTIONAL">{tTypes("OPTIONAL")}</SelectItem>
+              <SelectItem value="ELECTIVE">{tTypes("ELECTIVE")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
         {type === "OPTIONAL" && `${t("optionalHint")} `}
+        {type === "ELECTIVE" && `${t("electiveHint")} `}
         {t("religionNote")}
       </p>
 

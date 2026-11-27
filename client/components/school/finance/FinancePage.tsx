@@ -8,6 +8,7 @@ import { FundsTab } from "./FundsTab";
 import { ExpensesTab } from "./money/ExpensesTab";
 import { LedgerTab } from "./money/LedgerTab";
 import { CollectionReport } from "./money/ReportsTab";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** Finance: the school's funds, expenses, each fund's ledger and the money report. Fees have their own page. */
 export function FinancePage() {
@@ -22,14 +23,11 @@ export function FinancePage() {
   const [tab, setTab] = useState<string | undefined>();
 
   return (
-    <div className="space-y-4">
-      <div className="no-print">
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} className="no-print" />
 
-      <Tabs value={tab ?? tabs[0]} onValueChange={setTab}>
-        <TabsList className="no-print">
+      <Tabs value={tab ?? tabs[0]} onValueChange={setTab} className="gap-2">
+        <TabsList variant="strip" className="no-print">
           {tabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {t(`tabs.${name}` as "tabs.funds")}

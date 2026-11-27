@@ -14,7 +14,9 @@ enum NotificationType {
   STUDENT_PROMOTED
 }
 
-/* A school's choices for in-app messages: the types it doesn't send (e.g. the daily "present"). */
+/**
+ * A school's choices for in-app messages: the types it doesn't send (e.g. the daily "present").
+ */
 model NotificationSetting {
   id String @id @default(cuid())
 
@@ -28,7 +30,7 @@ model NotificationSetting {
   updatedAt DateTime @updatedAt
 }
 
-/*
+/**
  * A message in a user's in-app inbox, made by the system when something happens (a student
  * admitted, a fee paid, absent today...). For now they go to the family login; siblings share
  * that login, so each message names its student.
@@ -65,7 +67,7 @@ model Notification {
   @@index([schoolId, dedupeKey])
 }
 
-/*
+/**
  * A phone that gets push notifications: the mobile app's Firebase token, one row per install.
  * It follows the school the app is logged in to and the app's language, and goes when the app
  * logs out or Firebase reports the token dead. Every new in-app message is also pushed.

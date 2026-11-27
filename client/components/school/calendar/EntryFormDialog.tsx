@@ -31,7 +31,9 @@ import { applyServerErrors } from "@/lib/auth/formErrors";
 import { dayKey } from "@/lib/dates";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useLocalizedName } from "@/lib/i18n/names";
-import type { AcademicYear } from "@/lib/school/academicYears";
+import { currentYearOf, type AcademicTrack, type AcademicYear } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
 import {
   HOLIDAY_TYPES,
   useCreateCalendarEntry,
@@ -39,7 +41,7 @@ import {
   type CalendarEntry,
   type EntryKind,
 } from "@/lib/school/calendar";
-import { useClasses } from "@/lib/school/classes";
+import { classesOfTrack, useClasses } from "@/lib/school/classes";
 import { cn } from "@/lib/utils";
 import { entryFormSchema, type EntryFormInput, type EntryFormValues } from "@/zod/calendar";
 import { NameFields, useSchoolLanguage } from "../NameFields";
@@ -83,11 +85,14 @@ export function EntryFormDialog({ open, entry, defaults, years, onClose }: Props
   );
 }
 
-/** The year whose dates contain `date`, else the current one. */
-const yearFor = (years: AcademicYear[], date?: string) =>
-  (date && years.find((y) => dayKey(y.startDate) <= date && date <= dayKey(y.endDate))) ||
-  years.find((y) => y.isCurrent) ||
-  years[0];
+/*
+ * The year whose dates contain `date`, else the current one. With school and college years
+ * both covering the date, the main track's (school) comes first; the year can be changed.
+ */
+const yearFor = (years: AcademicYear[], date?: string, track?: AcademicTrack) => {
+  const covering = date ? years.filter((y) => dayKey(y.startDate) <= date && date <= dayKey(y.endDate)) : [];
+  return covering.find((y) => y.track === track) || covering[0] || currentYearOf(years, track) || currentYearOf(years) || years[0];
+};
 
 function EntryForm({
   entry,
@@ -106,6 +111,8 @@ function EntryForm({
   const language = useSchoolLanguage();
   const name = useLocalizedName();
   const classes = useClasses();
+  const { main } = useInstitutionTracks();
+  const yearLabel = useYearLabel();
   const create = useCreateCalendarEntry();
   const update = useUpdateCalendarEntry();
   const [formError, setFormError] = useState<string | null>(null);
@@ -128,7 +135,7 @@ function EntryForm({
           teachersOff: entry.teachersOff,
         }
       : {
-          academicYearId: yearFor(years, defaults?.date)?.id ?? "",
+          academicYearId: yearFor(years, defaults?.date, main)?.id ?? "",
           kind: defaults?.kind ?? "HOLIDAY",
           type: "",
           nameEn: "",
@@ -273,7 +280,7 @@ function EntryForm({
                   <SelectContent>
                     {years.map((y) => (
                       <SelectItem key={y.id} value={y.id}>
-                        {y.name}
+                        {yearLabel(y)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -316,7 +323,8 @@ function EntryForm({
             render={({ field }) => (
               <FormItem>
                 <div className="grid grid-cols-2 gap-2 rounded-md border p-3 sm:grid-cols-4">
-                  {(classes.data?.items ?? []).map((c) => (
+                  {/* a school year's entry is for school classes, a college year's for college ones */}
+                  {classesOfTrack(classes.data?.items, year?.track).map((c) => (
                     <label key={c.id} className="flex cursor-pointer items-center gap-2 text-sm">
                       <input
                         type="checkbox"

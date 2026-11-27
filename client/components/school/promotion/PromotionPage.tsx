@@ -26,6 +26,7 @@ import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useClasses } from "@/lib/school/classes";
 import { usePromote, usePromotionPreview, useUndoPromotion, type PromotionAction, type PromotionPreview } from "@/lib/school/promotion";
 import { cn } from "@/lib/utils";
+import { PageHero } from "@/components/layout/PageHero";
 
 type Row = PromotionPreview["students"][number];
 
@@ -44,11 +45,8 @@ export function PromotionPage() {
   const preview = usePromotionPreview(schoolClass ? { classId: schoolClass.id, ...(formulaId ? { formulaId } : {}) } : null);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
 
       <div className="flex flex-wrap items-end gap-2">
         <Select

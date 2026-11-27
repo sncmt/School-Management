@@ -18,6 +18,7 @@ import {
 } from "@/lib/school/notifications";
 import { cn } from "@/lib/utils";
 import { MESSAGE_HREF, MessageItem } from "./shared";
+import { PageHero } from "@/components/layout/PageHero";
 
 const PAGE_SIZES = [20, 50];
 
@@ -41,20 +42,22 @@ export function MessagesPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {unread > 0 && (
-          <Button variant="outline" onClick={() => markAll.mutate(undefined)} disabled={markAll.isPending}>
-            <CheckCheck /> {t("markAllRead")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {unread > 0 && (
+              <Button variant="outline" onClick={() => markAll.mutate(undefined)} disabled={markAll.isPending}>
+                <CheckCheck /> {t("markAllRead")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
-      <section className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+      <section className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/70 bg-card">
         <div className="border-b px-4 py-3">
           <Tabs
             value={show}

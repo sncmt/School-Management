@@ -18,7 +18,9 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useCan } from "@/lib/auth/hooks";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
-import { useAcademicYears } from "@/lib/school/academicYears";
+import { currentYearOf, useAcademicYears } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
 import { useClasses } from "@/lib/school/classes";
 import { useGroups } from "@/lib/school/groups";
 import { ExportMenu } from "@/components/data/ExportMenu";
@@ -53,8 +55,6 @@ type Column = (typeof ALL_CLASSES_COLUMNS)[number];
 const GENDERS = ["MALE", "FEMALE", "OTHER"] as const satisfies readonly Gender[];
 // the status cards above the list, most used first
 const STATUS_TABS = ["ACTIVE", "SUSPENDED", "INACTIVE", "GRADUATED"] as const satisfies readonly StudentStatus[];
-// classes from this level up are the college's (HSC 1st and 2nd year are 11 and 12)
-const COLLEGE_LEVEL = 11;
 // the list's order besides the usual one (roll for a class, else admission no.): by when the student was added
 const SORTS = ["newest", "oldest"] as const;
 type Sort = (typeof SORTS)[number];
@@ -231,7 +231,11 @@ export function StudentsList() {
     withStatusCounts: true,
   });
 
-  const currentYear = years.data?.find((y) => y.isCurrent);
+  const { main } = useInstitutionTracks();
+  const yearLabel = useYearLabel();
+  // the default view: the current year (with school and college, each student in their own track's)
+  const currentYear = currentYearOf(years.data, main) ?? currentYearOf(years.data);
+  const pickedYear = filters.academicYearId ? years.data?.find((y) => y.id === filters.academicYearId) : undefined;
   const pickedClass = classes.data?.items.find((c) => c.id === filters.classId);
   const sections = pickedClass?.sections.filter((s) => !s.isDefault) ?? [];
   const students = data?.items ?? [];
@@ -247,9 +251,11 @@ export function StudentsList() {
     place.clear();
   };
 
-  // the classes, under School and College headings when the school has both
-  const schoolClasses = classes.data?.items.filter((c) => c.numericLevel < COLLEGE_LEVEL) ?? [];
-  const collegeClasses = classes.data?.items.filter((c) => c.numericLevel >= COLLEGE_LEVEL) ?? [];
+  // the classes, under School and College headings when the school has both (a picked year:
+  // only its own track's classes)
+  const yearClasses = (classes.data?.items ?? []).filter((c) => !pickedYear || c.track === pickedYear.track);
+  const schoolClasses = yearClasses.filter((c) => c.track === "SCHOOL");
+  const collegeClasses = yearClasses.filter((c) => c.track === "COLLEGE");
   const classOption = (c: { id: string; name: string }) => ({ value: c.id, label: c.name });
 
   // a dropdown shows only when it has something to choose from
@@ -258,7 +264,7 @@ export function StudentsList() {
       key: "classId",
       label: t("columns.class"),
       allLabel: t("allClasses"),
-      options: (classes.data?.items ?? []).map(classOption),
+      options: yearClasses.map(classOption),
       groups:
         schoolClasses.length > 0 && collegeClasses.length > 0
           ? [
@@ -293,11 +299,19 @@ export function StudentsList() {
             label: t("filters.academicYear"),
             options: years.data.map((y) => ({
               value: y.id,
-              label: y.isCurrent ? t("filters.currentYear", { year: y.name }) : y.name,
+              label: y.isCurrent ? t("filters.currentYear", { year: yearLabel(y) }) : yearLabel(y),
             })),
             value: filters.academicYearId ?? currentYear?.id,
             // the current year is the default, so picking it clears the filter
-            onChange: (id: string | undefined) => setFilter({ academicYearId: id === currentYear?.id ? undefined : id }),
+            // (a class of the other track has no place in the picked year)
+            onChange: (id: string | undefined) => {
+              const next = years.data?.find((y) => y.id === id);
+              const picked = classes.data?.items.find((c) => c.id === filters.classId);
+              setFilter({
+                academicYearId: id === currentYear?.id ? undefined : id,
+                ...(picked && next && picked.track !== next.track ? { classId: undefined, sectionId: undefined } : {}),
+              });
+            },
           },
         ]
       : []),
@@ -366,10 +380,20 @@ export function StudentsList() {
 
   return (
     // the header panel, the status cards, then one sheet down to the bottom of the window
-    <div className="flex flex-1 flex-col gap-2 md:min-h-[calc(100svh-5.5rem)]">
+    // the window less the 72px top bar and the page's 14px gaps above and below
+    <div className="flex flex-1 flex-col gap-2 md:min-h-[calc(100svh-6.25rem)]">
       <PageHero
         title={t("title")}
-        description={shownYear ? t("descriptionYear", { year: shownYear.name }) : t("description")}
+        description={
+          shownYear
+            ? t("descriptionYear", {
+                // no year picked, school and college: both current years
+                year: filters.academicYearId
+                  ? shownYear.name
+                  : (years.data ?? []).filter((y) => y.isCurrent).map((y) => y.name).join(" · ") || shownYear.name,
+              })
+            : t("description")
+        }
         actions={
           <>
             <ExportButton

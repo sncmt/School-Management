@@ -259,7 +259,8 @@
     "fees": "Fees",
     "packages": "Packages",
     "announcements": "Announcements",
-    "activityLog": "Activity log"
+    "activityLog": "Activity log",
+    "rollNumbers": "Roll numbers"
   },
   "platform": {
     "welcome": "Welcome, {name}",
@@ -350,7 +351,14 @@
       "upToStudents": "up to {count} students",
       "packageHint": "Every package includes all the free modules. Yearly is the monthly price times 12.",
       "paysMonthly": "Pays a month",
-      "paysYearly": "Pays a year"
+      "paysYearly": "Pays a year",
+      "institutionType": "Institution type",
+      "institutionTypeHint": "School and college: two lines of academic years (e.g. January–December and June–May), each with its own current year.",
+      "institutionTypes": {
+        "SCHOOL": "School",
+        "COLLEGE": "College",
+        "SCHOOL_AND_COLLEGE": "School and college"
+      }
     },
     "schoolDetail": {
       "back": "Back to schools",
@@ -383,7 +391,8 @@
         "account": "Account",
         "package": "Package",
         "price": "Price",
-        "studentsUsed": "Students"
+        "studentsUsed": "Students",
+        "institutionType": "Institution type"
       },
       "notSet": "Not set",
       "notActivated": "Not activated yet",
@@ -784,7 +793,8 @@
         "dates": "Dates",
         "students": "Students",
         "exams": "Exams",
-        "actions": "Actions"
+        "actions": "Actions",
+        "track": "School / college"
       },
       "current": "Current",
       "empty": "No academic years yet. Create the first one to start.",
@@ -980,7 +990,8 @@
       "wholeClass": "Whole class",
       "types": {
         "COMPULSORY": "Compulsory",
-        "OPTIONAL": "Optional (4th subject)"
+        "OPTIONAL": "Optional (4th subject)",
+        "ELECTIVE": "Main or 4th"
       },
       "marksNotSet": "Not set",
       "marksSummary": "{full, number} · pass {pass, number}",
@@ -994,7 +1005,9 @@
         "marks": "Marks setup",
         "makeOptional": "Make optional (4th subject)",
         "makeCompulsory": "Make compulsory",
-        "remove": "Remove"
+        "remove": "Remove",
+        "makeElective": "Make main or 4th",
+        "edit": "Edit (group / type)"
       },
       "typeChanged": "{subject} is now {type}.",
       "addDialog": {
@@ -1011,7 +1024,8 @@
         "selected": "{count, plural, =0 {None selected} one {# selected} other {# selected}}",
         "save": "Add",
         "saving": "Adding…",
-        "added": "{count, plural, one {# subject added} other {# subjects added}}"
+        "added": "{count, plural, one {# subject added} other {# subjects added}}",
+        "electiveHint": "Each student takes some of these as main subjects (e.g. Biology or Higher Math); the rest join their 4th-subject list."
       },
       "marksDialog": {
         "title": "Marks setup: {subject}",
@@ -1038,6 +1052,26 @@
         "confirm": "Remove",
         "removing": "Removing…",
         "removed": "{subject} removed."
+      },
+      "electives": {
+        "title": "Main or 4th subjects",
+        "hint": "How many of these each student takes as main subjects. The rest go to their 4th-subject list. Students choose on the Exams → Setup → Main & 4th subjects page.",
+        "wholeClass": "Whole class",
+        "takes": "takes",
+        "ofThese": "as main, of {subjects}",
+        "needTwo": "Needs at least two",
+        "saved": "Saved."
+      },
+      "editDialog": {
+        "title": "Edit {subject}",
+        "description": "Who takes it in this class, and what kind of subject it is.",
+        "for": "For",
+        "wholeClass": "Whole class",
+        "forHint": "Only one group's students take a group subject (Biology for Science). Add it again for another group.",
+        "type": "Type",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "{subject} saved."
       }
     },
     "teachers": {
@@ -1801,7 +1835,8 @@
         "noTeacher": "No teacher yet",
         "optional": "Optional",
         "withSections": "with {names}",
-        "weeklyOff": "Weekly days off, not shown: {days}."
+        "weeklyOff": "Weekly days off, not shown: {days}.",
+        "elective": "Main or 4th"
       },
       "entry": {
         "addTitle": "Add class",
@@ -1820,7 +1855,8 @@
         "save": "Save",
         "saving": "Saving…",
         "saved": "Routine saved.",
-        "deleted": "Class removed from the routine."
+        "deleted": "Class removed from the routine.",
+        "elective": "main or 4th"
       },
       "teacherRoutine": {
         "teacher": "Teacher",
@@ -2210,7 +2246,7 @@
         "scales": "Grading scales",
         "settings": "Result settings",
         "exams": "Exams",
-        "optional": "Optional subjects",
+        "optional": "Main & 4th subjects",
         "marks": "Marks",
         "results": "Results",
         "card": "Result card",
@@ -2218,12 +2254,16 @@
         "seating": "Seat plan",
         "admit": "Admit cards"
       },
-      "groups": {
-        "work": "Exams and results",
-        "examDay": "For exam day",
-        "setup": "Setup"
+      "setup": {
+        "label": "Setup",
+        "marksDue": "{count, plural, one {# class due} other {# classes due}}",
+        "hints": {
+          "card": "The card's design and what it shows",
+          "optional": "Who takes which optional subject",
+          "scales": "Marks to grades and points",
+          "settings": "Pass rules and merit order"
+        }
       },
-      "partsLabel": "Exam pages",
       "scales": {
         "description": "How marks become grades: each subject's marks % gives a grade and point, the average point is the GPA, and the GPA gives the overall grade. A scale used by a published result is locked; copy it to change it.",
         "add": "Add grading scale",
@@ -2425,13 +2465,14 @@
         "close": "Close",
         "save": "Save routine",
         "saving": "Saving…",
-        "saved": "Routine saved."
+        "saved": "Routine saved.",
+        "elective": "main or 4th"
       },
       "optional": {
         "class": "Class",
-        "description": "Each student's optional (4th) subject, from the optional subjects open to their group.",
+        "description": "Each student's main subject among the \"main or 4th\" subjects, and their 4th subject.",
         "loadFailed": "Couldn't load the optional subjects.",
-        "noOptional": "This class has no optional subjects this year. Mark a subject as optional in Class subjects.",
+        "noOptional": "This class has no 4th or \"main or 4th\" subjects this year. Set a subject's type in Class subjects.",
         "missing": "{count, plural, one {# student hasn't chosen yet.} other {# students haven't chosen yet.}}",
         "allChosen": "Everyone has chosen.",
         "save": "Save",
@@ -2441,11 +2482,15 @@
           "roll": "Roll",
           "student": "Student",
           "group": "Group",
-          "subject": "Optional subject"
+          "subject": "4th subject",
+          "main": "Main subject"
         },
         "noStudents": "No students in this class.",
         "noneOpen": "None open to this group",
-        "notChosen": "Not chosen"
+        "notChosen": "Not chosen",
+        "missingMains": "{count, plural, one {# student hasn't chosen a main subject.} other {# students haven't chosen a main subject.}}",
+        "mainsIncomplete": "{count, plural, one {# student has} other {# students have}} too few or too many main subjects ticked.",
+        "pickMains": "Pick {count} ({chosen} picked)"
       },
       "marks": {
         "mySheets": "Your subjects",
@@ -2479,7 +2524,6 @@
         "student": "Student",
         "outOf": "out of {full}",
         "doesNotSit": "Doesn't sit this subject",
-        "hint": "Type A in a marks box (or tick Ab) for an absent student. Leave a box empty to fill it in later.",
         "gridHint": "Type A for absent. A dash means the student doesn't sit that subject (another group, religion or optional subject).",
         "errors": {
           "number": "A number, at most 2 decimals",
@@ -2490,7 +2534,12 @@
         "missing": "{count, plural, one {# mark still missing.} other {# marks still missing.}}",
         "entered": "Entered",
         "absentCount": "{count} absent",
-        "wholeClass": "Whole class"
+        "wholeClass": "Whole class",
+        "roll": "Roll",
+        "pass": "Pass",
+        "fail": "Fail",
+        "enterHint": "Type a mark and press Enter to go to the next student. Type A (or tick Absent) for an absent student; leave it empty to enter later.",
+        "newMarks": "{count, plural, one {# new mark} other {# new marks}}"
       },
       "results": {
         "exam": "Exam",
@@ -2669,7 +2718,11 @@
         "previewNote": "A made-up student, with your school's name and logo. Real cards are printed from Results.",
         "showComponents": "Each exam's share (final results)",
         "previewExam": "Exam result",
-        "previewFinal": "Final result"
+        "previewFinal": "Final result",
+        "changes": "{count, plural, one {# change} other {# changes}}",
+        "fitScreen": "Fit to screen",
+        "actualSize": "Actual size",
+        "size": "Size {size}"
       },
       "final": {
         "description": "A final result weighs a class's exams together, e.g. Half-yearly 40% + Annual 60%. Publish each exam's result first, then publish the final result. Year {year}.",
@@ -4744,6 +4797,54 @@
         "settings": "Settings",
         "children": "My children"
       }
+    },
+    "tracks": {
+      "label": "School or college",
+      "SCHOOL": "School",
+      "COLLEGE": "College",
+      "yearTrack": "School or college year",
+      "yearTrackHint": "School years usually run January to December, college years June to May. Each has its own current year.",
+      "classTrack": "School or college class",
+      "classTrackHint": "The class is taught in this track's academic years. It can't change once it has students or year setup."
+    },
+    "rollNumbers": {
+      "title": "Roll numbers",
+      "description": "Give every student of a class a roll number for the year, a whole class or one section at a time.",
+      "year": "Academic year",
+      "currentYear": "{name} (current)",
+      "class": "Class",
+      "chooseClass": "Choose a class",
+      "section": "Section",
+      "allSections": "All sections",
+      "noYear": "There is no academic year yet. Add one under Academic years first.",
+      "noClasses": "There are no classes yet. Add them under Classes first.",
+      "noStudents": "No active students here in {year}.",
+      "loadFailed": "The students could not be loaded.",
+      "summary": "{students, plural, one {# student} other {# students}} in {year} · {missing, plural, =0 {all have a roll} one {# without a roll} other {# without a roll}}",
+      "autoNumber": "Number automatically",
+      "orders": {
+        "name": "By name (A to Z)",
+        "admissionNo": "By admission no.",
+        "current": "In the order shown"
+      },
+      "clearAll": "Clear every roll",
+      "columns": {
+        "admissionNo": "Admission no.",
+        "student": "Student",
+        "section": "Section",
+        "group": "Group",
+        "roll": "Roll"
+      },
+      "rollFor": "Roll of {name}",
+      "badRoll": "Letters, digits and dashes only",
+      "usedTwice": "Used twice in this section",
+      "fixFirst": "Fix the marked rolls first.",
+      "unsaved": "{count, plural, one {# change not saved} other {# changes not saved}}",
+      "noChanges": "No changes",
+      "reset": "Undo changes",
+      "save": "Save rolls",
+      "saving": "Saving…",
+      "saved": "{count, plural, one {# roll saved} other {# rolls saved}}."
     }
   },
   "marketing": {
@@ -5288,7 +5389,6 @@
       "showAll": "Show all {count, number} pictures",
       "label": "Campus Life"
     },
-    "studentPortal": "Student portal",
     "facilities": {
       "label": "Campus",
       "title": "Our Facilities",

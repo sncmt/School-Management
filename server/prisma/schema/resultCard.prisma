@@ -1,6 +1,6 @@
 // ============================================================ result cards
 
-/*
+/**
  * How a school's result cards look: a ready layout and what to show on it (columns,
  * merit position, attendance, remarks, signatures...). The school sets it; the JSON is
  * checked by the API (resultCard.validation.ts). One per school; none = the defaults.
@@ -18,7 +18,7 @@ model ResultCardSetting {
   updatedAt DateTime @updatedAt
 }
 
-/*
+/**
  * A class teacher's remark on a student's result in one exam. Kept apart from the result
  * itself, so unlocking and publishing again never loses it.
  */

@@ -1,71 +1,74 @@
 model School {
-  id         String  @id @default(cuid())
-  schoolCode String  @unique
+  id         String @id @default(cuid())
+  schoolCode String @unique
   nameEn     String
   nameBn     String
 
-  subdomain      String       @unique
+  subdomain        String               @unique
   // also the super admin's login; the public homepage shows it only when there is no publicEmail
-  email          String       @unique
+  email            String               @unique
   // the address the public homepage shows (e.g. office@school.edu.bd); not a login
-  publicEmail    String?
+  publicEmail      String?
   // the school's own accent, one of the app's tested colours (BLUE, MAROON...); null = the default
-  accentColor    String?
+  accentColor      String?
   // the school's sidebar colour, one of the app's dark colours (NAVY, MAROON...); null = navy
-  sidebarColor   String?
-  phone          String?      @unique
-  website        String?
-  address        String?
-  language       Language     @default(BN)
-  logo           String?
-  favicon        String?
-  status         SchoolStatus @default(PENDING)
-  activationDate DateTime?
-  monthlyFee     Decimal?     @db.Decimal(10, 2)
+  sidebarColor     String?
+  phone            String?              @unique
+  website          String?
+  address          String?
+  language         Language             @default(BN)
+  // set by the platform admin; SCHOOL_AND_COLLEGE gives two year tracks (see AcademicTrack)
+  institutionType  InstitutionType      @default(SCHOOL)
+  logo             String?
+  favicon          String?
+  status           SchoolStatus         @default(PENDING)
+  activationDate   DateTime?
+  monthlyFee       Decimal?             @db.Decimal(10, 2)
   // what a school on the yearly plan pays for a year
-  yearlyFee      Decimal?     @db.Decimal(10, 2)
+  yearlyFee        Decimal?             @db.Decimal(10, 2)
   // a percentage off either fee
-  discount       Decimal      @default(0) @db.Decimal(5, 2)
+  discount         Decimal              @default(0) @db.Decimal(5, 2)
   // monthly or yearly: chosen when the school is activated; null for schools activated before plans
   subscriptionPlan SubscriptionPlan?
   // the package (student limit and price) the school is on; null for schools created before
   // packages, which have no student limit until one is assigned
-  packageId String?
-  package   SubscriptionPackage? @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  packageId        String?
+  package          SubscriptionPackage? @relation(fields: [packageId], references: [id], onDelete: Restrict)
 
-  memberships       SchoolMembership[]
-  slides            SchoolSlide[]
-  admissionInfo     AdmissionInfo?
-  about             SchoolAbout?
-  galleryPhotos     GalleryPhoto[]
-  roles             Role[]
-  modules           SchoolModule[]
-  subscriptionPayments SubscriptionPayment[]
-  students          Student[]
-  academicYears     AcademicYear[]
-  scheduleOverrides ScheduleOverride[]
-  subjects          Subject[]
-  classSubjects ClassSubject[]
-  teacherProfiles   TeacherProfile[]
-  resultCardSetting ResultCardSetting?
-  financeSetting    FinanceSetting?
-  notices           Notice[]
-  notifications     Notification[]
-  notificationSetting NotificationSetting?
-  smsSetting        SmsSetting?
-  smsTemplates      SmsTemplate[]
-  smsMessages       SmsMessage[]
-  homework          Homework[]
-  rooms             Room[]
-  admitCardSetting  AdmitCardSetting?
-  idCardSetting     IdCardSetting?
-  attendanceDevices AttendanceDevice[]
-  devicePunches     DevicePunch[]
-  devicePeople      DevicePerson[]
-  deviceAttendanceSetting DeviceAttendanceSetting?
-  onlinePaymentSetting    OnlinePaymentSetting?
-  onlinePayments          OnlinePayment[]
-  subjectTeachers   SubjectTeacher[]
+  memberships               SchoolMembership[]
+  slides                    SchoolSlide[]
+  admissionInfo             AdmissionInfo?
+  about                     SchoolAbout?
+  galleryPhotos             GalleryPhoto[]
+  roles                     Role[]
+  modules                   SchoolModule[]
+  subscriptionPayments      SubscriptionPayment[]
+  students                  Student[]
+  academicYears             AcademicYear[]
+  scheduleOverrides         ScheduleOverride[]
+  subjects                  Subject[]
+  classSubjects             ClassSubject[]
+  electiveRules             ElectiveRule[]
+  teacherProfiles           TeacherProfile[]
+  resultCardSetting         ResultCardSetting?
+  financeSetting            FinanceSetting?
+  notices                   Notice[]
+  notifications             Notification[]
+  notificationSetting       NotificationSetting?
+  smsSetting                SmsSetting?
+  smsTemplates              SmsTemplate[]
+  smsMessages               SmsMessage[]
+  homework                  Homework[]
+  rooms                     Room[]
+  admitCardSetting          AdmitCardSetting?
+  idCardSetting             IdCardSetting?
+  attendanceDevices         AttendanceDevice[]
+  devicePunches             DevicePunch[]
+  devicePeople              DevicePerson[]
+  deviceAttendanceSetting   DeviceAttendanceSetting?
+  onlinePaymentSetting      OnlinePaymentSetting?
+  onlinePayments            OnlinePayment[]
+  subjectTeachers           SubjectTeacher[]
   weeklyHolidayRules        WeeklyHolidayRule[]
   attendanceSessions        AttendanceSession[]
   gradingScales             GradingScale[]
@@ -78,16 +81,16 @@ model School {
   teacherAttendance         TeacherAttendance[]
   nationalHolidayExclusions NationalHolidayExclusion[]
   calendarEntries           CalendarEntry[]
-  classes           SchoolClass[]
-  sections          Section[]
-  groups            Group[]
-  funds             Fund[]
-  fundTransactions  FundTransaction[]
-  sequences         SchoolSequence[]
-  feeTypes          FeeType[]
-  feeStructures     FeeStructure[]
-  studentFees       StudentFee[]
-  payments          Payment[]
+  classes                   SchoolClass[]
+  sections                  Section[]
+  groups                    Group[]
+  funds                     Fund[]
+  fundTransactions          FundTransaction[]
+  sequences                 SchoolSequence[]
+  feeTypes                  FeeType[]
+  feeStructures             FeeStructure[]
+  studentFees               StudentFee[]
+  payments                  Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -104,7 +107,7 @@ model SubscriptionPackage {
   name String
 
   // the most ACTIVE students a school on this package may have; null = unlimited
-  maxStudents Int?
+  maxStudents  Int?
   // taka per month
   monthlyPrice Decimal @db.Decimal(10, 2)
 
@@ -120,7 +123,7 @@ model SubscriptionPackage {
   @@index([isActive, sortOrder])
 }
 
-/*
+/**
  * One paid period of a school's subscription to the platform, recorded by hand by the platform
  * admin (the school pays outside the app). Monthly: a year and month; yearly: a year. The
  * school's super admin sees these on their dashboard.
@@ -130,9 +133,9 @@ model SubscriptionPayment {
   schoolId String
   school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  plan  SubscriptionPlan
-  year  Int
-  month Int? // 1-12 for a monthly payment; null for a yearly one
+  plan   SubscriptionPlan
+  year   Int
+  month  Int? // 1-12 for a monthly payment; null for a yearly one
   // the period as a key, one record each: "2026-10" (monthly) or "2026" (yearly)
   period String
 
@@ -198,11 +201,17 @@ model AcademicYear {
   startDate DateTime
   endDate   DateTime
 
+  // the year line it belongs to; only that track's classes are taught in it. Years of one
+  // track never overlap; a school year and a college year may.
+  track AcademicTrack @default(SCHOOL)
+
+  // the year the track works in by default: one per track
   isCurrent Boolean @default(false)
 
   sectionYearConfigs SectionYearConfig[]
   scheduleOverrides  ScheduleOverride[]
   classSubjects      ClassSubject[]
+  electiveRules      ElectiveRule[]
   subjectTeachers    SubjectTeacher[]
   calendarEntries    CalendarEntry[]
   attendanceSessions AttendanceSession[]
@@ -221,6 +230,7 @@ model AcademicYear {
   @@unique([schoolId, name])
   @@index([schoolId])
   @@index([schoolId, isCurrent])
+  @@index([schoolId, track, isCurrent])
 }
 
 model SchoolClass {
@@ -231,15 +241,20 @@ model SchoolClass {
   name         String // "Class 1", "Six", "Nursery"
   numericLevel Int // for sorting + promotion logic (Nursery=0, Class 1=1, ...)
 
+  // school or college: the class is taught only in years of its track, and promotion
+  // stays inside the track (its highest class graduates)
+  track AcademicTrack @default(SCHOOL)
+
   sections              Section[]
   enrollments           Enrollment[]
   scheduleOverrideRules ScheduleOverrideRule[]
-  classSubjects ClassSubject[]
-  calendarEntryClasses CalendarEntryClass[]
-  resultSettings       ClassResultSetting[]
-  examClasses          ExamClass[]
-  finalFormulas        FinalResultFormula[]
-  routineEntries       RoutineEntry[]
+  classSubjects         ClassSubject[]
+  electiveRules         ElectiveRule[]
+  calendarEntryClasses  CalendarEntryClass[]
+  resultSettings        ClassResultSetting[]
+  examClasses           ExamClass[]
+  finalFormulas         FinalResultFormula[]
+  routineEntries        RoutineEntry[]
   feeStructures         FeeStructure[]
   noticeTargets         NoticeTarget[]
   homework              Homework[]
@@ -316,7 +331,7 @@ model SectionYearConfig {
   @@index([classTeacherMembershipId])
 }
 
-/*
+/**
  * A study group such as Science, Business Studies or Humanities (classes 9-10). A student
  * joins one through their enrollment, and subjects can be assigned to one group only.
  * Names are unique per school ignoring case (partial indexes in the groups migration).
@@ -332,6 +347,7 @@ model Group {
 
   enrollments   Enrollment[]
   classSubjects ClassSubject[]
+  electiveRules ElectiveRule[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

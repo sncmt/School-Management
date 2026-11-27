@@ -10,6 +10,7 @@ import { publicSchoolRoutes } from "@/lib/auth/routes";
 import { NoticeBoardView } from "./NoticeBoardView";
 import { NoticeFormDialog } from "./NoticeFormDialog";
 import { NoticeManager } from "./NoticeManager";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** The notice board for everyone; writing and publishing for those allowed. */
 export function NoticesPage() {
@@ -23,31 +24,33 @@ export function NoticesPage() {
   const [editing, setEditing] = useState<string | null>(null);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* what visitors see on the school's website */}
-          <Button asChild variant="outline">
-            <a href={publicSchoolRoutes.notices} target="_blank" rel="noopener noreferrer">
-              <Globe /> {t("publicPage")}
-            </a>
-          </Button>
-          {/* someone who may write but not see the list still gets the button */}
-          {canCreate && !canView && (
-            <Button onClick={() => setEditing("new")}>
-              <Plus /> {t("manage.write")}
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* what visitors see on the school's website */}
+              <Button asChild variant="outline">
+                <a href={publicSchoolRoutes.notices} target="_blank" rel="noopener noreferrer">
+                  <Globe /> {t("publicPage")}
+                </a>
+              </Button>
+              {/* someone who may write but not see the list still gets the button */}
+              {canCreate && !canView && (
+                <Button onClick={() => setEditing("new")}>
+                  <Plus /> {t("manage.write")}
+                </Button>
+              )}
+            </div>
+          </>
+        }
+      />
 
       {canView ? (
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+        <Tabs value={tab} onValueChange={setTab} className="gap-2">
+          <TabsList variant="strip">
             <TabsTrigger value="board">{t("tabs.board")}</TabsTrigger>
             <TabsTrigger value="manage">{t("tabs.manage")}</TabsTrigger>
           </TabsList>

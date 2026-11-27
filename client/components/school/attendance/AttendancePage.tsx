@@ -12,6 +12,7 @@ import { MonthlyRegister } from "./MonthlyRegister";
 import { RollCall } from "./RollCall";
 import { TeacherAttendance } from "./TeacherAttendance";
 import { TodaySummary } from "./TodaySummary";
+import { PageHero } from "@/components/layout/PageHero";
 
 /** Daily attendance: the day at a glance, roll calls, absentees, the month register, teachers. */
 export function AttendancePage() {
@@ -33,14 +34,11 @@ export function AttendancePage() {
   const shown = tab ?? tabs[0];
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
 
-      <Tabs value={shown} onValueChange={setTab}>
-        <TabsList>
+      <Tabs value={shown} onValueChange={setTab} className="gap-2">
+        <TabsList variant="strip">
           {tabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {t(`tabs.${name}` as "tabs.today")}

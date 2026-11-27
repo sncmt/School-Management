@@ -6,6 +6,7 @@ import { AppError } from "../../errorHandler/AppError";
 import { checkPermission } from "../../middlewares/authorize";
 import type { Names } from "../../shared/names";
 import { activityPermission, fillTemplate, SMS_EVENTS, smsParts, unknownPlaceholders } from "./sms.templates";
+import { currentYears } from "../../shared/academicYears";
 import type {
   SendSmsPayload,
   SmsLogQuery,
@@ -341,12 +342,13 @@ const recipientsOf = async (schoolId: string, target: SmsRecipientsQuery) => {
     return { students: 1, withoutPhone: phone ? 0 : 1, phones: new Map(phone ? [[phone, student.id]] : []) };
   }
 
-  const year = await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } });
-  if (!year) throw new AppError("No current academic year is set", httpStatus.BAD_REQUEST);
+  // the current year of every track (a class has students only in its own track's year)
+  const yearIds = (await currentYears(prisma, schoolId)).map((y) => y.id);
+  if (yearIds.length === 0) throw new AppError("No current academic year is set", httpStatus.BAD_REQUEST);
 
   const enrollments = await prisma.enrollment.findMany({
     where: {
-      academicYearId: year.id,
+      academicYearId: { in: yearIds },
       status: "ACTIVE",
       student: { schoolId, status: "ACTIVE" },
       ...(target.classId ? { classId: target.classId } : {}),
@@ -416,12 +418,13 @@ const byRoll = (a: string | null, b: string | null) =>
   a === null ? (b === null ? 0 : 1) : b === null ? -1 : a.localeCompare(b, undefined, { numeric: true });
 
 const classStudents = async (schoolId: string, classId: string, sectionId?: string) => {
-  const year = await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true } });
-  if (!year) throw new AppError("No current academic year is set", httpStatus.BAD_REQUEST);
+  // the current year of every track (a class has students only in its own track's year)
+  const yearIds = (await currentYears(prisma, schoolId)).map((y) => y.id);
+  if (yearIds.length === 0) throw new AppError("No current academic year is set", httpStatus.BAD_REQUEST);
 
   const enrollments = await prisma.enrollment.findMany({
     where: {
-      academicYearId: year.id,
+      academicYearId: { in: yearIds },
       classId,
       status: "ACTIVE",
       student: { schoolId, status: "ACTIVE" },

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 
 const name = z
@@ -14,11 +15,12 @@ const numericLevel = z
   .min(0, "Level cannot be negative")
   .max(30, "Level cannot be more than 30");
 
-const createClass = z.object({ name, numericLevel });
+// school or college (an institution with both); the others get their one track
+const createClass = z.object({ name, numericLevel, track: trackSchema.optional() });
 
 // missing = leave as it is
 const updateClass = z
-  .strictObject({ name: name.optional(), numericLevel: numericLevel.optional() })
+  .strictObject({ name: name.optional(), numericLevel: numericLevel.optional(), track: trackSchema.optional() })
   .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" });
 
 const classIdParams = z.object({ classId: idSchema("Class id") });
@@ -26,6 +28,8 @@ const classIdParams = z.object({ classId: idSchema("Class id") });
 const classQuery = z.object({
   // student counts are for this year; defaults to the current year
   academicYearId: z.string().trim().min(1).optional(),
+  // only this track's classes (an institution with school and college classes)
+  track: trackSchema.optional(),
 });
 
 export const ClassValidation = {

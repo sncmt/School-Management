@@ -35,6 +35,7 @@ import { useCreateGroup, useDeleteGroup, useGroups, useUpdateGroup, type Group }
 import { cn } from "@/lib/utils";
 import { schoolNamesSchema, type NamesInput, type NamesOutput } from "@/zod/names";
 import { NameFields, useSchoolLanguage } from "../NameFields";
+import { PageHero } from "@/components/layout/PageHero";
 
 const COLUMNS = ["name", "students", "subjects"] as const;
 
@@ -54,18 +55,20 @@ export function GroupsList() {
   const canDelete = can("group:delete");
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="page-title">{t("title")}</h1>
-          <p className="page-subtitle">{t("description")}</p>
-        </div>
-        {can("group:create") && (
-          <Button onClick={() => setAdding(true)}>
-            <Plus /> {t("add")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-2">
+      <PageHero
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <>
+            {can("group:create") && (
+              <Button onClick={() => setAdding(true)}>
+                <Plus /> {t("add")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {data?.academicYear && (
         <p className="text-sm text-muted-foreground">{t("inYear", { year: data.academicYear.name })}</p>

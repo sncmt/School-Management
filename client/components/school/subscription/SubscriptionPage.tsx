@@ -17,6 +17,7 @@ import { usePeriodLabel } from "@/lib/platform/subscriptions";
 import { useMySubscription } from "@/lib/school/subscription";
 import { Panel } from "../dashboard/panels";
 import { useTaka } from "@/lib/i18n/useCurrency";
+import { PageHero } from "@/components/layout/PageHero";
 
 
 /**
@@ -35,12 +36,13 @@ export function SubscriptionPage() {
     );
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <div className="space-y-1">
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="page-subtitle">{t("description")}</p>
-      </div>
-      {me && <SubscriptionPanel />}
+    <div className="space-y-2">
+      <PageHero title={t("title")} description={t("description")} />
+      {me && (
+        <div className="mx-auto max-w-3xl">
+          <SubscriptionPanel />
+        </div>
+      )}
     </div>
   );
 }

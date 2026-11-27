@@ -11,11 +11,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useClasses } from "@/lib/school/classes";
-import { useOptionalChoices, useSetOptionalChoices, type OptionalChoices } from "@/lib/school/exams";
+import { useOptionalChoices, useSetOptionalChoices, type OptionalChoices, type SubjectChoiceBody } from "@/lib/school/exams";
 
 const NONE = "none";
 
-/** Each student's optional (4th) subject, for classes that have optional subjects. */
+/**
+ * Each student's subject choices, for classes that have them: their main subject(s) among the
+ * "main or 4th" subjects (Biology or Higher Math), and their 4th subject. The 4th list is the
+ * fixed 4th subjects plus the "main or 4th" ones not taken as main.
+ */
 export function OptionalSubjects({ canManage }: { canManage: boolean }) {
   const t = useTranslations("school.exams.optional");
   const tCommon = useTranslations("common");
@@ -62,89 +66,198 @@ export function OptionalSubjects({ canManage }: { canManage: boolean }) {
   );
 }
 
+const sameSet = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((id) => b.includes(id));
+
 function ChoicesEditor({ data, canManage }: { data: OptionalChoices; canManage: boolean }) {
   const t = useTranslations("school.exams.optional");
   const describeError = useErrorMessage();
   const name = useLocalizedName();
   const save = useSetOptionalChoices();
-  const initial = new Map(data.students.map((s) => [s.enrollmentId, s.choice]));
-  const [choice, setChoice] = useState(initial);
-  const changed = data.students.filter((s) => choice.get(s.enrollmentId) !== s.choice);
-  const optionName = new Map(data.options.map((o) => [o.id, [name(o.subject), o.group && name(o.group)].filter(Boolean).join(" · ")]));
 
-  const submit = () =>
-    save.mutate(
-      changed.map((s) => ({ enrollmentId: s.enrollmentId, classSubjectId: choice.get(s.enrollmentId) ?? null })),
-      { onSuccess: () => toast.success(t("saved", { count: changed.length })), onError: (e) => toast.error(describeError(e)) },
-    );
+  const [fourth, setFourth] = useState(() => new Map(data.students.map((s) => [s.enrollmentId, s.choice])));
+  const [mains, setMains] = useState(() => new Map(data.students.map((s) => [s.enrollmentId, s.mains])));
+
+  const subjects = [...data.options, ...(data.electives ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  const subjectName = new Map(subjects.map((o) => [o.id, [name(o.subject), o.group && name(o.group)].filter(Boolean).join(" · ")]));
+  const hasElectives = (data.electives?.length ?? 0) > 0;
+  const openTo = (groupId: string | null, s: { groupId: string | null }) => s.groupId === null || s.groupId === groupId;
+
+  const mainsOf = (s: OptionalChoices["students"][number]) => mains.get(s.enrollmentId) ?? [];
+  // the 4th list as the mains are now: fixed 4th subjects, and the "main or 4th" ones not taken as main
+  const fourthList = (s: OptionalChoices["students"][number]) =>
+    subjects
+      .filter((o) => openTo(s.group?.id ?? null, o))
+      .filter((o) => o.type === "OPTIONAL" || (o.type === "ELECTIVE" && !mainsOf(s).includes(o.id)))
+      .map((o) => o.id);
+
+  const changed = data.students.filter(
+    (s) => fourth.get(s.enrollmentId) !== s.choice || !sameSet(mainsOf(s), s.mains ?? []),
+  );
+  // a main pick must be complete: exactly the class's number, or none
+  const incomplete = data.students.filter((s) => {
+    const n = mainsOf(s).length;
+    return n > 0 && n !== s.mainCount;
+  });
+  const missingMains = data.students.filter((s) => s.mainCount > 0 && mainsOf(s).length !== s.mainCount).length;
+  const missingFourth = data.students.filter((s) => !fourth.get(s.enrollmentId) && fourthList(s).length > 0).length;
+
+  /* New mains: a 4th that is now one of them is chosen again. */
+  const chooseMains = (enrollmentId: string, ids: string[]) => {
+    setMains((m) => new Map(m).set(enrollmentId, ids));
+    if (ids.includes(fourth.get(enrollmentId) ?? "")) setFourth((m) => new Map(m).set(enrollmentId, null));
+  };
+
+  const submit = () => {
+    if (incomplete.length > 0) {
+      toast.error(t("mainsIncomplete", { count: incomplete.length }));
+      return;
+    }
+    const body: SubjectChoiceBody[] = changed.map((s) => {
+      const m = mainsOf(s);
+      const f = fourth.get(s.enrollmentId) ?? null;
+      return {
+        enrollmentId: s.enrollmentId,
+        ...(!sameSet(m, s.mains ?? []) ? { mainIds: m } : {}),
+        ...(f !== s.choice ? { classSubjectId: f } : {}),
+      };
+    });
+    save.mutate(body, {
+      onSuccess: () => toast.success(t("saved", { count: changed.length })),
+      onError: (e) => toast.error(describeError(e)),
+    });
+  };
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {data.missingChoices > 0 ? (
-          <span className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
-            <TriangleAlert className="size-4" /> {t("missing", { count: data.missingChoices })}
-          </span>
-        ) : (
-          <span className="text-sm text-muted-foreground">{t("allChosen")}</span>
-        )}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          {hasElectives && missingMains > 0 && (
+            <span className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+              <TriangleAlert className="size-4" /> {t("missingMains", { count: missingMains })}
+            </span>
+          )}
+          {missingFourth > 0 ? (
+            <span className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+              <TriangleAlert className="size-4" /> {t("missing", { count: missingFourth })}
+            </span>
+          ) : (
+            missingMains === 0 && <span className="text-sm text-muted-foreground">{t("allChosen")}</span>
+          )}
+        </div>
         {canManage && (
           <Button size="sm" onClick={submit} disabled={save.isPending || changed.length === 0}>
             <Save /> {changed.length > 0 ? t("saveCount", { count: changed.length }) : t("save")}
           </Button>
         )}
       </div>
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">{t("columns.roll")}</TableHead>
               <TableHead>{t("columns.student")}</TableHead>
               <TableHead>{t("columns.group")}</TableHead>
+              {hasElectives && <TableHead>{t("columns.main")}</TableHead>}
               <TableHead>{t("columns.subject")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.students.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={hasElectives ? 5 : 4} className="h-24 text-center text-muted-foreground">
                   {t("noStudents")}
                 </TableCell>
               </TableRow>
             ) : (
-              data.students.map((s) => (
-                <TableRow key={s.enrollmentId}>
-                  <TableCell className="tabular-nums text-muted-foreground">
-                    {!s.section.isDefault && `${s.section.name}-`}
-                    {s.rollNumber ?? "—"}
-                  </TableCell>
-                  <TableCell className="font-medium">{name(s.student)}</TableCell>
-                  <TableCell className="text-sm">{s.group ? name(s.group) : "—"}</TableCell>
-                  <TableCell>
-                    {s.available.length === 0 ? (
-                      <span className="text-sm text-muted-foreground">{t("noneOpen")}</span>
-                    ) : (
-                      <Select
-                        value={choice.get(s.enrollmentId) ?? NONE}
-                        onValueChange={(v) => setChoice((m) => new Map(m).set(s.enrollmentId, v === NONE ? null : v))}
-                        disabled={!canManage}
-                      >
-                        <SelectTrigger className="w-56">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={NONE}>{t("notChosen")}</SelectItem>
-                          {s.available.map((id) => (
-                            <SelectItem key={id} value={id}>
-                              {optionName.get(id)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+              data.students.map((s) => {
+                const list = fourthList(s);
+                const chosen = mainsOf(s);
+                return (
+                  <TableRow key={s.enrollmentId}>
+                    <TableCell className="tabular-nums text-muted-foreground">
+                      {!s.section.isDefault && `${s.section.name}-`}
+                      {s.rollNumber ?? "—"}
+                    </TableCell>
+                    <TableCell className="font-medium">{name(s.student)}</TableCell>
+                    <TableCell className="text-sm">{s.group ? name(s.group) : "—"}</TableCell>
+                    {hasElectives && (
+                      <TableCell>
+                        {s.mainCount === 0 ? (
+                          <span className="text-sm text-muted-foreground">{t("noneOpen")}</span>
+                        ) : s.mainCount === 1 ? (
+                          <Select
+                            value={chosen[0] ?? NONE}
+                            onValueChange={(v) => chooseMains(s.enrollmentId, v === NONE ? [] : [v])}
+                            disabled={!canManage}
+                          >
+                            <SelectTrigger className="w-52">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={NONE}>{t("notChosen")}</SelectItem>
+                              {s.availableMains.map((id) => (
+                                <SelectItem key={id} value={id}>
+                                  {subjectName.get(id)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          // several mains: tick exactly mainCount of them
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap gap-x-3 gap-y-1">
+                              {s.availableMains.map((id) => {
+                                const on = chosen.includes(id);
+                                const full = !on && chosen.length >= s.mainCount;
+                                return (
+                                  <label key={id} className={`flex items-center gap-1.5 text-sm ${full ? "opacity-50" : "cursor-pointer"}`}>
+                                    <input
+                                      type="checkbox"
+                                      className="size-4 accent-primary"
+                                      checked={on}
+                                      disabled={!canManage || full}
+                                      onChange={(e) =>
+                                        chooseMains(s.enrollmentId, e.target.checked ? [...chosen, id] : chosen.filter((x) => x !== id))
+                                      }
+                                    />
+                                    {subjectName.get(id)}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            <p className={`text-xs ${chosen.length > 0 && chosen.length !== s.mainCount ? "text-destructive" : "text-muted-foreground"}`}>
+                              {t("pickMains", { count: s.mainCount, chosen: chosen.length })}
+                            </p>
+                          </div>
+                        )}
+                      </TableCell>
                     )}
-                  </TableCell>
-                </TableRow>
-              ))
+                    <TableCell>
+                      {list.length === 0 ? (
+                        <span className="text-sm text-muted-foreground">{t("noneOpen")}</span>
+                      ) : (
+                        <Select
+                          value={fourth.get(s.enrollmentId) ?? NONE}
+                          onValueChange={(v) => setFourth((m) => new Map(m).set(s.enrollmentId, v === NONE ? null : v))}
+                          disabled={!canManage}
+                        >
+                          <SelectTrigger className="w-56">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={NONE}>{t("notChosen")}</SelectItem>
+                            {list.map((id) => (
+                              <SelectItem key={id} value={id}>
+                                {subjectName.get(id)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

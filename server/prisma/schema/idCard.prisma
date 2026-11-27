@@ -1,4 +1,4 @@
-/*
+/**
  * The school's student ID card design: the template it chose, its colour and what goes on
  * the back. Kept as JSON (like the result card design) so new options need no migration;
  * the server fills in defaults for anything not saved.

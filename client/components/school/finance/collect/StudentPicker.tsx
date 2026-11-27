@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { toAsciiDigits } from "@/lib/i18n/digits";
 import { useLocalizedName } from "@/lib/i18n/names";
-import { useAcademicYears } from "@/lib/school/academicYears";
-import { useClasses } from "@/lib/school/classes";
+import { currentYearOf, useAcademicYears } from "@/lib/school/academicYears";
+import { classesOfTrack, useClasses } from "@/lib/school/classes";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
 import { useStudents } from "@/lib/school/students";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +35,16 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
   const [chosenYear, setChosenYear] = useState<string | undefined>();
 
   const yearList = years.data ?? [];
-  const currentYearId = yearList.find((y) => y.isCurrent)?.id;
+  const { main } = useInstitutionTracks();
+  const yearLabel = useYearLabel();
+  // nothing chosen: the current year (each class in the current year of its own track)
+  const currentYearId = currentYearOf(yearList, main)?.id ?? currentYearOf(yearList)?.id;
   const yearId = chosenYear ?? currentYearId;
+  const chosen = chosenYear ? yearList.find((y) => y.id === chosenYear) : undefined;
+  // a chosen year lists only its own track's classes (school or college)
+  const classList = classesOfTrack(classes.data?.items, chosen?.track);
   // a class without sections of its own has one hidden section: nothing to choose
-  const sections = classes.data?.items.find((c) => c.id === classId)?.sections.filter((s) => !s.isDefault) ?? [];
+  const sections = classList.find((c) => c.id === classId)?.sections.filter((s) => !s.isDefault) ?? [];
 
   // wait for a pause in typing before searching
   useEffect(() => {
@@ -45,7 +53,7 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
   }, [text]);
 
   const byPlace = classId !== ALL;
-  const otherYear = !!yearId && yearId !== currentYearId;
+  const otherYear = !!chosen && !chosen.isCurrent;
   const active = search.length > 0 || byPlace || otherYear;
   const students = useStudents({
     page: 1,
@@ -54,7 +62,8 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
     ...(byPlace ? { classId } : {}),
     ...(byPlace && sectionId !== ALL ? { sectionId } : {}),
     // the year narrows a class search, or any search once a year other than the current one is chosen
-    ...(yearId && (byPlace || otherYear) ? { academicYearId: yearId } : {}),
+    // (no year chosen: the server takes the class's own track's current year)
+    ...(chosen && (byPlace || otherYear) ? { academicYearId: chosen.id } : {}),
     sortBy: "admissionNo",
     sortOrder: "asc",
   });
@@ -64,14 +73,25 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
       {/* the narrowing selects on the left, the name search on the right */}
       <div className="flex flex-wrap items-end gap-3">
         {yearList.length > 1 && (
-          <Select value={yearId} onValueChange={setChosenYear}>
+          <Select
+            value={yearId}
+            onValueChange={(v) => {
+              setChosenYear(v);
+              // a class of the other track has no place in this year
+              const next = yearList.find((y) => y.id === v);
+              if (next && classId !== ALL && !classesOfTrack(classes.data?.items, next.track).some((c) => c.id === classId)) {
+                setClassId(ALL);
+                setSectionId(ALL);
+              }
+            }}
+          >
             <SelectTrigger className="w-36" label={t("year")} required>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {yearList.map((y) => (
                 <SelectItem key={y.id} value={y.id}>
-                  {y.isCurrent ? t("currentYear", { name: y.name }) : y.name}
+                  {y.isCurrent ? t("currentYear", { name: yearLabel(y) }) : yearLabel(y)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -90,7 +110,7 @@ export function StudentPicker({ onPick }: { onPick: (studentId: string) => void 
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>{tCommon("all")}</SelectItem>
-            {classes.data?.items.map((c) => (
+            {classList.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
               </SelectItem>

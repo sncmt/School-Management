@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 
 const optionalId = z.string().trim().min(1).optional();
@@ -15,8 +16,9 @@ const setSubjectTeachers = z.strictObject({
 });
 
 const listQuery = z.object({
-  // defaults to the current academic year
+  // defaults to the current academic year (of the class's or section's track, or of this track)
   academicYearId: optionalId,
+  track: trackSchema.optional(),
   classId: optionalId,
   sectionId: optionalId,
   teacherId: optionalId,

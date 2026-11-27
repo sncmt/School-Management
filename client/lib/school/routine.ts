@@ -62,6 +62,8 @@ export type RoutineEntry = {
   subject: { id: string; nameEn: string | null; nameBn: string | null; code: string | null; religion: string | null };
   group: { id: string; nameEn: string | null; nameBn: string | null } | null;
   isOptional: boolean;
+  // "main or 4th": only the students who took it as main or as their 4th
+  isElective?: boolean;
   teacher: TeacherBrief | null;
 };
 

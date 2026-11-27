@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { assertClassesInYearTrack, yearsCovering } from "../../shared/academicYears";
 import { dayKey } from "../../shared/scheduleSchemas";
 import { dayStatus, loadCalendar } from "../calendar/calendar.resolver";
 import type { HoursQuery, ListOverridesQuery, OverridePayload } from "./schedule.type";
@@ -50,7 +51,7 @@ const assertWithinYear = async (schoolId: string, data: OverridePayload) => {
  * Checks every class and section belongs to this school, and gives a section rule the
  * class of its section, so the hours can be matched by class without another lookup.
  */
-const normalizeRules = async (schoolId: string, rules: OverridePayload["rules"]) => {
+const normalizeRules = async (schoolId: string, academicYearId: string, rules: OverridePayload["rules"]) => {
   const classIds = [...new Set(rules.flatMap((r) => (r.classId ? [r.classId] : [])))];
   const sectionIds = [...new Set(rules.flatMap((r) => (r.sectionId ? [r.sectionId] : [])))];
 
@@ -71,6 +72,8 @@ const normalizeRules = async (schoolId: string, rules: OverridePayload["rules"])
     throw new AppError("One or more sections were not found for this school", httpStatus.NOT_FOUND);
   }
   const classOfSection = new Map(sections.map((s) => [s.id, s.classId]));
+  // a schedule change of a school year is for school classes (and of a college year, college ones)
+  await assertClassesInYearTrack(prisma, schoolId, [...classIds, ...sections.map((s) => s.classId)], academicYearId);
 
   return rules.map((r) => {
     if (r.sectionId) {
@@ -102,16 +105,25 @@ export type SectionHours = {
  *
  * Attendance should call this when it is taken and keep a copy of the result, so later
  * changes to the hours never rewrite history.
+ *
+ * yearIds: the year(s) covering the date. With both a school and a college year, each
+ * section takes its hours and schedule changes from the year of its own class's track.
  */
 export const resolveSectionHours = async (
   db: Db,
   schoolId: string,
-  academicYearId: string,
+  yearIds: string | string[],
   date: Date,
   sections: { id: string; classId: string }[],
 ): Promise<Map<string, SectionHours>> => {
   const sectionIds = sections.map((s) => s.id);
   const classIds = [...new Set(sections.map((s) => s.classId))];
+  const ids = typeof yearIds === "string" ? [yearIds] : yearIds;
+  const academicYearId = { in: ids };
+  const trackOf =
+    ids.length > 1
+      ? new Map((await db.schoolClass.findMany({ where: { id: { in: classIds } }, select: { id: true, track: true } })).map((c) => [c.id, c.track]))
+      : null;
 
   const [configs, overrides] = await Promise.all([
     db.sectionYearConfig.findMany({
@@ -126,6 +138,7 @@ export const resolveSectionHours = async (
         fromDate: true,
         toDate: true,
         createdAt: true,
+        academicYear: { select: { track: true } },
         rules: {
           where: {
             OR: [
@@ -152,6 +165,8 @@ export const resolveSectionHours = async (
     const config = configBySection.get(section.id);
 
     for (const o of ordered) {
+      // another track's schedule change (a college-year change and a school section)
+      if (trackOf && trackOf.get(section.classId) !== o.academicYear.track) continue;
       const rule =
         o.rules.find((r) => r.sectionId === section.id) ??
         o.rules.find((r) => r.sectionId === null && r.classId === section.classId) ??
@@ -184,7 +199,7 @@ export const resolveSectionHours = async (
 
 const createOverride = async (schoolId: string, userId: string, data: OverridePayload) => {
   await assertWithinYear(schoolId, data);
-  const rules = await normalizeRules(schoolId, data.rules);
+  const rules = await normalizeRules(schoolId, data.academicYearId, data.rules);
 
   return prisma.scheduleOverride.create({
     data: {
@@ -220,7 +235,7 @@ const getOverrideById = (schoolId: string, overrideId: string) => findOverride(s
 const updateOverride = async (schoolId: string, overrideId: string, data: OverridePayload) => {
   await findOverride(schoolId, overrideId);
   await assertWithinYear(schoolId, data);
-  const rules = await normalizeRules(schoolId, data.rules);
+  const rules = await normalizeRules(schoolId, data.academicYearId, data.rules);
 
   return prisma.$transaction(async (tx) => {
     await tx.scheduleOverrideRule.deleteMany({ where: { overrideId } });
@@ -248,22 +263,22 @@ const deleteOverride = async (schoolId: string, overrideId: string) => {
 
 /* The class hours of every section (or one class / one section) on a date, and where they come from. */
 const getHours = async (schoolId: string, query: HoursQuery) => {
-  const year = await prisma.academicYear.findFirst({
-    where: { schoolId, startDate: { lte: query.date }, endDate: { gte: query.date } },
-    orderBy: { startDate: "desc" },
-    select: { id: true, name: true },
-  });
-  if (!year) {
+  // the school year and the college year of the date (an institution with both)
+  const years = await yearsCovering(prisma, schoolId, query.date);
+  if (years.length === 0) {
     throw new AppError("No academic year covers this date", httpStatus.NOT_FOUND);
   }
+  const covered = new Set(years.map((y) => y.track));
 
   const sections = await prisma.section.findMany({
     where: {
       schoolId,
       ...(query.classId ? { classId: query.classId } : {}),
       ...(query.sectionId ? { id: query.sectionId } : {}),
+      // only classes whose track has a year on this date
+      class: { track: { in: [...covered] } },
     },
-    orderBy: [{ class: { numericLevel: "asc" } }, { name: "asc" }],
+    orderBy: [{ class: { track: "asc" } }, { class: { numericLevel: "asc" } }, { name: "asc" }],
     select: {
       id: true,
       name: true,
@@ -274,13 +289,14 @@ const getHours = async (schoolId: string, query: HoursQuery) => {
   });
 
   const [hours, calendar] = await Promise.all([
-    resolveSectionHours(prisma, schoolId, year.id, query.date, sections),
+    resolveSectionHours(prisma, schoolId, years.map((y) => y.id), query.date, sections),
     loadCalendar(prisma, schoolId, query.date, query.date),
   ]);
 
   return {
     date: dayKey(query.date),
-    academicYear: year,
+    academicYear: { id: years[0]!.id, name: years[0]!.name },
+    academicYears: years.map((y) => ({ id: y.id, name: y.name, track: y.track })),
     items: sections.map(({ classId, ...section }) => {
       const day = dayStatus(calendar, query.date, { classId });
       const sectionHours = hours.get(section.id)!;

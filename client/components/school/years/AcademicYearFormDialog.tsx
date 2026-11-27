@@ -23,9 +23,12 @@ import { dayKey } from "@/lib/dates";
 import {
   useCreateAcademicYear,
   useUpdateAcademicYear,
+  type AcademicTrack,
   type AcademicYear,
   type CreateAcademicYearResult,
 } from "@/lib/school/academicYears";
+import { useInstitutionTracks } from "@/lib/school/tracks";
+import { TrackSwitch } from "./TrackSwitch";
 import {
   academicYearFormSchema,
   type AcademicYearFormInput,
@@ -36,12 +39,14 @@ type Props = {
   open: boolean;
   // null: creating a new year
   year: AcademicYear | null;
-  // the first year a school creates becomes current by default
-  isFirstYear: boolean;
+  // every year: the first year of a track becomes its current year by default
+  years: AcademicYear[];
+  // the track a new year starts on (an institution with school and college)
+  defaultTrack?: AcademicTrack;
   onClose: () => void;
 };
 
-export function AcademicYearFormDialog({ open, year, isFirstYear, onClose }: Props) {
+export function AcademicYearFormDialog({ open, year, years, defaultTrack, onClose }: Props) {
   const t = useTranslations("school.years.form");
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -50,7 +55,7 @@ export function AcademicYearFormDialog({ open, year, isFirstYear, onClose }: Pro
           <DialogTitle>{year ? t("editTitle") : t("addTitle")}</DialogTitle>
           {!year && <DialogDescription>{t("addDescription")}</DialogDescription>}
         </DialogHeader>
-        {open && <YearForm key={year?.id ?? "new"} year={year} isFirstYear={isFirstYear} onDone={onClose} />}
+        {open && <YearForm key={year?.id ?? "new"} year={year} years={years} defaultTrack={defaultTrack} onDone={onClose} />}
       </DialogContent>
     </Dialog>
   );
@@ -60,14 +65,21 @@ const FIELDS: FieldPath<AcademicYearFormInput>[] = ["name", "startDate", "endDat
 
 function YearForm({
   year,
-  isFirstYear,
+  years,
+  defaultTrack,
   onDone,
 }: {
   year: AcademicYear | null;
-  isFirstYear: boolean;
+  years: AcademicYear[];
+  defaultTrack?: AcademicTrack;
   onDone: () => void;
 }) {
   const t = useTranslations("school.years.form");
+  const tTracks = useTranslations("school.tracks");
+  const { hasBoth, main } = useInstitutionTracks();
+  // school or college: chosen for a new year, fixed afterwards
+  const [track, setTrack] = useState<AcademicTrack>(year?.track ?? defaultTrack ?? main);
+  const isFirstOfTrack = (tr: AcademicTrack) => !years.some((y) => y.track === tr);
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
   const create = useCreateAcademicYear();
@@ -81,9 +93,14 @@ function YearForm({
       name: year?.name ?? "",
       startDate: year ? dayKey(year.startDate) : "",
       endDate: year ? dayKey(year.endDate) : "",
-      isCurrent: isFirstYear,
+      isCurrent: isFirstOfTrack(track),
     },
   });
+
+  const chooseTrack = (next: AcademicTrack) => {
+    setTrack(next);
+    form.setValue("isCurrent", isFirstOfTrack(next));
+  };
 
   const onSubmit = form.handleSubmit(async ({ isCurrent, ...values }) => {
     setFormError(null);
@@ -98,7 +115,7 @@ function YearForm({
         if (Object.keys(body).length > 0) await update.mutateAsync({ yearId: year.id, body });
         toast.success(t("updated", { name: values.name }));
       } else {
-        const created = await create.mutateAsync({ ...values, isCurrent });
+        const created = await create.mutateAsync({ ...values, isCurrent, ...(hasBoth ? { track } : {}) });
         toast.success(t("created", { name: created.name }), { description: carriedOverText(created) });
       }
       onDone();
@@ -123,6 +140,20 @@ function YearForm({
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <FormError message={formError} />
+
+        {hasBoth && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{tTracks("yearTrack")}</p>
+            {year ? (
+              <p className="text-sm text-muted-foreground">{tTracks(year.track)}</p>
+            ) : (
+              <>
+                <TrackSwitch value={track} onChange={chooseTrack} />
+                <p className="text-xs text-muted-foreground">{tTracks("yearTrackHint")}</p>
+              </>
+            )}
+          </div>
+        )}
 
         <FormField
           control={form.control}

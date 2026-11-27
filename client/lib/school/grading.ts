@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
+import type { AcademicTrack } from "@/lib/school/academicYears";
 
 // Mirrors server/src/app/modules/grading. Prisma Decimals arrive as strings ("5", "3.5").
 
@@ -83,9 +84,10 @@ export const gradingApi = {
     await httpClient.delete(`/grading/scales/${scaleId}`);
   },
 
-  classSettings: async (academicYearId?: string) =>
-    (await httpClient.get<ApiResponse<ClassSettings>>("/grading/class-settings", { params: { academicYearId } })).data
-      .data,
+  // no year: the current year of the track (of the main track when none is given)
+  classSettings: async (academicYearId?: string, track?: AcademicTrack) =>
+    (await httpClient.get<ApiResponse<ClassSettings>>("/grading/class-settings", { params: { academicYearId, track } }))
+      .data.data,
 
   setClassSetting: async (body: ClassSettingBody) =>
     (await httpClient.put<ApiResponse<ClassResultSetting>>("/grading/class-settings", body)).data.data,
@@ -95,10 +97,10 @@ const gradingKey = ["school", "grading"] as const;
 
 export const useGradingScaleList = () => useQuery({ queryKey: [...gradingKey, "scales"], queryFn: gradingApi.scales });
 
-export const useClassResultSettings = (academicYearId: string | undefined) =>
+export const useClassResultSettings = (academicYearId: string | undefined, track?: AcademicTrack) =>
   useQuery({
-    queryKey: [...gradingKey, "class-settings", academicYearId],
-    queryFn: () => gradingApi.classSettings(academicYearId),
+    queryKey: [...gradingKey, "class-settings", academicYearId, track],
+    queryFn: () => gradingApi.classSettings(academicYearId, track),
   });
 
 const useGradingMutation = <TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) => {

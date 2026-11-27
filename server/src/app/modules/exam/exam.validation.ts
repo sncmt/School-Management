@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ExamType } from "../../../../generated/prisma/enums";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 import { schoolLanguageNames } from "../../shared/names";
 import { dateOnlySchema, timeSchema } from "../../shared/scheduleSchemas";
@@ -23,8 +24,9 @@ const uniqueIds = (ids: string[]) => new Set(ids).size === ids.length;
 
 const createExam = z
   .strictObject({
-    // defaults to the current academic year
+    // defaults to the current academic year (of this track, or of the classes' track)
     academicYearId: optionalId,
+    track: trackSchema.optional(),
     ...names,
     type: z.enum(ExamType),
     // true = every class ("select all"); false = only the classes in classIds
@@ -76,8 +78,9 @@ const examIdParams = z.object({ examId: idSchema("Exam id") });
 const examClassParams = z.object({ examId: idSchema("Exam id"), classId: idSchema("Class id") });
 
 const listExamsQuery = z.object({
-  // defaults to the current academic year
+  // defaults to the current academic year of this track (or of the main track)
   academicYearId: optionalId,
+  track: trackSchema.optional(),
 });
 
 // deleting an exam (or a class of it): an optional reason for the activity log (confirmName is no longer used)
@@ -172,11 +175,22 @@ const optionalQuery = z.object({
 const setOptionalChoices = z.strictObject({
   choices: z
     .array(
-      z.strictObject({
-        enrollmentId: idSchema("Enrollment"),
-        // null removes the choice
-        classSubjectId: idSchema("Class subject").nullable(),
-      }),
+      z
+        .strictObject({
+          enrollmentId: idSchema("Enrollment"),
+          // the 4th subject; null removes it, left out leaves it as it is
+          classSubjectId: idSchema("Class subject").nullable().optional(),
+          // the main subjects among the "main or 4th" ones (the whole set; [] clears them);
+          // left out leaves them as they are
+          mainIds: z
+            .array(idSchema("Class subject"))
+            .max(10)
+            .refine(uniqueIds, "A subject is listed twice")
+            .optional(),
+        })
+        .refine((c) => c.classSubjectId !== undefined || c.mainIds !== undefined, {
+          message: "Give a 4th subject or main subjects",
+        }),
     )
     .min(1)
     .max(300)

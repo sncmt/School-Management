@@ -3,6 +3,7 @@ import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { todayInBangladesh } from "../../shared/scheduleSchemas";
+import { requireYear } from "../../shared/academicYears";
 import { currentMonth } from "../studentFee/studentFee.service";
 import type { CollectionReportQuery, DuesReportQuery } from "./finance.validation";
 
@@ -112,10 +113,8 @@ const getCollection = async (schoolId: string, query: CollectionReportQuery) => 
  * they are in this year), or per student of one class.
  */
 const getDues = async (schoolId: string, query: DuesReportQuery) => {
-  const year = query.academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: query.academicYearId, schoolId }, select: { id: true, name: true, startDate: true } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true, startDate: true } });
-  if (!year) throw new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
+  // no year: the current year of the class's track, or of the track asked for
+  const year = await requireYear(prisma, schoolId, { academicYearId: query.academicYearId, track: query.track, classId: query.classId });
 
   // the students of the year (the class's, for one class), and the class each is in
   const enrollments = await prisma.enrollment.findMany({
@@ -192,7 +191,8 @@ const getDues = async (schoolId: string, query: DuesReportQuery) => {
       row.previous = row.previous.plus(owed(f));
     }
     const classes = await prisma.schoolClass.findMany({
-      where: { schoolId },
+      // the year's own classes (a school year: the school classes)
+      where: { schoolId, track: year.track },
       orderBy: { numericLevel: "asc" },
       select: { id: true, name: true, enrollments: { where: { academicYearId: year.id, status: "ACTIVE" }, select: { id: true } } },
     });

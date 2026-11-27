@@ -84,7 +84,7 @@ function RoutineEditor({ routine, canEdit, onDone }: { routine: ExamRoutine; can
   const editable = canEdit && routine.status !== "PUBLISHED";
 
   const subjectLabel = (s: { subject: { nameEn: string | null; nameBn: string | null }; group: { nameEn: string | null; nameBn: string | null } | null; type: string }) =>
-    [name(s.subject), s.group && name(s.group), s.type === "OPTIONAL" && t("optional")].filter(Boolean).join(" · ");
+    [name(s.subject), s.group && name(s.group), s.type === "OPTIONAL" && t("optional"), s.type === "ELECTIVE" && t("elective")].filter(Boolean).join(" · ");
 
   const initial = useMemo<Row[]>(
     () => [

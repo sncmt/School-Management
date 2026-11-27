@@ -2,6 +2,8 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import type { AcademicTrack } from "../../../../generated/prisma/enums";
+import { assertClassesInTrack, currentYears, requireYear } from "../../shared/academicYears";
 import { assertSchoolLanguageName, displayName } from "../../shared/names";
 import { dayKey, todayInBangladesh } from "../../shared/scheduleSchemas";
 import { dayStatus, loadCalendar } from "../calendar/calendar.resolver";
@@ -19,7 +21,7 @@ const TX_OPTIONS = { maxWait: 10_000, timeout: 20_000 };
 const classBrief = { id: true, name: true, numericLevel: true } satisfies Prisma.SchoolClassSelect;
 
 const examInclude = {
-  academicYear: { select: { id: true, name: true } },
+  academicYear: { select: { id: true, name: true, track: true } },
   classes: {
     orderBy: { class: { numericLevel: "asc" } },
     select: {
@@ -48,17 +50,9 @@ const routineSubjectInclude = {
 
 // ------------------------------------------------------------------- helpers
 
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true } });
-  if (!year) {
-    throw academicYearId
-      ? new AppError("Academic year not found for this school", httpStatus.NOT_FOUND)
-      : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
-  }
-  return year;
-};
+/* The given year, or the current one of the track (or of the classes' track, or the main track). */
+const resolveYear = (schoolId: string, academicYearId?: string, opts: { track?: AcademicTrack; classIds?: string[] } = {}) =>
+  requireYear(prisma, schoolId, { academicYearId, ...opts });
 
 const findExam = async (schoolId: string, examId: string) => {
   const exam = await prisma.exam.findFirst({ where: { id: examId, schoolId }, include: examInclude });
@@ -98,12 +92,14 @@ const assertClassesInSchool = async (schoolId: string, classIds: string[]) => {
 
 const createExam = async (schoolId: string, userId: string, data: CreateExamPayload) => {
   await assertSchoolLanguageName(schoolId, data);
-  const year = await resolveYear(schoolId, data.academicYearId);
+  // the classes must be taught in the year (its track: school or college)
+  const year = await resolveYear(schoolId, data.academicYearId, { track: data.track, classIds: data.classIds });
   assertAttendancePeriod(year, data.attendanceFrom, data.attendanceTo);
 
   let classIds = data.classIds;
   if (data.allClasses) {
-    classIds = (await prisma.schoolClass.findMany({ where: { schoolId }, select: { id: true } })).map((c) => c.id);
+    // every class of the year's track
+    classIds = (await prisma.schoolClass.findMany({ where: { schoolId, track: year.track }, select: { id: true } })).map((c) => c.id);
     if (classIds.length === 0) throw new AppError("The school has no classes yet", httpStatus.BAD_REQUEST);
   } else {
     await assertClassesInSchool(schoolId, classIds);
@@ -126,13 +122,17 @@ const createExam = async (schoolId: string, userId: string, data: CreateExamPayl
 };
 
 const getExams = async (schoolId: string, query: ListExamsQuery) => {
-  const year = await resolveYear(schoolId, query.academicYearId);
+  const year = await resolveYear(schoolId, query.academicYearId, { track: query.track });
+  // no year and no track: the exams of every track's current year (school and college), so
+  // the marks, results and admit card pages see both; academicYear is the main track's
+  const yearIds =
+    query.academicYearId || query.track ? [year.id] : (await currentYears(prisma, schoolId)).map((y) => y.id);
   const exams = await prisma.exam.findMany({
-    where: { schoolId, academicYearId: year.id },
+    where: { schoolId, academicYearId: { in: yearIds } },
     orderBy: { createdAt: "asc" },
     include: examInclude,
   });
-  return { academicYear: { id: year.id, name: year.name }, items: exams };
+  return { academicYear: { id: year.id, name: year.name, track: year.track }, items: exams };
 };
 
 /* The exam with its classes and, for each, the first and last exam day. */
@@ -186,6 +186,7 @@ const updateExam = async (schoolId: string, examId: string, data: UpdateExamPayl
 const addClasses = async (schoolId: string, examId: string, data: AddClassesPayload) => {
   const exam = await findExam(schoolId, examId);
   await assertClassesInSchool(schoolId, data.classIds);
+  await assertClassesInTrack(prisma, schoolId, data.classIds, exam.academicYear);
 
   const already = new Set(exam.classes.map((c) => c.class.id));
   if (data.classIds.some((id) => already.has(id))) {

@@ -24,11 +24,11 @@ export function FamilyHome() {
   const { data, isPending, error } = useFamilyHome();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {isPending ? (
-        <div className="grid gap-5 lg:grid-cols-2">
-          <Skeleton className="h-72 rounded-xl" />
-          <Skeleton className="h-72 rounded-xl" />
+        <div className="grid gap-2 lg:grid-cols-2">
+          <Skeleton className="h-72 rounded-2xl" />
+          <Skeleton className="h-72 rounded-2xl" />
         </div>
       ) : error ? (
         <p className="rounded-2xl border border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">{describeError(error)}</p>
@@ -36,7 +36,7 @@ export function FamilyHome() {
         <ChildrenGrid items={data.children} mainYearId={data.academicYear?.id} canPayOnline={data.onlinePayment.enabled} />
       )}
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-2 lg:grid-cols-3">
         <NoticesPanel className="lg:col-span-2" />
         {data && <UpcomingPanel items={data.upcoming} />}
       </div>
@@ -56,7 +56,7 @@ export function ChildrenGrid({ items, mainYearId, canPayOnline = false }: { item
     );
   }
   return (
-    <div className={cn("grid gap-5", items.length > 1 && "lg:grid-cols-2")}>
+    <div className={cn("grid gap-2", items.length > 1 && "lg:grid-cols-2")}>
       {items.map((child) => (
         <ChildCard key={child.id} child={child} mainYearId={mainYearId} canPayOnline={canPayOnline} />
       ))}
@@ -172,7 +172,10 @@ function ChildCard({ child, mainYearId, canPayOnline }: { child: FamilyChild; ma
               <ul className="mt-3 space-y-1.5 text-sm">
                 {child.dues.fees.slice(0, MAX_FEES).map((fee) => (
                   <li key={fee.id} className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 truncate text-muted-foreground">{feeLabel(fee, mainYearId)}</span>
+                    {/* the child's own current year (a college child's is the college year) */}
+                    <span className="min-w-0 truncate text-muted-foreground">
+                      {feeLabel(fee, child.enrollment?.academicYear.isCurrent ? child.enrollment.academicYear.id : mainYearId)}
+                    </span>
                     <span className="shrink-0 font-medium tabular-nums">{money(fee.due)}</span>
                   </li>
                 ))}

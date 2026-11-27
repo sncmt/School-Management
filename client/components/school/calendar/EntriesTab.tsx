@@ -1,5 +1,6 @@
 "use client";
 
+import { useYearLabel } from "@/components/school/years/TrackSwitch";
 import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -54,6 +55,7 @@ export function EntriesTab({
   onEdit: (entry: CalendarEntry) => void;
 }) {
   const t = useTranslations("school.calendar.entries");
+  const yearLabel = useYearLabel();
   const tType = useTranslations("school.calendar.holidayTypes");
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
@@ -70,13 +72,13 @@ export function EntriesTab({
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">{t("year")}</span>
           <Select value={yearId} onValueChange={onYearChange}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {years.map((y) => (
                 <SelectItem key={y.id} value={y.id}>
-                  {y.name}
+                  {yearLabel(y)}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -31,6 +31,21 @@ export type ExamResultSummary = {
 
 export type PublishOutcome = { published: number; passed: number; failed: number; passRate: number };
 
+export type PaperLine = {
+  id: string;
+  nameEn: string | null;
+  nameBn: string | null;
+  code: string | null;
+  fullMarks: number;
+  passMarks?: number;
+  marks: number | null;
+  isAbsent: boolean;
+  parts?: { name: string; fullMarks: number; passMarks: number; marks: number | null; passed: boolean }[] | null;
+  // on result cards: the top marks of the paper
+  highestInSection?: number | null;
+  highestInClass?: number | null;
+};
+
 export type SubjectLine = {
   subjectId: string;
   nameEn: string | null;
@@ -48,7 +63,8 @@ export type SubjectLine = {
   grade: string | null;
   point: string | null;
   parts: { name: string; fullMarks: number; passMarks: number; marks: number | null; passed: boolean }[] | null;
-  papers: { subjectId: string; nameEn: string | null; nameBn: string | null; fullMarks: number; marks: number | null; isAbsent: boolean }[] | null;
+  // combined papers (Bangla 1st and 2nd Paper); passMarks and parts only in results published since they were added
+  papers: PaperLine[] | null;
   sortOrder: number;
 };
 

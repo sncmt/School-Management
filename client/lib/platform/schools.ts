@@ -1,5 +1,6 @@
 "use client";
 
+import type { InstitutionType } from "@/lib/school/academicYears";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
@@ -26,6 +27,8 @@ export type School = {
   website: string | null;
   address: string | null;
   language: SchoolLanguage;
+  // SCHOOL_AND_COLLEGE: two academic-year tracks
+  institutionType: InstitutionType;
   // signed links to the stored images, or null
   logo: string | null;
   favicon: string | null;
@@ -71,6 +74,7 @@ export type CreateSchoolBody = {
   website?: string;
   address?: string;
   language: SchoolLanguage;
+  institutionType?: InstitutionType;
   subscriptionPlan: SubscriptionPlan;
   packageId: string;
   discount?: number;
@@ -107,6 +111,7 @@ export type UpdateSchoolBody = Partial<{
   website: string | null;
   address: string | null;
   language: SchoolLanguage;
+  institutionType: InstitutionType;
   subscriptionPlan: SubscriptionPlan;
   packageId: string;
   discount: number;

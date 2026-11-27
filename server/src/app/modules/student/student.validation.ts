@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trackSchema } from "../../shared/academicYears";
 import { AdmissionType, Gender, Religion, StudentStatus } from "../../../../generated/prisma/enums";
 import { idSchema } from "../../shared/financeSchemas";
 import { dateOnlySchema } from "../../shared/scheduleSchemas";
@@ -21,7 +22,7 @@ const clearable = <T extends z.ZodType>(schema: T) => z.preprocess(blankToNull, 
 
 const text = (max: number) => z.string().trim().max(max);
 
-const rollNumber = z.string().trim().regex(/^[A-Za-z0-9-]{1,10}$/, "Roll number: letters, digits and dashes only (max 10)");
+export const rollNumber = z.string().trim().regex(/^[A-Za-z0-9-]{1,10}$/, "Roll number: letters, digits and dashes only (max 10)");
 
 const enrollmentInput = z.object({
   // defaults to the school's current academic year
@@ -106,6 +107,8 @@ const listStudentsQuery = z.object({
   religion: z.enum(Religion).optional(),
   // class/section/group filters use this year, or the current year when omitted
   academicYearId: z.string().trim().min(1).optional(),
+  // with no year: that track's current year (the class's or section's track when one is given)
+  track: trackSchema.optional(),
   classId: z.string().trim().min(1).optional(),
   sectionId: z.string().trim().min(1).optional(),
   groupId: z.string().trim().min(1).optional(),

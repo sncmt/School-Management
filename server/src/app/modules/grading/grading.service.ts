@@ -3,6 +3,8 @@ import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import { isUniqueViolation } from "../../utils/prismaError";
+import type { AcademicTrack } from "../../../../generated/prisma/enums";
+import { requireYear } from "../../shared/academicYears";
 import type { ClassSettingsQuery, CopyScalePayload, ScalePayload, SetClassSettingPayload } from "./grading.validation";
 
 const DUPLICATE_MESSAGE = "A grading scale with this name already exists";
@@ -32,18 +34,9 @@ const assertNameFree = async (schoolId: string, name: string, excludeId?: string
   if (clash) throw new AppError(DUPLICATE_MESSAGE, httpStatus.CONFLICT);
 };
 
-/* The given year, or the current one when none is given. */
-const resolveYear = async (schoolId: string, academicYearId?: string) => {
-  const year = academicYearId
-    ? await prisma.academicYear.findFirst({ where: { id: academicYearId, schoolId }, select: { id: true, name: true } })
-    : await prisma.academicYear.findFirst({ where: { schoolId, isCurrent: true }, select: { id: true, name: true } });
-  if (!year) {
-    throw academicYearId
-      ? new AppError("Academic year not found for this school", httpStatus.NOT_FOUND)
-      : new AppError("No current academic year is set. Choose an academic year", httpStatus.BAD_REQUEST);
-  }
-  return year;
-};
+/* The given year, or the current one (of the track, or the class's track) when none is given. */
+const resolveYear = (schoolId: string, academicYearId?: string, opts: { track?: AcademicTrack; classId?: string } = {}) =>
+  requireYear(prisma, schoolId, { academicYearId, ...opts });
 
 const scaleData = (data: ScalePayload) => ({
   name: data.name,
@@ -138,11 +131,12 @@ const deleteScale = async (schoolId: string, scaleId: string) => {
 
 /* Every class with its result setting for a year (null = not set yet). */
 const getClassSettings = async (schoolId: string, query: ClassSettingsQuery) => {
-  const year = await resolveYear(schoolId, query.academicYearId);
+  const year = await resolveYear(schoolId, query.academicYearId, { track: query.track });
 
   const [classes, settings] = await Promise.all([
+    // the year's own classes (a school year: the school classes)
     prisma.schoolClass.findMany({
-      where: { schoolId },
+      where: { schoolId, track: year.track },
       orderBy: { numericLevel: "asc" },
       select: { id: true, name: true, numericLevel: true },
     }),
@@ -160,7 +154,7 @@ const getClassSettings = async (schoolId: string, query: ClassSettingsQuery) => 
 };
 
 const setClassSetting = async (schoolId: string, data: SetClassSettingPayload) => {
-  const year = await resolveYear(schoolId, data.academicYearId);
+  const year = await resolveYear(schoolId, data.academicYearId, { classId: data.classId });
 
   const schoolClass = await prisma.schoolClass.findFirst({ where: { id: data.classId, schoolId }, select: { id: true } });
   if (!schoolClass) throw new AppError("Class not found for this school", httpStatus.NOT_FOUND);

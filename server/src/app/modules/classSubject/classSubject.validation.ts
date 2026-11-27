@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SubjectType } from "../../../../generated/prisma/enums";
+import { trackSchema } from "../../shared/academicYears";
 import { idSchema } from "../../shared/financeSchemas";
 
 const optionalId = z.string().trim().min(1).optional();
@@ -29,8 +30,9 @@ const assignSubjects = z.strictObject({
 });
 
 const listQuery = z.object({
-  // defaults to the current academic year
+  // defaults to the current academic year (of the class's track, or of this track)
   academicYearId: optionalId,
+  track: trackSchema.optional(),
   classId: optionalId,
   groupId: optionalId,
 });
@@ -49,14 +51,15 @@ const reorder = z.strictObject({
 
 const classSubjectIdParams = z.object({ classSubjectId: idSchema("Class subject id") });
 
-// a different subject or group is a remove + assign
+// a different subject is a remove + assign; the group can change (null: the whole class)
 const updateClassSubject = z
   .strictObject({
     type: z.enum(SubjectType).optional(),
     sortOrder: sortOrder.optional(),
+    groupId: idSchema("Group").nullable().optional(),
   })
-  .refine((d) => d.type !== undefined || d.sortOrder !== undefined, {
-    message: "Provide a type or a sort order",
+  .refine((d) => d.type !== undefined || d.sortOrder !== undefined || d.groupId !== undefined, {
+    message: "Provide a type, a group or a sort order",
   });
 
 const hasMaxTwoDecimals = (n: number) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6;
@@ -99,7 +102,17 @@ const setMarks = z
     { message: "The parts' full marks must add up to the subject's full marks", path: ["parts"] },
   );
 
+/* How many of a class's (or one group's) "main or 4th" subjects its students take as main. */
+const setElectiveRule = z.strictObject({
+  academicYearId: optionalId,
+  classId: idSchema("Class"),
+  // null: the whole class (a group's own rule wins for its students)
+  groupId: idSchema("Group").nullable().optional(),
+  mainCount: z.number().int("A whole number").min(1, "At least 1").max(9),
+});
+
 export const ClassSubjectValidation = {
+  setElectiveRule,
   setMarks,
   reorder,
   assignSubjects,

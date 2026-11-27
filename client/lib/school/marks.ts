@@ -44,7 +44,7 @@ export type MarksSheet = {
 export type GridSubject = {
   examSubjectId: string;
   subject: SubjectRef;
-  type: "COMPULSORY" | "OPTIONAL";
+  type: "COMPULSORY" | "OPTIONAL" | "ELECTIVE";
   date: string;
   // marks open from the exam day
   open: boolean;

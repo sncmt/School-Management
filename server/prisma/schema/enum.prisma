@@ -22,6 +22,20 @@ enum SubscriptionPlan {
   YEARLY
 }
 
+// what an institution teaches: school classes, college classes, or both (two year tracks)
+enum InstitutionType {
+  SCHOOL
+  COLLEGE
+  SCHOOL_AND_COLLEGE
+}
+
+// the year line a class and an academic year belong to: school years usually run
+// January-December, college years June-May. Each track has its own current year.
+enum AcademicTrack {
+  SCHOOL
+  COLLEGE
+}
+
 enum ModuleType {
   FREE
   PAID
@@ -127,14 +141,13 @@ enum FundTransactionType {
 }
 
 enum FundTransactionSource {
-  PAYMENT           // student fee payment (one row per allocation)
-  PAYMENT_REVERSAL  // opposite row written when a payment is cancelled
-  MANUAL_DEPOSIT    // money added to a fund by hand
-  EXPENSE           // money spent from a fund
-  TRANSFER          // fund to fund transfer (two rows sharing a transferId)
-  ADJUSTMENT        // manual correction
+  PAYMENT // student fee payment (one row per allocation)
+  PAYMENT_REVERSAL // opposite row written when a payment is cancelled
+  MANUAL_DEPOSIT // money added to a fund by hand
+  EXPENSE // money spent from a fund
+  TRANSFER // fund to fund transfer (two rows sharing a transferId)
+  ADJUSTMENT // manual correction
 }
-
 
 // a student's religion, and the religion a religion subject is for
 // ("Islam and Moral Education" is taken only by ISLAM students)

@@ -54,6 +54,29 @@ Android release: GitHub Actions → "Build Android APK" (manual dispatch). It pu
 - Mobile clients send `X-Client: mobile`. Login and refresh then return `data.tokens` in the body instead of setting cookies, and later calls use `Authorization: Bearer`. A Bearer request is always a school session and never mixes with cookies. A 409 on refresh means a parallel refresh race.
 - Password changes and logout-all set `User.tokensValidAfter`, which revokes older access tokens.
 
+### Academic year tracks (school / college)
+
+- `School.institutionType` (set by the platform admin): `SCHOOL`, `COLLEGE` or `SCHOOL_AND_COLLEGE`. The last one runs two year lines side by side (school Jan–Dec, college Jun–May).
+- Every `SchoolClass` and `AcademicYear` has a `track` (`SCHOOL` | `COLLEGE`). A class is taught only in years of its own track. Each track has its own current year. Years overlap only across tracks, never within one.
+- Never query `academicYear.findFirst({ isCurrent: true })` directly. Use `server/src/app/shared/academicYears.ts`:
+  - `requireYear` / `findYear`: the given year, else the current year of the class's track or of the asked `track`;
+  - `currentYears` and `yearsCovering(date)`: one year per track;
+  - `assertClassesInTrack`: call it on every write that stores both a year and a class.
+- List endpoints accept `?track=`. With no year and no track, they cover every track's current year.
+- Promotion stays inside a track: the highest class of each track graduates.
+- Client: `useTrack()` / `useInstitutionTracks()` (`lib/school/tracks.ts`), `<TrackSwitch>` and `useYearLabel()` (`components/school/years/TrackSwitch.tsx`), `yearsOfTrack` / `currentYearOf` / `classesOfTrack`. Ordinary schools never see a switch.
+
+### Who takes which subject
+
+- `ClassSubject.type` is per class, group and year:
+  - `COMPULSORY`: everyone in the class or group takes it;
+  - `OPTIONAL`: a fixed 4th subject;
+  - `ELECTIVE`: "main or 4th", e.g. Biology / Higher Math.
+- `ElectiveRule` sets how many electives a class or group takes as main (default 1). The rest join the student's 4th list.
+- A student's picks: `StudentMainSubject` holds the mains, `StudentOptionalSubject` the 4th.
+- Decide who sits, learns or is marked in a subject with `takesSubject` / `isFourthFor` in `server/src/app/shared/subjectChoice.ts`. Never `type === "OPTIONAL"`.
+- In results, `isOptional` is per student: the same subject can be one student's main and another's 4th.
+
 ### Permissions and paid modules
 
 - Permission codes (e.g. `attendance:mark`, `homework:manage`) belong to **modules**, and schools get modules through subscription packages (`prisma/seeds/data/*.data.ts`).
