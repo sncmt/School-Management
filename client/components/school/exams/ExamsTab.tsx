@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CalendarRange, MoreHorizontal, PencilLine, Pencil, Plus, Trash2, Undo2, Unlock } from "lucide-react";
+import { ArrowLeft, Award, CalendarRange, MoreHorizontal, PencilLine, Pencil, Plus, Tag, Trash2, Undo2, Unlock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -33,16 +33,19 @@ import { useTrack } from "@/lib/school/tracks";
 import { TrackSwitch } from "@/components/school/years/TrackSwitch";
 import { classesOfTrack, useClasses } from "@/lib/school/classes";
 import {
+  classExamName,
   useAddExamClasses,
   useExam,
   useExams,
   useSetExamClassStatus,
+  useUpdateExam,
   type Exam,
   type ExamClass,
   type ExamClassStatus,
 } from "@/lib/school/exams";
 import { useDateRange } from "../calendar/shared";
 import { DeleteExamDialog, type ExamDeleteTarget } from "./DeleteExamDialog";
+import { ExamClassDialog, type ExamClassTarget } from "./ExamClassDialog";
 import { ExamFormDialog } from "./ExamFormDialog";
 import { ExamRoutineDialog, type RoutineTarget } from "./ExamRoutineDialog";
 
@@ -139,8 +142,10 @@ function ExamList({ canManage, onOpen }: { canManage: boolean; onOpen: (id: stri
               </CardHeader>
               <CardContent className="flex flex-wrap gap-1.5">
                 {exam.classes.map((c) => (
-                  <Badge key={c.id} variant={STATUS_VARIANT[c.status]} title={tStage(c.status)}>
-                    {c.class.name} · {tStage(c.status)}
+                  <Badge key={c.id} variant={STATUS_VARIANT[c.status]} title={c.isFinal ? `${tStage(c.status)} · ${t("final")}` : tStage(c.status)}>
+                    {c.isFinal && <Award className="size-3" />}
+                    {c.class.name}
+                    {(c.nameEn || c.nameBn) && ` (${name(c)})`} · {tStage(c.status)}
                   </Badge>
                 ))}
               </CardContent>
@@ -181,12 +186,14 @@ function ExamDetail({
   const dateRange = useDateRange();
   const { data: exam, isPending, isError, error, refetch } = useExam(examId);
   const setStatus = useSetExamClassStatus();
+  const update = useUpdateExam();
   // deleting an exam or a class of it: the super admin only, at any stage
   const isSuperAdmin = useIsSuperAdmin();
   const [editing, setEditing] = useState(false);
   const [addingClasses, setAddingClasses] = useState(false);
   const [deleting, setDeleting] = useState<ExamDeleteTarget | null>(null);
   const [routine, setRoutine] = useState<RoutineTarget | null>(null);
+  const [classEdit, setClassEdit] = useState<ExamClassTarget | null>(null);
 
   if (isPending) return <Skeleton className="h-64" />;
   if (isError) {
@@ -210,6 +217,20 @@ function ExamDetail({
       { examId, classId: c.class.id, status },
       {
         onSuccess: () => toast.success(t(status === "MARKS_ENTRY" ? "marksOpened" : "backToRoutine", { class: c.class.name })),
+        onError: (e) => toast.error(describeError(e)),
+      },
+    );
+
+  // the final exam of the year for every class of the exam (or for none)
+  const allFinal = exam.classes.length > 0 && exam.classes.every((c) => c.isFinal);
+  const setAllFinal = (isFinal: boolean) =>
+    update.mutate(
+      { examId, body: { isFinal } },
+      {
+        onSuccess: (r) => {
+          toast.success(t(isFinal ? "finalSet" : "finalCleared", { name: name(exam) }));
+          if (r.movedFrom.length > 0) toast.info(t("finalMoved", { count: r.movedFrom.length }));
+        },
         onError: (e) => toast.error(describeError(e)),
       },
     );
@@ -250,6 +271,9 @@ function ExamDetail({
                 <DropdownMenuItem onSelect={() => setEditing(true)}>
                   <Pencil /> {t("edit")}
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setAllFinal(!allFinal)} disabled={update.isPending}>
+                  <Award /> {t(allFinal ? "unmarkFinal" : "markFinal")}
+                </DropdownMenuItem>
                 {isSuperAdmin && (
                   <>
                     <DropdownMenuSeparator />
@@ -278,7 +302,18 @@ function ExamDetail({
           <TableBody>
             {exam.classes.map((c) => (
               <TableRow key={c.id}>
-                <TableCell className="font-medium">{c.class.name}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap items-center gap-1.5 font-medium">
+                    {c.class.name}
+                    {c.isFinal && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Award className="size-3" /> {t("final")}
+                      </Badge>
+                    )}
+                  </div>
+                  {/* the class's own name for the exam */}
+                  {(c.nameEn || c.nameBn) && <div className="text-xs text-muted-foreground">{name(classExamName(exam, c))}</div>}
+                </TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[c.status]}>{tStage(c.status)}</Badge>
                 </TableCell>
@@ -301,7 +336,7 @@ function ExamDetail({
                         <Unlock /> {t("openMarks")}
                       </Button>
                     )}
-                    {canManage && (c.status === "MARKS_ENTRY" || isSuperAdmin) && (
+                    {canManage && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="size-8" aria-label={t("actions")}>
@@ -309,6 +344,9 @@ function ExamDetail({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem onSelect={() => setClassEdit({ exam, examClass: c })}>
+                            <Tag /> {t("nameAndFinal")}
+                          </DropdownMenuItem>
                           {c.status === "MARKS_ENTRY" && (
                             <DropdownMenuItem onSelect={() => changeStage(c, "ROUTINE")}>
                               <Undo2 /> {t("toRoutine")}
@@ -334,6 +372,7 @@ function ExamDetail({
       <ExamFormDialog open={editing} exam={exam} onClose={() => setEditing(false)} />
       <AddClassesDialog exam={addingClasses ? exam : null} onClose={() => setAddingClasses(false)} />
       <ExamRoutineDialog target={routine} canEdit={canManage} onClose={() => setRoutine(null)} />
+      <ExamClassDialog target={classEdit} onClose={() => setClassEdit(null)} />
       <DeleteExamDialog target={deleting} onClose={() => setDeleting(null)} onDeleted={onBack} />
     </div>
   );

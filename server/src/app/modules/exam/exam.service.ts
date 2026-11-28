@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import type { Prisma } from "../../../../generated/prisma/client";
+import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
 import type { AcademicTrack } from "../../../../generated/prisma/enums";
@@ -13,8 +13,12 @@ import type {
   ListExamsQuery,
   SetRoutinePayload,
   SetStatusPayload,
+  UpdateExamClassPayload,
   UpdateExamPayload,
 } from "./exam.validation";
+import { classExamName, examClassNameSelect } from "./examName";
+
+type Tx = Prisma.TransactionClient;
 
 const TX_OPTIONS = { maxWait: 10_000, timeout: 20_000 };
 
@@ -29,6 +33,10 @@ const examInclude = {
       status: true,
       date: true,
       publishedAt: true,
+      // the class's own name for the exam (null: the exam's) and its final-exam mark
+      nameEn: true,
+      nameBn: true,
+      isFinal: true,
       class: { select: classBrief },
       _count: { select: { subjects: true } },
     },
@@ -88,6 +96,29 @@ const assertClassesInSchool = async (schoolId: string, classIds: string[]) => {
   }
 };
 
+/*
+ * Makes the exam the final exam of these classes (on) or not (off). A class has one final
+ * exam a year, so the mark moves from the class's other exam of the year: those are returned
+ * (movedFrom), so the screen can say so. The classes are locked so two changes can't both win.
+ */
+const setFinal = async (tx: Tx, examId: string, academicYearId: string, classIds: string[], on: boolean) => {
+  if (classIds.length === 0) return [];
+  await tx.$queryRaw`SELECT "id" FROM "SchoolClass" WHERE "id" IN (${Prisma.join(classIds)}) FOR UPDATE`;
+  let movedFrom: { classId: string; className: string; exam: { id: string; nameEn: string | null; nameBn: string | null } }[] = [];
+  if (on) {
+    const others = await tx.examClass.findMany({
+      where: { classId: { in: classIds }, isFinal: true, examId: { not: examId }, exam: { academicYearId } },
+      select: { id: true, classId: true, class: { select: { name: true } }, ...examClassNameSelect },
+    });
+    if (others.length > 0) {
+      await tx.examClass.updateMany({ where: { id: { in: others.map((o) => o.id) } }, data: { isFinal: false } });
+    }
+    movedFrom = others.map((o) => ({ classId: o.classId, className: o.class.name, exam: { id: o.exam.id, ...classExamName(o) } }));
+  }
+  await tx.examClass.updateMany({ where: { examId, classId: { in: classIds } }, data: { isFinal: on } });
+  return movedFrom;
+};
+
 // ---------------------------------------------------------------------- exams
 
 const createExam = async (schoolId: string, userId: string, data: CreateExamPayload) => {
@@ -105,20 +136,24 @@ const createExam = async (schoolId: string, userId: string, data: CreateExamPayl
     await assertClassesInSchool(schoolId, classIds);
   }
 
-  return prisma.exam.create({
-    data: {
-      schoolId,
-      academicYearId: year.id,
-      nameEn: data.nameEn ?? null,
-      nameBn: data.nameBn ?? null,
-      type: data.type,
-      attendanceFrom: data.attendanceFrom ?? null,
-      attendanceTo: data.attendanceTo ?? null,
-      createdBy: userId,
-      classes: { create: classIds.map((classId) => ({ classId })) },
-    },
-    include: examInclude,
-  });
+  return prisma.$transaction(async (tx) => {
+    const exam = await tx.exam.create({
+      data: {
+        schoolId,
+        academicYearId: year.id,
+        nameEn: data.nameEn ?? null,
+        nameBn: data.nameBn ?? null,
+        type: data.type,
+        attendanceFrom: data.attendanceFrom ?? null,
+        attendanceTo: data.attendanceTo ?? null,
+        createdBy: userId,
+        classes: { create: classIds.map((classId) => ({ classId })) },
+      },
+      select: { id: true },
+    });
+    const movedFrom = data.isFinal ? await setFinal(tx, exam.id, year.id, classIds, true) : [];
+    return { ...(await tx.exam.findUniqueOrThrow({ where: { id: exam.id }, include: examInclude })), movedFrom };
+  }, TX_OPTIONS);
 };
 
 const getExams = async (schoolId: string, query: ListExamsQuery) => {
@@ -172,15 +207,51 @@ const updateExam = async (schoolId: string, examId: string, data: UpdateExamPayl
     assertAttendancePeriod(year, data.attendanceFrom, data.attendanceTo);
   }
 
-  return prisma.exam.update({
-    where: { id: examId },
-    data: {
-      ...(data.nameEn !== undefined ? { nameEn: data.nameEn } : {}),
-      ...(data.nameBn !== undefined ? { nameBn: data.nameBn } : {}),
-      ...(data.attendanceFrom !== undefined ? { attendanceFrom: data.attendanceFrom, attendanceTo: data.attendanceTo } : {}),
-    },
-    include: examInclude,
-  });
+  return prisma.$transaction(async (tx) => {
+    await tx.exam.update({
+      where: { id: examId },
+      data: {
+        ...(data.nameEn !== undefined ? { nameEn: data.nameEn } : {}),
+        ...(data.nameBn !== undefined ? { nameBn: data.nameBn } : {}),
+        ...(data.attendanceFrom !== undefined ? { attendanceFrom: data.attendanceFrom, attendanceTo: data.attendanceTo } : {}),
+      },
+    });
+    // the final exam (or not) of all its classes
+    const movedFrom =
+      data.isFinal !== undefined
+        ? await setFinal(tx, examId, exam.academicYear.id, exam.classes.map((c) => c.class.id), data.isFinal)
+        : [];
+    return { ...(await tx.exam.findUniqueOrThrow({ where: { id: examId }, include: examInclude })), movedFrom };
+  }, TX_OPTIONS);
+};
+
+/* One class of the exam: its own name for the exam, and whether it is the class's final exam. */
+const updateExamClass = async (schoolId: string, examId: string, classId: string, data: UpdateExamClassPayload) => {
+  const examClass = await findExamClass(schoolId, examId, classId);
+  // a class's own name needs the school's language too; none at all = the exam's name
+  if (data.nameEn || data.nameBn) await assertSchoolLanguageName(schoolId, { nameEn: data.nameEn, nameBn: data.nameBn });
+
+  return prisma.$transaction(async (tx) => {
+    if (data.nameEn !== undefined) {
+      await tx.examClass.update({ where: { id: examClass.id }, data: { nameEn: data.nameEn ?? null, nameBn: data.nameBn ?? null } });
+    }
+    const movedFrom =
+      data.isFinal !== undefined ? await setFinal(tx, examId, examClass.exam.academicYearId, [classId], data.isFinal) : [];
+    const saved = await tx.examClass.findUniqueOrThrow({
+      where: { id: examClass.id },
+      select: { id: true, class: { select: classBrief }, ...examClassNameSelect },
+    });
+    return {
+      id: saved.id,
+      class: saved.class,
+      nameEn: saved.nameEn,
+      nameBn: saved.nameBn,
+      isFinal: saved.isFinal,
+      // the name shown for the class (its own, else the exam's)
+      name: classExamName(saved),
+      movedFrom,
+    };
+  }, TX_OPTIONS);
 };
 
 const addClasses = async (schoolId: string, examId: string, data: AddClassesPayload) => {
@@ -439,6 +510,7 @@ export const ExamService = {
   getExams,
   getExamById,
   updateExam,
+  updateExamClass,
   addClasses,
   getRoutine,
   setRoutine,

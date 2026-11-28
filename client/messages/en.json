@@ -132,7 +132,6 @@
     "chooseExams": "Choose at least one exam",
     "bestCountRange": "Between 1 and the number of exams",
     "weightTotal": "The weights must add up to 100%",
-    "examTwice": "An exam can be in only one component",
     "codeRequired": "Enter the code from the email",
     "amountRange": "Enter an amount above 0",
     "chooseFund": "Choose a fund",
@@ -2250,7 +2249,6 @@
         "marks": "Marks",
         "results": "Results",
         "card": "Result card",
-        "final": "Final results",
         "seating": "Seat plan",
         "admit": "Admit cards"
       },
@@ -2371,7 +2369,8 @@
         "description": "Each class of an exam goes Routine → Marks entry → Published on its own.",
         "add": "Add exam",
         "loadFailed": "Couldn't load the exams.",
-        "empty": "No exams in {year} yet."
+        "empty": "No exams in {year} yet.",
+        "final": "Final exam"
       },
       "examForm": {
         "addTitle": "Add exam",
@@ -2399,7 +2398,10 @@
         "save": "Save",
         "saving": "Saving…",
         "added": "{name} added.",
-        "updated": "{name} updated."
+        "updated": "{name} updated.",
+        "isFinal": "Final exam of the year",
+        "isFinalHint": "Its result is the year's result for its classes, used for promotion. You can change it for each class on the exam's page.",
+        "finalMoved": "{count, plural, one {# class had another final exam this year: it is now this one} other {# classes had another final exam this year: it is now this one}}"
       },
       "detail": {
         "back": "All exams",
@@ -2431,7 +2433,27 @@
           "confirm": "Add",
           "done": "{count, plural, one {# class added.} other {# classes added.}}"
         },
-        "enterMarks": "Enter marks"
+        "enterMarks": "Enter marks",
+        "final": "Final",
+        "markFinal": "Make it the final exam of all its classes",
+        "unmarkFinal": "Not the final exam",
+        "finalSet": "{name} is now the final exam of its classes",
+        "finalCleared": "{name} is no longer a final exam",
+        "finalMoved": "{count, plural, one {# class had another final exam this year: it is now this one} other {# classes had another final exam this year: it is now this one}}",
+        "nameAndFinal": "Name & final exam",
+        "classDialog": {
+          "title": "{class}: name and final exam",
+          "description": "An exam can go by another name in this class, e.g. \"Test exam\" in Class 10 when it is \"Annual exam\" elsewhere.",
+          "nameEn": "Name in this class (English)",
+          "nameBn": "Name in this class (Bangla)",
+          "nameHint": "Leave empty to use the exam's own name. The name shows on this class's marks, results, result cards, admit cards and the family app.",
+          "isFinal": "The class's final exam of the year",
+          "isFinalHint": "Its result is the year's result, used for promotion. A class has one final exam a year: marking this one takes the mark off the other.",
+          "saved": "Saved for {class}",
+          "moved": "{class}: {exam} is no longer its final exam",
+          "save": "Save",
+          "saving": "Saving…"
+        }
       },
       "routine": {
         "title": "Exam routine: {class}",
@@ -2716,91 +2738,10 @@
         "footerPlaceholder": "e.g. This is a computer-generated result.",
         "preview": "Preview",
         "previewNote": "A made-up student, with your school's name and logo. Real cards are printed from Results.",
-        "showComponents": "Each exam's share (final results)",
-        "previewExam": "Exam result",
-        "previewFinal": "Final result",
         "changes": "{count, plural, one {# change} other {# changes}}",
         "fitScreen": "Fit to screen",
         "actualSize": "Actual size",
         "size": "Size {size}"
-      },
-      "final": {
-        "description": "A final result weighs a class's exams together, e.g. Half-yearly 40% + Annual 60%. Publish each exam's result first, then publish the final result. Year {year}.",
-        "add": "Add final result",
-        "empty": "No final results yet. Add one for a class to say which exams count and how much.",
-        "columns": {
-          "class": "Class",
-          "name": "Final result",
-          "status": "Status"
-        },
-        "status": {
-          "DRAFT": "Not published",
-          "PUBLISHED": "Published"
-        },
-        "examsReady": "{ready} of {total} exam results published",
-        "tabulation": "Result sheet",
-        "cards": "Result cards",
-        "unlock": "Unlock",
-        "edit": "Edit",
-        "delete": "Delete",
-        "publish": "Publish",
-        "percentage": "%",
-        "sheetHint": "Point at a mark to see each exam's share.",
-        "form": {
-          "addTitle": "Add final result",
-          "editTitle": "Edit final result",
-          "description": "Choose the exams that count towards the class's final result and how much each one weighs.",
-          "class": "Class",
-          "chooseClass": "Choose a class",
-          "nameEn": "Name (English)",
-          "nameBn": "Name (Bangla)",
-          "components": "Components",
-          "componentsHint": "Each component is one exam, or several combined (e.g. the class tests). Their weights add up to 100%.",
-          "total": "Total {total}%",
-          "classFirst": "Choose the class first.",
-          "noExams": "This class has no exams this year. Add exams first.",
-          "addComponent": "Add component",
-          "removeComponent": "Remove component",
-          "componentNameEn": "Component name (English)",
-          "componentNameBn": "Component name (Bangla)",
-          "weight": "Weight",
-          "exams": "Exams",
-          "methods": {
-            "AVERAGE": "Average of the exams",
-            "BEST": "Only the best"
-          },
-          "bestCount": "Best of {count}:",
-          "attendanceFrom": "Attendance from",
-          "attendanceTo": "Attendance to",
-          "attendanceHint": "Left empty: from the start of the year to the last exam day.",
-          "cancel": "Cancel",
-          "save": "Save",
-          "saving": "Saving…",
-          "added": "{name} added.",
-          "updated": "{name} saved."
-        },
-        "publishDialog": {
-          "title": "Publish {name} for class {class}?",
-          "description": "Works out every student's final result from the published exam results, using the class's current result settings. Students and guardians can then see it.",
-          "notReady": "Publish these exam results for the class first: {exams}",
-          "confirm": "Publish",
-          "working": "Publishing…",
-          "done": "Final result of class {class} published: {passed} of {total} passed."
-        },
-        "unlockDialog": {
-          "title": "Unlock {name} for class {class}?",
-          "description": "The final result is taken back so the formula can be changed. Publishing again works it out afresh.",
-          "confirm": "Unlock",
-          "working": "Unlocking…",
-          "done": "{name} of class {class} unlocked."
-        },
-        "deleteDialog": {
-          "title": "Delete {name} of class {class}?",
-          "description": "The formula is deleted. The exams and their results stay as they are.",
-          "confirm": "Delete",
-          "working": "Deleting…",
-          "done": "{name} deleted."
-        }
       },
       "seating": {
         "tabs": {
@@ -3722,7 +3663,6 @@
       "graduation": "Graduation",
       "newYearNote": "Next year they are old students (re-admission fee) with no roll number yet.",
       "result": "Final result",
-      "noResult": "No final result is published for this class, so everyone is set to move up.",
       "failedGo": "Students who failed",
       "failedRepeat": "Repeat the class",
       "failedMoveUp": "Move up anyway",
@@ -3769,7 +3709,10 @@
       "doneTitle": "Already moved",
       "undo": "Undo",
       "undone": "{name}'s move undone.",
-      "leftSchool": "Left school"
+      "leftSchool": "Left school",
+      "noFinalExam": "No exam is marked as this class's final exam this year, so everyone is set to move up.",
+      "finalNotPublished": "The result of {exam}, this class's final exam, isn't published yet, so everyone is set to move up.",
+      "goToExams": "Go to Exams"
     },
     "settings": {
       "title": "School settings",
@@ -4848,6 +4791,7 @@
     }
   },
   "marketing": {
+    "brand": "SNCMT",
     "nav": {
       "features": "Features",
       "pricing": "Packages",
@@ -4855,182 +4799,188 @@
       "start": "Get started",
       "menu": "Open menu",
       "close": "Close menu",
-      "app": "App"
+      "app": "App",
+      "login": "Log in",
+      "faq": "FAQ"
     },
     "hero": {
-      "note": "For schools and colleges across Bangladesh",
-      "title": "Run your school or college from one calm place.",
-      "subtitle": "Students, attendance, exams, results, fees, SMS and your own website: one system for the office, the teachers and every guardian.",
-      "primary": "See packages",
-      "secondary": "Ask for a demo",
-      "proof1": "Your own web address",
-      "proof2": "Guardian & teacher app",
-      "proof3": "We set it up with you",
-      "dashboard": {
-        "caption": "A sample school dashboard: today's attendance, this month's fees, attendance through the week and the latest payments.",
+      "new": "New",
+      "for": "For schools, colleges & madrasas in Bangladesh",
+      "titleLine1": "Run your whole school",
+      "titleLine2": "from <em>one place</em>",
+      "lead": "Admissions, attendance, exams and results, fees and SMS, plus your own website and a phone app for teachers and guardians. We set it all up with you, in Bangla and English.",
+      "primary": "Book a free demo",
+      "secondary": "See packages",
+      "fact1": "Your own web address",
+      "fact2": "বাংলা ও English",
+      "fact3": "We set it up with you",
+      "shot": {
+        "alt": "A school's dashboard in a browser, with the guardian app on a phone beside it",
         "address": "yourschool.sncmt.com",
         "school": "Your School",
+        "schoolInitial": "Y",
+        "avatar": "P",
         "menu": {
           "dashboard": "Dashboard",
           "students": "Students",
+          "teachers": "Teachers",
           "attendance": "Attendance",
           "exams": "Exams",
           "fees": "Fees",
-          "messages": "Messages"
+          "finance": "Finance",
+          "notices": "Notices"
         },
+        "date": "Thursday, 12 November 2026",
+        "session": "Session 2026",
         "greeting": "Good morning, Principal",
-        "date": "Thursday, 12 November",
-        "stats": {
+        "sub": "Here is how your school is doing today.",
+        "actions": {
+          "fee": "Collect fee",
+          "attendance": "Take attendance",
+          "student": "Add student",
+          "notice": "New notice"
+        },
+        "kpi": {
           "students": "Students",
+          "studentsValue": "1,248",
+          "studentsSub": "652 boys · 596 girls",
+          "teachers": "Teachers",
+          "teachersValue": "52",
+          "teachersSub": "2 on leave",
           "present": "Present today",
-          "fees": "Fees this month",
-          "teachers": "Teachers"
+          "presentValue": "93%",
+          "presentSub": "24 of 26 sections marked",
+          "month": "This month",
+          "monthValue": "৳3,42,500",
+          "monthSub": "৳18,600 today"
         },
-        "chart": "Attendance this week",
-        "days": {
-          "sun": "Sun",
-          "mon": "Mon",
-          "tue": "Tue",
-          "wed": "Wed",
-          "thu": "Thu"
+        "attendance": {
+          "title": "Today's attendance",
+          "link": "Attendance",
+          "present": "Present",
+          "late": "Late",
+          "absent": "Absent",
+          "leave": "On leave",
+          "presentCount": "1,123",
+          "lateCount": "38",
+          "absentCount": "64",
+          "leaveCount": "23"
         },
-        "payments": "Latest payments",
-        "paid": "Paid",
-        "people": {
+        "payments": {
+          "title": "Recent payments",
+          "link": "Payments",
           "p1": {
+            "initial": "A",
             "name": "Ayesha Siddiqua",
-            "class": "Class 7"
+            "meta": "Receipt 2611-0412 · 2 min ago",
+            "amount": "৳1,200"
           },
           "p2": {
+            "initial": "T",
             "name": "Tanvir Ahmed",
-            "class": "Class 9"
+            "meta": "Receipt 2611-0411 · 18 min ago",
+            "amount": "৳2,500"
           },
           "p3": {
+            "initial": "N",
             "name": "Nusrat Jahan",
-            "class": "Class 10"
+            "meta": "Receipt 2611-0410 · 1 hour ago",
+            "amount": "৳1,800"
+          }
+        },
+        "phone": {
+          "tag": "Guardian app",
+          "child": "Rafi Ahmed · Class 7",
+          "today": "Today",
+          "present": "Present · 7:45 am",
+          "fee": "November fee",
+          "due": "৳1,200 due",
+          "pay": "Pay with bKash"
+        },
+        "note": {
+          "title": "Roll call done · Class 7 (A)",
+          "sub": "42 of 44 present · guardians informed"
+        }
+      }
+    },
+    "login": {
+      "title": "Log in to your institution",
+      "description": "Every institution has its own address. Type yours to go to its login page.",
+      "label": "Your institution's address",
+      "submit": "Go to the login page",
+      "invalid": "Use only English letters, numbers and hyphens (-)."
+    },
+    "features": {
+      "title": "Everything your institution runs on, in one system",
+      "subtitle": "Each part is linked to the others, so a mark entered in class or a fee paid at the counter shows up everywhere it should.",
+      "foot": "Every package includes all of this.",
+      "cta": "See packages",
+      "groups": {
+        "attendance": {
+          "title": "Attendance",
+          "body": "Taken in class on a phone, or by the machine at the gate.",
+          "items": {
+            "class": "Class attendance in a minute",
+            "devices": "Fingerprint and card machines",
+            "staff": "Teacher and staff attendance",
+            "sms": "Absence SMS to guardians"
+          }
+        },
+        "fees": {
+          "title": "Fees & accounts",
+          "body": "Every taka gets a receipt and lands in the books.",
+          "items": {
+            "setup": "Fees set by class, with every student's dues",
+            "counter": "Counter payments with printed receipts",
+            "online": "Online by bKash, Nagad or card",
+            "accounts": "Income, expenses and funds"
+          }
+        },
+        "exams": {
+          "title": "Exams & results",
+          "body": "Teachers enter the marks; the system works out the rest.",
+          "items": {
+            "routine": "Exam routines and full marks",
+            "admit": "Admit cards and seat plans",
+            "gpa": "GPA with the 4th subject, and positions",
+            "cards": "Result cards and tabulation sheets"
+          }
+        },
+        "students": {
+          "title": "Students & classes",
+          "body": "Every student's record, from admission to promotion.",
+          "items": {
+            "admission": "Admission and student profiles",
+            "classes": "Classes, sections and routines",
+            "promotion": "Promotion to the next year",
+            "idCards": "ID cards in five designs"
+          }
+        },
+        "messages": {
+          "title": "Notices & messages",
+          "body": "Reach every guardian, the teachers or one class.",
+          "items": {
+            "notices": "Notices in the app and on the website",
+            "sms": "SMS from your own account",
+            "homework": "Homework from the teachers",
+            "push": "App notifications"
+          }
+        },
+        "online": {
+          "title": "Website & app",
+          "body": "Your institution online, on its own address.",
+          "items": {
+            "website": "Your own website",
+            "pages": "Admissions, notices and photos",
+            "app": "Android app for teachers and guardians",
+            "bangla": "Everything in Bangla and English"
           }
         }
       }
     },
-    "features": {
-      "eyebrow": "Features",
-      "title": "Everything your school or college runs on",
-      "subtitle": "Every feature below is in every package. Each part knows about the others, so a mark made in class or a fee paid in the office shows up everywhere it should.",
-      "groups": {
-        "students": "Students & classes",
-        "attendance": "Attendance",
-        "exams": "Exams & results",
-        "fees": "Fees & accounts",
-        "guardians": "Guardians & messages",
-        "online": "Your institution online"
-      },
-      "items": {
-        "students": {
-          "title": "Student records",
-          "body": "Admission, profile, guardians and class history for every student."
-        },
-        "teachers": {
-          "title": "Teachers & staff",
-          "body": "Staff profiles, the subjects they teach and their classes."
-        },
-        "routine": {
-          "title": "Class routine",
-          "body": "Build the routine once; teachers and guardians see it on their phones."
-        },
-        "calendar": {
-          "title": "Academic calendar",
-          "body": "Holidays, exams and events for the whole year in one place."
-        },
-        "promotion": {
-          "title": "Promotion",
-          "body": "Move a whole class to the next year in one step."
-        },
-        "idCards": {
-          "title": "ID cards",
-          "body": "Student ID cards in five designs, ready to print."
-        },
-        "classAttendance": {
-          "title": "Class attendance",
-          "body": "A teacher marks the whole class in a minute, on the web or in the app."
-        },
-        "devices": {
-          "title": "Fingerprint & card machines",
-          "body": "Students are marked present as they walk in through the gate."
-        },
-        "teacherAttendance": {
-          "title": "Teacher attendance",
-          "body": "Know who is in today, with monthly reports for the office."
-        },
-        "absentSms": {
-          "title": "Absence SMS",
-          "body": "Guardians get an SMS the moment their child is marked absent."
-        },
-        "exams": {
-          "title": "Exams",
-          "body": "Exam schedules, subjects and full marks for every class."
-        },
-        "marks": {
-          "title": "Marks & grading",
-          "body": "Teachers enter marks once; GPA or percentage grades follow."
-        },
-        "results": {
-          "title": "Result cards",
-          "body": "Result cards, merit positions and tabulation sheets, ready to print."
-        },
-        "admitCards": {
-          "title": "Admit cards & seat plans",
-          "body": "Print admit cards and seat plans for every exam hall."
-        },
-        "feeSetup": {
-          "title": "Fee structures & dues",
-          "body": "Set fees per class once; every student's dues follow."
-        },
-        "receipts": {
-          "title": "Money receipts",
-          "body": "Take a payment at the counter and print the receipt."
-        },
-        "onlinePayment": {
-          "title": "Online payment",
-          "body": "Guardians pay fees online by card or mobile banking."
-        },
-        "accounts": {
-          "title": "Income & expenses",
-          "body": "Expenses, funds and a ledger kept up to date by every payment."
-        },
-        "sms": {
-          "title": "SMS to guardians",
-          "body": "Reminders, results and notices, through your own SMS account."
-        },
-        "notices": {
-          "title": "Notices",
-          "body": "Send a notice to every guardian, the teachers or a single class."
-        },
-        "homework": {
-          "title": "Homework",
-          "body": "Teachers post homework; students and guardians see it at home."
-        },
-        "app": {
-          "title": "Guardian & teacher app",
-          "body": "Attendance, homework, results and fees on every Android phone."
-        },
-        "website": {
-          "title": "Your own website",
-          "body": "A homepage on your own address with photos, admissions and notices."
-        },
-        "roles": {
-          "title": "Roles & permissions",
-          "body": "Decide what each member of staff can see and change."
-        },
-        "bangla": {
-          "title": "Bangla & English",
-          "body": "Every page and every printout in either language."
-        }
-      }
-    },
     "pricing": {
-      "eyebrow": "Packages",
       "title": "Simple prices that grow with you",
-      "subtitle": "Every package has every feature. Choose by the number of students, and pay by the month or by the year.",
+      "subtitle": "Every package has every feature; choose by the number of students. Want it on your own domain, with features made for you? Choose Custom.",
       "billing": "Billing period",
       "monthly": "Monthly",
       "yearly": "Yearly",
@@ -5042,7 +4992,27 @@
       "billedYearly": "Billed once a year",
       "save": "You save {amount} a year",
       "choose": "Choose {name}",
-      "note": "Prices are in Bangladeshi Taka. A very large school or college, or something special in mind? <link>Talk to us</link>.",
+      "upTo": "Up to {count} students",
+      "unlimited": "Unlimited students",
+      "points": {
+        "features": "Every feature included",
+        "address": "Your address: yourschool.sncmt.com",
+        "setup": "We help you set it up"
+      },
+      "custom": {
+        "flag": "One-time",
+        "name": "Custom",
+        "tagline": "Built for your institution, on your own domain",
+        "price": "By agreement",
+        "priceNote": "We agree the price with you once we know what you need.",
+        "points": {
+          "features": "Every feature, plus the ones you need",
+          "domain": "Your own domain, e.g. yourschool.edu.bd",
+          "plan": "Planned with you, step by step"
+        },
+        "cta": "Talk to us"
+      },
+      "includedTitle": "Every package includes",
       "features": {
         "core": "Students, teachers, classes & routines",
         "attendance": "Daily attendance & reports",
@@ -5057,23 +5027,61 @@
         "devices": "Fingerprint & card attendance machines",
         "bangla": "Bangla & English"
       },
-      "upTo": "Up to {count} students",
-      "unlimited": "Unlimited students",
-      "allFeatures": "All features included",
-      "includedTitle": "Every package includes",
-      "includedSubtitle": "No feature is held back: the packages differ only in how many students they allow.",
+      "note": "Prices are in Bangladeshi taka.",
       "unavailable": "Our packages couldn't be loaded just now. <link>Get in touch</link> and we'll tell you the prices."
     },
+    "faq": {
+      "title": "Questions schools ask us",
+      "subtitle": "Short answers to what principals and offices ask before they start.",
+      "askTitle": "Didn't find your question?",
+      "askBody": "Ask us on WhatsApp, or send us a message.",
+      "askWhatsapp": "Ask on WhatsApp",
+      "askForm": "Send a message",
+      "items": {
+        "start": {
+          "q": "What do we need to get started?",
+          "a": "Your institution's name, its classes and sections, the students and teachers, and your fees. We set it all up with you, then show your office how to use it."
+        },
+        "internet": {
+          "q": "Does it work without the internet?",
+          "a": "It needs the internet, but a phone's mobile data is enough. There is nothing to install: open your institution's address in any browser."
+        },
+        "sms": {
+          "q": "How are SMS sent, and who pays for them?",
+          "a": "SMS go out through your institution's own SMS account, so you pay your SMS provider directly. It is separate from the package price."
+        },
+        "online": {
+          "q": "Can guardians pay fees online?",
+          "a": "Yes. They pay in the app by bKash, Nagad or card. The receipt arrives in the app at once, and the payment lands in the school's accounts."
+        },
+        "tracks": {
+          "q": "Can we run a school and a college together?",
+          "a": "Yes. The school year (January to December) and the college year (June to May) run side by side in the same system."
+        },
+        "safety": {
+          "q": "How safe is our data?",
+          "a": "Each institution's data is kept apart from every other's. You decide what each member of staff can see and change, and every delete and money change is written in the activity log."
+        },
+        "custom": {
+          "q": "Who is the Custom package for?",
+          "a": "For an institution that wants its own build on its own domain (such as yourschool.edu.bd), with features made for it. It is a one-time build, and we agree the price with you once we know what you need."
+        },
+        "app": {
+          "q": "Where do we get the app?",
+          "a": "The Android app for guardians and teachers is free to download from this site's App page (Android 7 or newer)."
+        }
+      }
+    },
     "contact": {
-      "eyebrow": "Contact",
-      "title": "Let's get your school or college online",
-      "subtitle": "Tell us a little about your institution. We'll call you back, answer your questions and show you around.",
+      "metaTitle": "Contact",
+      "title": "Let's bring your institution online",
+      "subtitle": "Tell us a little about your institution. We'll call you back, answer your questions and show you everything working.",
       "whatsapp": {
         "title": "Talk to us on WhatsApp",
         "body": "The quickest way to reach us: send a message any time and we'll reply.",
         "button": "Chat on WhatsApp"
       },
-      "stepsTitle": "How it works",
+      "stepsTitle": "What happens next",
       "step1": {
         "title": "Send us your details",
         "body": "A minute's work: your name, your school or college and a number to call."
@@ -5086,9 +5094,12 @@
         "title": "Go live on your own address",
         "body": "We set up your institution with you and train your staff."
       },
+      "other": "Other ways to reach us",
+      "formTitle": "Send us a message",
+      "formBody": "We'll call you back on the number you give.",
       "form": {
         "name": "Your name",
-        "school": "School or college name",
+        "school": "Name of your institution",
         "phone": "Mobile number",
         "email": "Email (optional)",
         "package": "Package",
@@ -5101,17 +5112,22 @@
         "sending": "Sending…",
         "sentTitle": "Thank you! Your message is on its way",
         "sentBody": "We'll get back to you on the number you gave.",
-        "another": "Send another message"
+        "another": "Send another message",
+        "customOption": "Custom (price by agreement)"
       }
     },
     "footer": {
-      "about": "School and college management for Bangladesh: students, attendance, exams, fees and a website for every institution, in English and Bangla.",
+      "about": "School, college and madrasa management for Bangladesh: students, attendance, exams, fees and a website for every institution, in Bangla and English.",
       "links": "On this page",
-      "schools": "For schools & colleges",
-      "login": "Already with us? Your school or college logs in on its own address:",
-      "loginAddress": "yourschool.sncmt.com",
+      "appPage": "Guardian & teacher app",
+      "schools": "For institutions",
+      "login": "Already with us? Log in on your institution's own address.",
+      "loginButton": "Log in",
+      "contact": "Contact",
+      "whatsapp": "WhatsApp",
       "rights": "© {year} {name}. All rights reserved.",
-      "made": "Made in Bangladesh"
+      "made": "Made in Bangladesh",
+      "contactPage": "Contact"
     },
     "app": {
       "metaTitle": "Mobile app",
@@ -5526,7 +5542,6 @@
       "studentFees": "{count, plural, one {# student fee} other {# student fees}}",
       "attendanceDays": "{count, plural, one {# day of attendance} other {# days of attendance}}",
       "exams": "{count, plural, one {# exam} other {# exams}}",
-      "finalFormulas": "{count, plural, one {# final result setup} other {# final result setups}}",
       "homework": "{count, plural, one {# homework} other {# homework}}",
       "superAdminOnly": "It has marks or a result, so only the school super admin can delete it."
     },
@@ -5537,13 +5552,11 @@
       "attendanceDays": "{count, plural, one {# day of attendance} other {# days of attendance}}",
       "marks": "{count, plural, one {# exam mark} other {# exam marks}}",
       "results": "{count, plural, one {# exam result} other {# exam results}}",
-      "finalResults": "{count, plural, one {its place in # final result (which goes back to draft)} other {its place in # final results (they go back to draft)}}",
       "subjectAssignments": "{count, plural, one {# subject they teach} other {# subjects they teach}}",
       "substitutions": "{count, plural, one {# substitution} other {# substitutions}}",
       "duties": "{count, plural, one {# exam duty} other {# exam duties}}",
       "sections": "{count, plural, one {# section} other {# sections}}",
       "examClasses": "{count, plural, one {its place in # exam (with marks and results)} other {its place in # exams (with marks and results)}}",
-      "finalSetups": "{count, plural, one {# final result setup} other {# final result setups}}",
       "feeStructures": "{count, plural, one {# class fee} other {# class fees}}",
       "feeTypes": "{count, plural, one {# fee type} other {# fee types}}",
       "classSubjects": "{count, plural, one {# class subject} other {# class subjects}}",

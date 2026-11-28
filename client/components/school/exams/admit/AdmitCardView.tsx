@@ -38,7 +38,7 @@ export function AdmitCardView({ sheet, card }: { sheet: Omit<AdmitCardSheet, "ca
           </div>
           {sheet.design.showAddress && sheet.school?.address && <div className="text-neutral-600">{sheet.school.address}</div>}
           <div className="text-neutral-700">
-            {name(sheet.exam)} · {sheet.exam.academicYear.name}
+            {name(card.examName ?? sheet.exam)} · {sheet.exam.academicYear.name}
           </div>
         </div>
       </header>

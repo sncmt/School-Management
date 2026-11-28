@@ -79,6 +79,14 @@ router.delete(
   ExamController.removeClass,
 );
 
+// a class's own name for the exam, and its final-exam mark
+router.patch(
+  "/:examId/classes/:classId",
+  authorize("exam:create"),
+  validateRequest({ params: ExamValidation.examClassParams, body: ExamValidation.updateExamClass }),
+  ExamController.updateExamClass,
+);
+
 // a class's routine: subjects, days, times and marks
 router.get(
   "/:examId/classes/:classId/routine",

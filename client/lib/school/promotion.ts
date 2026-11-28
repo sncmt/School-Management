@@ -19,8 +19,15 @@ export type PromotionPreview = {
   class: { id: string; name: string; sections: Section[] };
   // null: the last class (its students graduate)
   nextClass: { id: string; name: string; sections: Section[] } | null;
-  formulas: { id: string; nameEn: string | null; nameBn: string | null; publishedAt: string | null }[];
-  formulaId: string | null;
+  // the class's final exam of the year (its name in this class); null: none is marked.
+  // Students' results come once it is PUBLISHED
+  finalExam: {
+    examId: string;
+    nameEn: string | null;
+    nameBn: string | null;
+    status: "ROUTINE" | "MARKS_ENTRY" | "PUBLISHED";
+    publishedAt: string | null;
+  } | null;
   students: {
     enrollmentId: string;
     // ACTIVE: still to decide; the others: done
@@ -40,7 +47,7 @@ export type PromoteBody = {
 };
 
 export const promotionApi = {
-  preview: async (query: { classId: string; formulaId?: string }) =>
+  preview: async (query: { classId: string }) =>
     (await httpClient.get<ApiResponse<PromotionPreview>>("/promotion", { params: query })).data.data,
   promote: async (body: PromoteBody) =>
     (
@@ -53,7 +60,7 @@ export const promotionApi = {
 
 const promotionKey = ["school", "promotion"] as const;
 
-export const usePromotionPreview = (query: { classId: string; formulaId?: string } | null) =>
+export const usePromotionPreview = (query: { classId: string } | null) =>
   useQuery({
     queryKey: [...promotionKey, query],
     queryFn: () => promotionApi.preview(query!),

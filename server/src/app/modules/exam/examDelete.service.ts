@@ -11,8 +11,7 @@ import type { DeleteExamQuery } from "./exam.validation";
  * Deleting an exam, or taking one class out of it, at any stage (the super admin only, see
  * the routes), after a warning (a stronger one once marks or results exist: see `level`).
  * Marks, results, remarks and the seat plan go with it; the marks are kept in the
- * activity log. A final result built from the exam loses it: it goes back to draft and its
- * published final results are deleted, to be published again from the remaining exams.
+ * activity log.
  */
 
 type Db = Prisma.TransactionClient | typeof prisma;
@@ -24,23 +23,6 @@ export type ExamDeleteLevel = "SIMPLE" | "SUPER_ADMIN";
 const TX_OPTIONS = { maxWait: 10_000, timeout: 60_000 };
 
 // ------------------------------------------------------- shared with class delete
-
-/* The final results that use the exam (for one class, or all): out it goes, back to draft. */
-export const detachFromFinalResults = async (tx: Tx, examId: string, classId?: string) => {
-  const links = await tx.finalResultComponentExam.findMany({
-    where: { examId, ...(classId ? { component: { formula: { classId } } } : {}) },
-    select: { id: true, component: { select: { formulaId: true } } },
-  });
-  if (links.length === 0) return 0;
-  const formulaIds = [...new Set(links.map((l) => l.component.formulaId))];
-  await tx.finalResultComponentExam.deleteMany({ where: { id: { in: links.map((l) => l.id) } } });
-  await tx.finalResult.deleteMany({ where: { formulaId: { in: formulaIds } } });
-  await tx.finalResultFormula.updateMany({
-    where: { id: { in: formulaIds } },
-    data: { status: "DRAFT", publishedAt: null, publishedBy: null },
-  });
-  return formulaIds.length;
-};
 
 /* Exam classes with their marks (held by Restrict); subjects, results and remarks cascade. */
 export const deleteExamClasses = async (tx: Tx, examClassIds: string[]) => {
@@ -71,16 +53,15 @@ type Exam = Awaited<ReturnType<typeof findExam>>;
 
 const check = async (db: Db, exam: Exam, scope: Scope): Promise<DeleteCheck & { level: ExamDeleteLevel }> => {
   const inClasses = { examClassId: { in: exam.classes.map((c) => c.id) } };
-  const [marks, results, remarks, subjects, finalResults, seatPlans] = await Promise.all([
+  const [marks, results, remarks, subjects, seatPlans] = await Promise.all([
     db.examMark.count({ where: { examSubject: inClasses } }),
     db.examResult.count({ where: inClasses }),
     db.examRemark.count({ where: inClasses }),
     db.examSubject.count({ where: inClasses }),
-    db.finalResultComponentExam.count({ where: { examId: exam.id, ...(scope.classId ? { component: { formula: { classId: scope.classId } } } : {}) } }),
     scope.classId ? Promise.resolve(0) : db.seatPlan.count({ where: { examId: exam.id } }),
   ]);
   const published = exam.classes.filter((c) => c.status === "PUBLISHED").length;
-  const result = deleteCheck([], { classes: exam.classes.length, publishedClasses: published, subjects, marks, results, remarks, seatPlans, finalResults });
+  const result = deleteCheck([], { classes: exam.classes.length, publishedClasses: published, subjects, marks, results, remarks, seatPlans });
   return { ...result, level: marks > 0 || results > 0 || published > 0 ? "SUPER_ADMIN" : "SIMPLE" };
 };
 
@@ -104,7 +85,6 @@ const remove = async (auth: Auth, scope: Scope, query: DeleteExamQuery) => {
       select: { id: true, examClassId: true, classSubjectId: true, fullMarks: true, passMarks: true, date: true },
     });
 
-    await detachFromFinalResults(tx, exam.id, scope.classId);
     await deleteExamClasses(tx, examClassIds);
     // the seat plan goes with the exam by cascade
     if (!scope.classId) await tx.exam.delete({ where: { id: exam.id } });

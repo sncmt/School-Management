@@ -18,7 +18,6 @@ import { gradingRoutes } from '../modules/grading/grading.route';
 import { examRoutes, optionalSubjectRoutes } from '../modules/exam/exam.route';
 import { examMarksRoutes } from '../modules/exam/examMarks.route';
 import { examResultRoutes } from '../modules/exam/examResult.route';
-import { finalResultRoutes } from '../modules/exam/finalResult.route';
 import { routineRoutes } from '../modules/routine/routine.route';
 import { dashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { roleRoutes } from '../modules/role/role.route';
@@ -149,11 +148,6 @@ const moduleRoutes = [
     {
         path: '/exam-results',
         route: examResultRoutes
-    },
-    {
-        // results made from several exams (term / annual), each school's own formula
-        path: '/final-results',
-        route: finalResultRoutes
     },
     {
         // class routine: period templates, weekly routine, substitutes

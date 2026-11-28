@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Tinos } from "next/font/google";
+import { Geist_Mono, Inter, Tinos } from "next/font/google";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -20,6 +20,16 @@ const tinos = Tinos({
   weight: ["400", "700"],
   // the homepage's margin notes are italic
   style: ["normal", "italic"],
+  preload: false,
+});
+
+// The marketing homepage is set in Inter (.hp-sans). Declared here so its dialogs, which open
+// outside the page's own layout, have it too; not preloaded, so school sites and the dashboards,
+// which never use it, never download it.
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
   preload: false,
 });
 
@@ -61,7 +71,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${tinos.variable} ${geistMono.variable} ${bangla.variable} h-full antialiased`}
+      className={`${tinos.variable} ${inter.variable} ${geistMono.variable} ${bangla.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>

@@ -12,6 +12,8 @@ type Named = { id: string; nameEn: string | null; nameBn: string | null };
 
 export type AdmitCard = {
   enrollmentId: string;
+  // the exam's name in the student's class ("Test exam" for class 10), else the exam's
+  examName?: { nameEn: string | null; nameBn: string | null };
   student: { id: string; nameEn: string; nameBn: string; admissionNo: string; fatherName: string; motherName: string; photo: string | null };
   rollNumber: string | null;
   class: { id: string; name: string; numericLevel: number };

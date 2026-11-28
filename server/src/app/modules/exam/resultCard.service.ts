@@ -14,6 +14,7 @@ import {
   type RemarksQuery,
   type SaveRemarksPayload,
 } from "./resultCard.validation";
+import { classExam } from "./examName";
 
 type Auth = NonNullable<Express.Request["auth"]>;
 
@@ -116,7 +117,7 @@ const getCards = async (schoolId: string, query: CardsQuery) => {
   return {
     settings,
     school: school && { ...school, logo: await fileUrl(school.logo) },
-    exam: { id: examClass.exam.id, nameEn: examClass.exam.nameEn, nameBn: examClass.exam.nameBn },
+    exam: classExam(examClass),
     academicYear: { id: examClass.exam.academicYear.id, name: examClass.exam.academicYear.name },
     class: examClass.class,
     publishedAt: examClass.publishedAt,
@@ -210,7 +211,7 @@ const getRemarks = async (auth: Auth, query: RemarksQuery) => {
   const resultOf = new Map(results.map((r) => [r.enrollmentId, r]));
 
   return {
-    exam: { id: examClass.exam.id, nameEn: examClass.exam.nameEn, nameBn: examClass.exam.nameBn },
+    exam: classExam(examClass),
     class: examClass.class,
     section,
     status: examClass.status,

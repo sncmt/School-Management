@@ -6,7 +6,7 @@ import { writeAuditLog } from "../../shared/auditLog";
 import { deleteCheck } from "../../shared/deleteCheck";
 import type { OptionalReasonQuery } from "../../shared/deleteSchemas";
 import { countEnrollmentRecords, deleteEnrollments, feeWithMoney, untouchedFee } from "../../shared/moneyGuard";
-import { deleteExamClasses, detachFromFinalResults } from "../exam/examDelete.service";
+import { deleteExamClasses } from "../exam/examDelete.service";
 import { DEFAULT_SECTION_NAME } from "./class.service";
 
 /*
@@ -36,13 +36,12 @@ const classFees = (classId: string): Prisma.StudentFeeWhereInput => ({
 });
 
 const classCheck = async (db: Db, classId: string) => {
-  const [records, students, sections, examClasses, finalSetups, feeStructures, unpaidFees, feesKept, classSubjects, routine, homework] =
+  const [records, students, sections, examClasses, feeStructures, unpaidFees, feesKept, classSubjects, routine, homework] =
     await Promise.all([
       countEnrollmentRecords(db, { classId }),
       db.student.count({ where: { enrollments: { some: { classId } } } }),
       db.section.count({ where: { classId, isDefault: false } }),
       db.examClass.count({ where: { classId } }),
-      db.finalResultFormula.count({ where: { classId } }),
       db.feeStructure.count({ where: { classId } }),
       db.studentFee.count({ where: { ...classFees(classId), ...untouchedFee } }),
       db.studentFee.count({ where: { AND: [classFees(classId), feeWithMoney] } }),
@@ -55,7 +54,6 @@ const classCheck = async (db: Db, classId: string) => {
     ...records,
     sections,
     examClasses,
-    finalSetups,
     feeStructures,
     unpaidFees,
     classSubjects,
@@ -84,15 +82,11 @@ const deleteClass = async (auth: Auth, classId: string, query: OptionalReasonQue
     // its place in exams; an exam left with no class goes too
     const examClasses = await tx.examClass.findMany({ where: { classId }, select: { id: true, examId: true } });
     const examIds = [...new Set(examClasses.map((c) => c.examId))];
-    for (const examId of examIds) await detachFromFinalResults(tx, examId, classId);
     await deleteExamClasses(tx, examClasses.map((c) => c.id));
     const emptyExams = await tx.exam.findMany({ where: { id: { in: examIds }, classes: { none: {} } }, select: { id: true } });
-    for (const { id } of emptyExams) await detachFromFinalResults(tx, id);
     await tx.exam.deleteMany({ where: { id: { in: emptyExams.map((e) => e.id) } } });
 
-    // its final results, and the fees nobody paid
-    await tx.finalResult.deleteMany({ where: { formula: { classId } } });
-    await tx.finalResultFormula.deleteMany({ where: { classId } });
+    // the fees nobody paid
     await tx.studentFee.deleteMany({ where: { ...classFees(classId), ...untouchedFee } });
 
     // sections, subjects, routine, fee setup, result settings, homework... go by cascade

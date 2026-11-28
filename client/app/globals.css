@@ -50,6 +50,17 @@
   --color-site-teal: #f1f7fa;
   --color-site-teal-line: #d6e9f0;
   --color-mk-slate: var(--mk-slate);
+  /* the new homepage (sncmt.com): teal, its deep shade for headings, a pale wash, quiet neutrals and the green of ticks */
+  --color-hp-brand: var(--hp-brand);
+  --color-hp-brand-ink: var(--hp-brand-ink);
+  --color-hp-wash: var(--hp-wash);
+  --color-hp-deep: var(--hp-deep);
+  --color-hp-ink: var(--hp-ink);
+  --color-hp-quiet: var(--hp-quiet);
+  --color-hp-hair: var(--hp-hair);
+  --color-hp-canvas: var(--hp-canvas);
+  --color-hp-ok: var(--hp-ok);
+  --color-hp-ok-wash: var(--hp-ok-wash);
   --color-mk-sky: var(--mk-sky);
   --color-mk-board: var(--mk-board);
   --color-mk-chalk: var(--mk-chalk);
@@ -175,6 +186,17 @@
   --mk-sky: oklch(0.955 0.018 250);
   --mk-board: oklch(0.32 0.04 165);
   --mk-chalk: oklch(0.88 0.11 90);
+  /* the new homepage's palette, the same in both modes (the Teal accent of lib/theme/accents.ts) */
+  --hp-brand: oklch(0.5 0.09 195);
+  --hp-brand-ink: oklch(0.36 0.07 195);
+  --hp-wash: oklch(0.955 0.022 195);
+  --hp-deep: oklch(0.3 0.06 200);
+  --hp-ink: oklch(0.2 0.02 200);
+  --hp-quiet: oklch(0.5 0.02 200);
+  --hp-hair: oklch(0.92 0.008 200);
+  --hp-canvas: oklch(0.975 0.006 200);
+  --hp-ok: oklch(0.62 0.15 155);
+  --hp-ok-wash: oklch(0.96 0.04 155);
   /* the margin line's colour: red on paper; each section may set its own */
   --mk-line: oklch(0.55 0.18 15);
   /* the faint squared-paper lines on the canvas */
@@ -489,6 +511,28 @@
 }
 
 /* ---------------------------------------------------------------- marketing site */
+
+/*
+ * The new homepage (moving over section by section): Inter for English with Anek Bangla for
+ * Bangla. The hero's ground is a pale teal wash fading to white, under a faint grid that fades out
+ * around the picture.
+ */
+.hp-sans {
+  font-family: var(--font-inter), var(--font-bangla), system-ui, sans-serif;
+}
+.hp-hero {
+  background: linear-gradient(180deg, var(--hp-wash) 0%, #fff 70%);
+}
+.hp-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(var(--hp-hair) 1px, transparent 1px), linear-gradient(90deg, var(--hp-hair) 1px, transparent 1px);
+  background-size: 56px 56px;
+  opacity: 0.45;
+  mask-image: radial-gradient(ellipse 70% 60% at 70% 30%, #000 0%, transparent 75%);
+}
 
 /* white hairline grid that fades out from the middle (on the ink sections) */
 .mk-grid {

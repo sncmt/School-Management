@@ -1,0 +1,654 @@
+/*
+ * The hero's picture: a school's dashboard as it really looks, in a browser window, with the
+ * guardian app on a phone over its lower left corner and a note of a roll call just taken over its
+ * lower right. The dashboard is drawn at its own size (960px wide) and zoomed to fit the window
+ * frame; from 1024px the whole picture zooms down to fit a short window (HeroPicture.tsx).
+ * The dashboard and the phone are in the product's own type, Times New Roman with Anek Bangla.
+ */
+
+.box {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+.shot {
+  position: relative;
+  width: 100%;
+  padding: 0 0 110px 56px;
+}
+
+/* ---------------------------------------------------------------- the browser window */
+.browser {
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--hp-hair);
+  border-radius: 14px;
+  box-shadow:
+    0 30px 60px -20px oklch(0.3 0.08 200 / 0.28),
+    0 8px 18px -8px oklch(0.3 0.08 200 / 0.14);
+}
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--hp-hair);
+  background: var(--hp-canvas);
+}
+.chrome i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: oklch(0.86 0.01 200);
+}
+.addr {
+  margin: 0 auto;
+  padding: 6px 40px;
+  border: 1px solid var(--hp-hair);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--hp-quiet);
+  font: 500 12px/1 var(--font-inter), sans-serif;
+}
+
+/* ---------------------------------------------------------------- the dashboard */
+.app {
+  display: grid;
+  grid-template-columns: 212px minmax(0, 1fr);
+  width: 960px;
+  height: 560px;
+  overflow: hidden;
+  zoom: 0.5;
+  background: var(--hp-canvas);
+  color: var(--hp-ink);
+  font-family: "Times New Roman", var(--font-tinos), var(--font-bangla), Times, serif;
+}
+.side {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.sideHead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 72px;
+  padding: 0 20px;
+  font-size: 19px;
+  font-weight: 700;
+}
+.sideHead::after {
+  content: "";
+  position: absolute;
+  left: 20px;
+  right: 30px;
+  bottom: 0;
+  height: 1px;
+  background: var(--hp-hair);
+}
+.logo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--hp-hair);
+  border-radius: 12px;
+  color: var(--hp-deep);
+  font-size: 18px;
+  font-weight: 800;
+}
+.nav {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px 12px 12px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.row svg {
+  width: 19px;
+  height: 19px;
+  color: var(--hp-quiet);
+}
+/* the open page: the index tab in the school's accent, reaching into the page */
+.rowOn {
+  margin-right: -26px;
+  border-radius: 8px 10px 10px 8px;
+  background: var(--hp-brand-ink);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 8px 8px 16px -10px oklch(0.25 0.06 200 / 0.5);
+}
+.rowOn svg {
+  color: #fff;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 72px;
+  padding: 0 18px 0 40px;
+  border-bottom: 1px solid var(--hp-hair);
+  background: #fff;
+  font-size: 21px;
+  font-weight: 700;
+}
+.topEnd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.chip {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--hp-hair);
+  border-radius: 8px;
+  color: var(--hp-quiet);
+}
+.chip svg {
+  width: 18px;
+  height: 18px;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--hp-wash);
+  color: var(--hp-brand-ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+.page {
+  display: grid;
+  gap: 8px;
+  padding: 10px 10px 12px 34px;
+}
+
+/* the welcome banner: the accent's deep shade, the jobs people come for */
+.welcome {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  overflow: hidden;
+  padding: 24px 28px;
+  border-radius: 16px;
+  background: var(--hp-brand-ink);
+  color: #fff;
+}
+.welcome::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -90px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: oklch(0.8 0.14 82 / 0.22);
+  filter: blur(50px);
+}
+.date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgb(255 255 255 / 0.65);
+  font-size: 14px;
+}
+.year {
+  padding: 2px 10px;
+  border: 1px solid rgb(255 255 255 / 0.15);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  color: rgb(255 255 255 / 0.85);
+  font-size: 12px;
+}
+.greeting {
+  margin: 8px 0 2px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.sub {
+  color: rgb(255 255 255 / 0.7);
+  font-size: 14px;
+}
+.actions {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 10px;
+  margin-left: auto;
+}
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgb(255 255 255 / 0.15);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.action svg {
+  width: 16px;
+  height: 16px;
+}
+.actionFirst {
+  border-color: transparent;
+  background: var(--mk-gold);
+  color: oklch(0.25 0.05 200);
+}
+
+/* the four numbers */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.kpi {
+  padding: 18px;
+  border: 1px solid var(--hp-hair);
+  border-radius: 16px;
+  background: #fff;
+}
+.label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--hp-quiet);
+  font-size: 15px;
+  font-weight: 500;
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+.icon svg {
+  width: 16px;
+  height: 16px;
+}
+.value {
+  display: block;
+  margin-top: 14px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.bar {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--hp-canvas);
+}
+.bar i {
+  border-radius: 999px;
+}
+.small {
+  display: block;
+  margin-top: 9px;
+  color: var(--hp-quiet);
+  font-size: 12.5px;
+}
+.spark {
+  display: block;
+  width: 100%;
+  height: 26px;
+  margin-top: 8px;
+  overflow: visible;
+  color: oklch(0.75 0.15 75);
+}
+
+/* today's attendance and the latest payments */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.panel {
+  padding: 18px 20px;
+  border: 1px solid var(--hp-hair);
+  border-radius: 16px;
+  background: #fff;
+}
+.panelHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.panelHead small {
+  color: var(--hp-brand);
+  font-size: 13px;
+  font-weight: 600;
+}
+.desc {
+  margin: -10px 0 12px;
+  color: var(--hp-quiet);
+  font-size: 13px;
+}
+.ring {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.ringChart {
+  position: relative;
+  flex: none;
+  width: 124px;
+  height: 124px;
+}
+.ringChart svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ringMiddle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--hp-quiet);
+  font-size: 13px;
+}
+.ringMiddle b {
+  color: var(--hp-ink);
+  font-size: 24px;
+}
+.legend {
+  display: grid;
+  flex: 1;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.legend i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.legend span {
+  flex: 1;
+  color: var(--hp-quiet);
+}
+.legend b {
+  font-variant-numeric: tabular-nums;
+}
+.payment {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+}
+.payer {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: oklch(0.95 0.05 155);
+  color: oklch(0.45 0.13 155);
+  font-size: 14px;
+  font-weight: 700;
+}
+.who {
+  flex: 1;
+  min-width: 0;
+}
+.who b {
+  display: block;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.who small {
+  color: var(--hp-quiet);
+  font-size: 12.5px;
+}
+.amount {
+  color: oklch(0.45 0.13 155);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- the guardian app */
+.phone {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  bottom: 0;
+  width: 172px;
+  padding: 8px;
+  border-radius: 30px;
+  background: var(--hp-deep);
+  box-shadow: 0 30px 50px -18px oklch(0.25 0.1 200 / 0.45);
+  font-family: "Times New Roman", var(--font-tinos), var(--font-bangla), Times, serif;
+}
+/* the label above it, big enough to read at a glance */
+.phoneTag {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: -20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--mk-gold);
+  color: oklch(0.25 0.05 200);
+  font-family: var(--font-inter), var(--font-bangla), sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 22px -10px oklch(0.4 0.1 80 / 0.7);
+}
+.phoneTag svg {
+  width: 18px;
+  height: 18px;
+}
+.screen {
+  overflow: hidden;
+  border-radius: 23px;
+  background: #fff;
+}
+.screenTop {
+  padding: 26px 14px 14px;
+  background: var(--hp-deep);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.screenBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--hp-canvas);
+}
+.tile {
+  padding: 9px 10px;
+  border: 1px solid var(--hp-hair);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.tile small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--hp-quiet);
+  font-size: 9.5px;
+  font-weight: 400;
+}
+.tileOk {
+  border-color: transparent;
+  background: var(--hp-ok-wash);
+  color: oklch(0.45 0.13 155);
+}
+.pay {
+  display: block;
+  margin-top: 7px;
+  padding: 6px;
+  border-radius: 7px;
+  background: var(--hp-brand);
+  color: #fff;
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- the roll call note */
+.note {
+  position: absolute;
+  z-index: 3;
+  right: -12px;
+  bottom: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px 7px 7px;
+  border: 1px solid var(--hp-hair);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 18px 36px -16px oklch(0.3 0.06 200 / 0.3);
+  font-size: 14px;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .note {
+    animation: note-in 0.6s 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+@keyframes note-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.noteIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--hp-ok-wash);
+  color: var(--hp-ok);
+}
+.noteIcon svg {
+  width: 17px;
+  height: 17px;
+}
+.note b {
+  display: block;
+  font-size: 14px;
+  line-height: 1.25;
+}
+.note small {
+  display: block;
+  margin-top: 1px;
+  color: var(--hp-quiet);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+/* ---------------------------------------------------------------- narrower screens */
+@media (max-width: 1023px) {
+  .box {
+    justify-content: flex-start;
+  }
+  .shot {
+    max-width: 680px;
+  }
+}
+@media (max-width: 640px) {
+  .shot {
+    padding: 0 0 70px;
+  }
+  /* the dashboard as it is on a narrow screen: no side menu, so it can be drawn larger */
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    width: 640px;
+    height: 470px;
+  }
+  .side,
+  .actions,
+  .note {
+    display: none;
+  }
+  .top,
+  .page {
+    padding-left: 14px;
+  }
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pair {
+    grid-template-columns: 1fr;
+  }
+  .phone {
+    left: auto;
+    right: 8px;
+    width: 136px;
+    border-radius: 24px;
+  }
+  .phoneTag {
+    top: -16px;
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  .screenTop {
+    white-space: normal;
+  }
+}

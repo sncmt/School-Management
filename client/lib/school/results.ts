@@ -3,7 +3,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { httpClient } from "@/lib/api/httpClient";
 import type { ApiResponse } from "@/lib/api/types";
-import type { ComponentLine } from "./finalResults";
 
 // Mirrors server/src/app/modules/exam (examResult, resultCard). Decimals arrive as strings.
 
@@ -23,6 +22,9 @@ export type ExamResultSummary = {
   exam: NameRef;
   classes: {
     class: { id: string; name: string; numericLevel: number };
+    // the exam's name in this class (its own, else the exam's), and whether it is the class's final exam
+    name: { nameEn: string | null; nameBn: string | null };
+    isFinal: boolean;
     status: "ROUTINE" | "MARKS_ENTRY" | "PUBLISHED";
     publishedAt: string | null;
     summary: ResultSummary | null;
@@ -117,8 +119,6 @@ export type CardSettings = {
   highestMarks: "NONE" | "SECTION" | "CLASS";
   showGrade: boolean;
   showPoint: boolean;
-  // final result cards: a column per component (Half-yearly 30%, Annual 70%)
-  showComponents: boolean;
   position: "NONE" | "SECTION" | "CLASS" | "BOTH";
   showAttendance: boolean;
   showRemarks: boolean;
@@ -152,8 +152,7 @@ export type ResultCard = {
   position: { section: number; sectionOutOf: number; class: number; classOutOf: number };
   attendance: { workingDays: number; present: number; absent: number; leave: number; percentage: number | null };
   remark: string | null;
-  // final result cards: each component behind the subject
-  subjects: (SubjectLine & { highestInSection: number | null; highestInClass: number | null; components?: ComponentLine[] })[];
+  subjects: (SubjectLine & { highestInSection: number | null; highestInClass: number | null })[];
 };
 
 export type ResultCards = {
@@ -174,8 +173,6 @@ export type ResultCards = {
   publishedAt: string | null;
   attendancePeriod: { from: string; to: string } | null;
   gradingReference: { resultSystem: "GRADED" | "MARKS_ONLY"; classScale: ScaleReference | null; subjectScales: ScaleReference[] } | null;
-  // final result cards only: the formula's components, the extra columns
-  components?: { id: string; nameEn: string | null; nameBn: string | null; weight: string }[];
   cards: ResultCard[];
 };
 

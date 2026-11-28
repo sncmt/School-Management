@@ -10,7 +10,7 @@ import { AppError } from "../errorHandler/AppError";
  * - Schools and students: both names are required (their own validation).
  * - The platform's shared lists (NCTB subjects, national holidays): both required.
  * - Everything a school creates (groups, its own subjects, exams, holidays, period
- *   templates, final result formulas...): the name in the school's language is
+ *   templates...): the name in the school's language is
  *   required, the other is optional and the apps fall back to it.
  *
  * Validation can't know the school's language, so the fields below accept either

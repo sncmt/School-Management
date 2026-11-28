@@ -18,6 +18,11 @@ export type ExamClass = {
   status: ExamClassStatus;
   date: string | null; // one-day exams: the exam day
   publishedAt: string | null;
+  // the class's own name for the exam ("Test exam" for class 10); both null = the exam's name
+  nameEn: string | null;
+  nameBn: string | null;
+  // the class's final exam of the year: its result is the year's result (promotion reads it)
+  isFinal: boolean;
   class: { id: string; name: string; numericLevel: number };
   _count: { subjects: number };
   // from the detail endpoint only: the first and last exam day ("YYYY-MM-DD")
@@ -53,6 +58,8 @@ export type CreateExamBody = {
   classIds: string[];
   attendanceFrom?: string;
   attendanceTo?: string;
+  // the final exam of the year for all its classes
+  isFinal?: boolean;
 };
 
 export type UpdateExamBody = {
@@ -60,7 +67,19 @@ export type UpdateExamBody = {
   nameBn?: string | null;
   attendanceFrom?: string | null;
   attendanceTo?: string | null;
+  // the final exam (or not) for all its classes
+  isFinal?: boolean;
 };
+
+// one class of an exam: both names together (null both = the exam's name), and the final mark
+export type UpdateExamClassBody = { nameEn?: string | null; nameBn?: string | null; isFinal?: boolean };
+
+// a class whose final mark moved to this exam, from its other exam of the year
+export type FinalMoved = { classId: string; className: string; exam: NameRef }[];
+
+/** The exam's name in one class: the class's own pair if it has one, else the exam's. */
+export const classExamName = (exam: { nameEn: string | null; nameBn: string | null }, c: { nameEn: string | null; nameBn: string | null }) =>
+  c.nameEn || c.nameBn ? { nameEn: c.nameEn, nameBn: c.nameBn } : { nameEn: exam.nameEn, nameBn: exam.nameBn };
 
 type MarksPart = { name: string; fullMarks: string; passMarks: string };
 
@@ -167,10 +186,18 @@ export const examsApi = {
 
   get: async (examId: string) => (await httpClient.get<ApiResponse<Exam>>(`/exam/${examId}`)).data.data,
 
-  create: async (body: CreateExamBody) => (await httpClient.post<ApiResponse<Exam>>("/exam", body)).data.data,
+  create: async (body: CreateExamBody) =>
+    (await httpClient.post<ApiResponse<Exam & { movedFrom: FinalMoved }>>("/exam", body)).data.data,
 
   update: async ({ examId, body }: { examId: string; body: UpdateExamBody }) =>
-    (await httpClient.patch<ApiResponse<Exam>>(`/exam/${examId}`, body)).data.data,
+    (await httpClient.patch<ApiResponse<Exam & { movedFrom: FinalMoved }>>(`/exam/${examId}`, body)).data.data,
+
+  updateClass: async ({ examId, classId, body }: { examId: string; classId: string; body: UpdateExamClassBody }) =>
+    (
+      await httpClient.patch<
+        ApiResponse<{ id: string; nameEn: string | null; nameBn: string | null; isFinal: boolean; name: { nameEn: string | null; nameBn: string | null }; movedFrom: FinalMoved }>
+      >(`/exam/${examId}/classes/${classId}`, body)
+    ).data.data,
 
   // an exam with marks also needs the reason and its name typed (the super admin only)
   remove: async ({ examId, reason, confirmName }: { examId: string } & ExamDeleteInput) => {
@@ -238,8 +265,15 @@ const useExamMutation = <TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TR
   return useMutation({ mutationFn, onSuccess: () => queryClient.invalidateQueries({ queryKey: examsKey }) });
 };
 
+/* A class's exam name or final mark shows on results, marks, cards and promotion too: all school data is refreshed. */
+const useExamNameMutation = <TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) => {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["school"] }) });
+};
+
 export const useCreateExam = () => useExamMutation(examsApi.create);
-export const useUpdateExam = () => useExamMutation(examsApi.update);
+export const useUpdateExam = () => useExamNameMutation(examsApi.update);
+export const useUpdateExamClass = () => useExamNameMutation(examsApi.updateClass);
 export const useDeleteExam = () => useExamMutation(examsApi.remove);
 export const useAddExamClasses = () => useExamMutation(examsApi.addClasses);
 export const useRemoveExamClass = () => useExamMutation(examsApi.removeClass);

@@ -58,6 +58,12 @@ const removeClass = catchAsync(async (req: Request, res: Response) => {
   reply(res, httpStatus.OK, "Class removed from the exam!", null);
 });
 
+// one class: its own name for the exam, and whether it is the class's final exam
+const updateExamClass = catchAsync(async (req: Request, res: Response) => {
+  const result = await ExamService.updateExamClass(schoolOf(req), examIdOf(req), classIdOf(req), req.body);
+  reply(res, httpStatus.OK, "Exam class updated successfully!", result);
+});
+
 // -------------------------------------------------------------------- routine
 
 const getRoutine = catchAsync(async (req: Request, res: Response) => {
@@ -97,6 +103,7 @@ export const ExamController = {
   deleteExam,
   addClasses,
   removeClass,
+  updateExamClass,
   getRoutine,
   setRoutine,
   setStatus,

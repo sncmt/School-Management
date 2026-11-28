@@ -1,139 +1,107 @@
-import {
-  BadgeCheck,
-  BookOpenCheck,
-  CalendarDays,
-  CalendarRange,
-  ClipboardCheck,
-  ClipboardList,
-  CreditCard,
-  Fingerprint,
-  Globe,
-  GraduationCap,
-  IdCard,
-  Languages,
-  Megaphone,
-  MessageSquareText,
-  NotebookPen,
-  PiggyBank,
-  ReceiptText,
-  ShieldCheck,
-  Smartphone,
-  Ticket,
-  UserCheck,
-  Users,
-  Wallet,
-  BellRing,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react";
+import { Banknote, Check, ClipboardCheck, Megaphone, Monitor, Award, Users, type LucideIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { cn } from "@/lib/utils";
 import type messages from "@/messages/en.json";
-import { MarginHeading, MarginRow, Note } from "./Margin";
+import { HP_PAGE } from "./MarketingHeader";
 
-type Copy = (typeof messages)["marketing"]["features"];
+type Groups = (typeof messages)["marketing"]["features"]["groups"];
+// one feature's words: "groups.fees.items.online"
+type Item = { [G in keyof Groups]: `groups.${G}.items.${keyof Groups[G]["items"] & string}` }[keyof Groups];
 
-// every feature, by the part of the institution it serves (marketing.features.items.* keys)
-const GROUPS: { key: keyof Copy["groups"]; items: [keyof Copy["items"], LucideIcon][] }[] = [
-  {
-    key: "students",
-    items: [
-      ["students", GraduationCap],
-      ["teachers", Users],
-      ["routine", CalendarDays],
-      ["calendar", CalendarRange],
-      ["promotion", TrendingUp],
-      ["idCards", IdCard],
-    ],
-  },
+// the six parts of the institution, each with its icon and its four features (marketing.features.groups.*)
+const GROUPS: { key: keyof Groups; Icon: LucideIcon; items: Item[] }[] = [
   {
     key: "attendance",
-    items: [
-      ["classAttendance", ClipboardCheck],
-      ["devices", Fingerprint],
-      ["teacherAttendance", UserCheck],
-      ["absentSms", BellRing],
-    ],
-  },
-  {
-    key: "exams",
-    items: [
-      ["exams", ClipboardList],
-      ["marks", BookOpenCheck],
-      ["results", BadgeCheck],
-      ["admitCards", Ticket],
-    ],
+    Icon: ClipboardCheck,
+    items: ["groups.attendance.items.class", "groups.attendance.items.devices", "groups.attendance.items.staff", "groups.attendance.items.sms"],
   },
   {
     key: "fees",
-    items: [
-      ["feeSetup", Wallet],
-      ["receipts", ReceiptText],
-      ["onlinePayment", CreditCard],
-      ["accounts", PiggyBank],
-    ],
+    Icon: Banknote,
+    items: ["groups.fees.items.setup", "groups.fees.items.counter", "groups.fees.items.online", "groups.fees.items.accounts"],
   },
   {
-    key: "guardians",
-    items: [
-      ["sms", MessageSquareText],
-      ["notices", Megaphone],
-      ["homework", NotebookPen],
-      ["app", Smartphone],
-    ],
+    key: "exams",
+    Icon: Award,
+    items: ["groups.exams.items.routine", "groups.exams.items.admit", "groups.exams.items.gpa", "groups.exams.items.cards"],
+  },
+  {
+    key: "students",
+    Icon: Users,
+    items: ["groups.students.items.admission", "groups.students.items.classes", "groups.students.items.promotion", "groups.students.items.idCards"],
+  },
+  {
+    key: "messages",
+    Icon: Megaphone,
+    items: ["groups.messages.items.notices", "groups.messages.items.sms", "groups.messages.items.homework", "groups.messages.items.push"],
   },
   {
     key: "online",
-    items: [
-      ["website", Globe],
-      ["roles", ShieldCheck],
-      ["bangla", Languages],
-    ],
+    Icon: Monitor,
+    items: ["groups.online.items.website", "groups.online.items.pages", "groups.online.items.app", "groups.online.items.bangla"],
   },
 ];
 
 /*
- * Every feature of the platform, on the classroom's chalkboard: the parts of the institution in
- * the margin in chalk yellow, and each part's features to the right, an icon, a name and one line.
+ * Every feature, on white: a heading on the left, then the six parts of the institution three
+ * across (two on a tablet, one on a phone), split by hairlines rather than boxed in cards. Each
+ * part has an icon, its name, one line and four features with a green tick.
  */
 export async function Features() {
   const t = await getTranslations("marketing.features");
 
   return (
-    <section id="features" aria-labelledby="features-title" className="scroll-mt-16 bg-mk-board [--mk-line:rgb(255_255_255/0.22)]">
-      <MarginRow className="h-20 sm:h-28" />
-      <MarginRow note={<Note className="text-white/65 max-lg:mb-4 lg:pt-3">{t("eyebrow")}</Note>}>
-        <MarginHeading light id="features-title" title={t("title")} subtitle={t("subtitle")} />
-      </MarginRow>
-      <MarginRow className="h-8 sm:h-12" />
-
-      {GROUPS.map((group, i) => (
-        <MarginRow
-          key={group.key}
-          note={<h3 className="pt-8 text-xl leading-snug text-mk-chalk max-lg:mb-5 lg:pt-10">{t(`groups.${group.key}`)}</h3>}
-          className="max-lg:pt-0 lg:pt-10"
-        >
-          <ul
-            className={cn(
-              // three across, or two across for a group of four (no feature left alone on a row)
-              "grid gap-x-10 gap-y-7 pb-10 sm:grid-cols-2",
-              group.items.length !== 4 && "xl:grid-cols-3",
-              i < GROUPS.length - 1 && "border-b border-dashed border-white/20",
-            )}
+    <section id="features" aria-labelledby="features-title" className="hp-sans scroll-mt-[68px] border-t border-hp-hair bg-white py-16 sm:py-24 lg:py-28">
+      <div className={HP_PAGE}>
+        <div className="mb-9 max-w-[720px] sm:mb-14">
+          <h2
+            id="features-title"
+            className="mb-3.5 text-[length:clamp(30px,3.8vw,48px)] leading-[1.12] font-extrabold tracking-[-0.035em] text-balance text-hp-deep [:lang(bn)_&]:leading-[1.3] [:lang(bn)_&]:font-bold [:lang(bn)_&]:tracking-normal"
           >
-            {group.items.map(([key, Icon]) => (
-              <li key={key} className="flex gap-4">
-                <Icon aria-hidden className="mt-1 size-5 shrink-0 text-mk-chalk" strokeWidth={1.75} />
-                <div>
-                  <p className="text-lg font-semibold text-white">{t(`items.${key}.title`)}</p>
-                  <p className="mt-1 text-base leading-relaxed text-white/72">{t(`items.${key}.body`)}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </MarginRow>
-      ))}
-      <MarginRow className="h-16 sm:h-24" />
+            {t("title")}
+          </h2>
+          <p className="text-lg leading-[1.65] text-hp-quiet sm:text-xl">{t("subtitle")}</p>
+        </div>
+
+        <div className="grid grid-cols-1 border-t border-hp-hair md:grid-cols-2 lg:grid-cols-3">
+          {GROUPS.map(({ key, Icon, items }, i) => {
+            return (
+              <div
+                key={key}
+                className={[
+                  "border-b border-hp-hair py-7 md:pr-7 md:pb-9",
+                  // a line between columns: every second one on a tablet, the second and third from 1024px
+                  i % 2 === 1 ? "md:border-l md:pl-7" : "",
+                  i % 3 === 0 ? "lg:border-l-0 lg:pl-0" : "lg:border-l lg:pl-8",
+                ].join(" ")}
+              >
+                <span className="flex size-12 items-center justify-center rounded-xl bg-hp-wash text-hp-brand-ink">
+                  <Icon aria-hidden className="size-6" strokeWidth={1.9} />
+                </span>
+                <h3 className="mt-[18px] mb-1.5 text-[22px] leading-[1.3] font-bold text-hp-deep">{t(`groups.${key}.title`)}</h3>
+                <p className="mb-4 text-base leading-[1.6] text-hp-quiet sm:text-[16.5px]">{t(`groups.${key}.body`)}</p>
+                <ul className="grid gap-[9px] text-base text-hp-ink sm:text-[16.5px]">
+                  {items.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 leading-[1.45]">
+                      <Check aria-hidden className="mt-0.5 size-[18px] shrink-0 text-hp-ok" strokeWidth={2.4} />
+                      {t(item)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-lg text-hp-ink sm:mt-11">
+          {t("foot")}
+          <a
+            href="#pricing"
+            className="inline-flex h-12 items-center rounded-xl bg-hp-brand px-[22px] text-[17px] font-semibold text-white transition-colors hover:bg-hp-brand-ink focus-visible:ring-2 focus-visible:ring-hp-brand focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            {t("cta")}
+          </a>
+        </div>
+      </div>
     </section>
   );
 }

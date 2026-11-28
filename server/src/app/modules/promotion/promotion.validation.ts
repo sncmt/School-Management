@@ -5,8 +5,6 @@ const previewQuery = z.object({
   // the year being finished; defaults to the current one
   academicYearId: z.string().trim().min(1).optional(),
   classId: idSchema("Class"),
-  // which published final result guides the choices; defaults to the latest one
-  formulaId: z.string().trim().min(1).optional(),
 });
 
 /*

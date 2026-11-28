@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import type { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../lib/prisma";
 import { AppError } from "../../errorHandler/AppError";
+import { classExamName } from "../exam/examName";
 import { assertClassesInTrack, trackOfClass } from "../../shared/academicYears";
 import { endOfBangladeshDay } from "../../shared/scheduleSchemas";
 import { NotificationService, notifyInBackground, type PromotionMove } from "../notification/notification.service";
@@ -63,19 +64,25 @@ const resolveClasses = async (db: Db, schoolId: string, classId: string) => {
 // ------------------------------------------------------------------- preview
 
 /*
- * The class's students this year with their final result (pass/fail, position) when
- * one is published, and for those already done, where they went.
+ * The class's students this year with the result of the class's final exam (pass/fail,
+ * position) once it is published, and for those already done, where they went.
  */
 const getPreview = async (schoolId: string, query: PromotionPreviewQuery) => {
   const { from, to } = await resolveYears(prisma, schoolId, query.academicYearId, query.classId);
   const { schoolClass, nextClass } = await resolveClasses(prisma, schoolId, query.classId);
 
-  const formulas = await prisma.finalResultFormula.findMany({
-    where: { schoolId, academicYearId: from.id, classId: schoolClass.id, status: "PUBLISHED" },
-    orderBy: { publishedAt: "desc" },
-    select: { id: true, nameEn: true, nameBn: true, publishedAt: true },
+  // the exam marked as the class's final exam of the year (one at most)
+  const finalExam = await prisma.examClass.findFirst({
+    where: { classId: schoolClass.id, isFinal: true, exam: { schoolId, academicYearId: from.id } },
+    select: {
+      id: true,
+      status: true,
+      publishedAt: true,
+      nameEn: true,
+      nameBn: true,
+      exam: { select: { id: true, nameEn: true, nameBn: true } },
+    },
   });
-  const formulaId = query.formulaId && formulas.some((f) => f.id === query.formulaId) ? query.formulaId : formulas[0]?.id;
 
   const enrollments = await prisma.enrollment.findMany({
     where: { academicYearId: from.id, classId: schoolClass.id, student: { schoolId } },
@@ -89,9 +96,9 @@ const getPreview = async (schoolId: string, query: PromotionPreviewQuery) => {
   });
   const studentIds = enrollments.map((e) => e.student.id);
   const [results, nextYear] = await Promise.all([
-    formulaId
-      ? prisma.finalResult.findMany({
-          where: { formulaId },
+    finalExam?.status === "PUBLISHED"
+      ? prisma.examResult.findMany({
+          where: { examClassId: finalExam.id },
           select: { enrollmentId: true, passed: true, gpa: true, grade: true, classPosition: true, sectionPosition: true },
         })
       : [],
@@ -116,8 +123,13 @@ const getPreview = async (schoolId: string, query: PromotionPreviewQuery) => {
     class: { id: schoolClass.id, name: schoolClass.name, sections: schoolClass.sections },
     // null: the last class (its students graduate)
     nextClass: nextClass && { id: nextClass.id, name: nextClass.name, sections: nextClass.sections },
-    formulas,
-    formulaId: formulaId ?? null,
+    // null: no exam is marked as the class's final exam this year; results come once it is PUBLISHED
+    finalExam: finalExam && {
+      examId: finalExam.exam.id,
+      ...classExamName(finalExam),
+      status: finalExam.status,
+      publishedAt: finalExam.publishedAt,
+    },
     students: enrollments.map((e) => {
       const r = resultOf.get(e.id);
       const next = nextOf.get(e.student.id);

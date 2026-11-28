@@ -78,6 +78,8 @@ function ExamForm({
   const create = useCreateExam();
   const update = useUpdateExam();
   const [formError, setFormError] = useState<string | null>(null);
+  // a new exam: the final exam of the year for its classes (later: on the exam's page)
+  const [isFinal, setIsFinal] = useState(false);
   const saving = create.isPending || update.isPending;
 
   const form = useForm<ExamFormInput, unknown, ExamFormValues>({
@@ -117,8 +119,10 @@ function ExamForm({
           allClasses: values.allClasses,
           classIds: values.allClasses ? [] : values.classIds,
           ...(values.attendanceFrom ? { attendanceFrom: values.attendanceFrom, attendanceTo: values.attendanceTo } : {}),
+          isFinal,
         });
         toast.success(t("added", { name: name(values) }));
+        if (created.movedFrom.length > 0) toast.info(t("finalMoved", { count: created.movedFrom.length }));
         onCreated?.(created);
       }
       onDone();
@@ -205,6 +209,16 @@ function ExamForm({
               </FormItem>
             )}
           />
+        )}
+
+        {!exam && (
+          <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm">
+            <input type="checkbox" className="mt-0.5 size-4 accent-primary" checked={isFinal} onChange={(e) => setIsFinal(e.target.checked)} />
+            <span>
+              <span className="block font-medium">{t("isFinal")}</span>
+              <span className="block text-xs text-muted-foreground">{t("isFinalHint")}</span>
+            </span>
+          </label>
         )}
 
         <div className="space-y-2">

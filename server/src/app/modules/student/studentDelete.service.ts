@@ -26,11 +26,10 @@ const TX_OPTIONS = { maxWait: 10_000, timeout: 60_000 };
 const HINT = "A student with money records stays: change their status (inactive or withdrawn) instead";
 
 const check = async (db: Db, studentId: string) => {
-  const [money, records, fees, finalResults] = await Promise.all([
+  const [money, records, fees] = await Promise.all([
     studentMoney(db, [studentId]),
     countEnrollmentRecords(db, { studentId }),
     db.studentFee.count({ where: { studentId } }),
-    db.finalResult.count({ where: { studentId } }),
   ]);
   return deleteCheck(
     [
@@ -38,7 +37,7 @@ const check = async (db: Db, studentId: string) => {
       blocker("onlinePayments", money.onlinePayments, `${money.onlinePayments} online payment(s)`),
       blocker("paidFees", money.fees, `${money.fees} fee(s) paid or discounted`),
     ],
-    { ...records, results: records.results + finalResults, unpaidFees: fees },
+    { ...records, unpaidFees: fees },
   );
 };
 
@@ -70,7 +69,6 @@ const deleteStudent = async (auth: Auth, studentId: string, query: OptionalReaso
 
       const fees = await tx.studentFee.findMany({ where: { studentId } });
       await deleteEnrollments(tx, { studentId });
-      await tx.finalResult.deleteMany({ where: { studentId } });
       await tx.studentFee.deleteMany({ where: { studentId } });
       if (student.devicePerson) await queueDeviceRemoval(tx, schoolId, student.devicePerson.pin);
       await tx.student.delete({ where: { id: studentId } });

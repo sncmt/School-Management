@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2 } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { FormError } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
@@ -15,14 +15,7 @@ import { applyServerErrors } from "@/lib/auth/formErrors";
 import { withSign } from "@/lib/i18n/currency";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useSendContact } from "@/lib/marketing/contact";
-import {
-  CHOOSE_PACKAGE_EVENT,
-  packageChoice,
-  priceOf,
-  type Billing,
-  type ChoosePackageDetail,
-  type PublicPackage,
-} from "@/lib/marketing/packages";
+import { CUSTOM_PACKAGE, packageChoice, priceOf, type Billing, type PublicPackage } from "@/lib/marketing/packages";
 import { contactSchema, type ContactForm as ContactValues } from "@/zod/contact";
 
 // the package select's value: packageChoice(), "STANDARD:YEARLY"; this one means "not sure yet"
@@ -30,8 +23,11 @@ const NO_PACKAGE = "NONE";
 
 const EMPTY: ContactValues = { name: "", school: "", phone: "", email: "", plan: "", message: "", website: "" };
 
-/** The marketing contact form: a school's details and the package it likes, emailed to the platform. */
-export function ContactForm({ packages }: { packages: PublicPackage[] }) {
+/**
+ * The marketing contact form: an institution's details and the package it likes, emailed to the
+ * platform. `plan` is the package chosen on the packages section (the contact page's link), if any.
+ */
+export function ContactForm({ packages, plan = "" }: { packages: PublicPackage[]; plan?: string }) {
   const t = useTranslations("marketing.contact.form");
   const tPricing = useTranslations("marketing.pricing");
   const format = useFormatter();
@@ -40,29 +36,22 @@ export function ContactForm({ packages }: { packages: PublicPackage[] }) {
   const send = useSendContact();
   const [formError, setFormError] = useState<string | null>(null);
 
-  const form = useForm<ContactValues>({ resolver: zodResolver(contactSchema), defaultValues: EMPTY });
-  const { setValue } = form;
+  const form = useForm<ContactValues>({ resolver: zodResolver(contactSchema), defaultValues: { ...EMPTY, plan } });
 
-  // a package card's button fills the package in
-  useEffect(() => {
-    const onChoose = (e: Event) => {
-      const { code, billing } = (e as CustomEvent<ChoosePackageDetail>).detail;
-      setValue("plan", packageChoice(code, billing));
-    };
-    window.addEventListener(CHOOSE_PACKAGE_EVENT, onChoose);
-    return () => window.removeEventListener(CHOOSE_PACKAGE_EVENT, onChoose);
-  }, [setValue]);
-
-  const packageOptions = packages.flatMap((pkg) =>
-    (["MONTHLY", "YEARLY"] as Billing[]).map((billing) => ({
-      value: packageChoice(pkg.code, billing),
-      label: t("packageOption", {
-        name: pkg.name,
-        billing: tPricing(billing === "MONTHLY" ? "monthly" : "yearly"),
-        price: withSign(locale, format.number(priceOf(pkg, billing))),
-      }),
-    })),
-  );
+  const packageOptions = [
+    ...packages.flatMap((pkg) =>
+      (["MONTHLY", "YEARLY"] as Billing[]).map((billing) => ({
+        value: packageChoice(pkg.code, billing),
+        label: t("packageOption", {
+          name: pkg.name,
+          billing: tPricing(billing === "MONTHLY" ? "monthly" : "yearly"),
+          price: withSign(locale, format.number(priceOf(pkg, billing))),
+        }),
+      })),
+    ),
+    // Custom: its price is agreed with each institution
+    { value: packageChoice(CUSTOM_PACKAGE.code), label: t("customOption") },
+  ];
 
   const onSubmit = form.handleSubmit(async (values) => {
     setFormError(null);
@@ -107,7 +96,7 @@ export function ContactForm({ packages }: { packages: PublicPackage[] }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="relative grid gap-5 sm:grid-cols-2" noValidate>
+      <form onSubmit={onSubmit} className="relative grid grid-cols-1 gap-5 sm:grid-cols-2" noValidate>
         {formError && (
           <div className="sm:col-span-2">
             <FormError message={formError} />
@@ -214,11 +203,11 @@ export function ContactForm({ packages }: { packages: PublicPackage[] }) {
         </div>
 
         <div className="flex flex-col-reverse items-center gap-4 sm:col-span-2 sm:flex-row sm:justify-between">
-          <p className="text-sm text-mk-slate">{t("privacy")}</p>
+          <p className="text-sm text-hp-quiet">{t("privacy")}</p>
           <Button
             type="submit"
             disabled={send.isPending}
-            className="h-12 w-full rounded-md bg-mk-ink px-7 text-base font-semibold text-white hover:bg-mk-ink-2 sm:w-auto"
+            className="h-12 w-full rounded-xl bg-hp-brand px-7 text-base font-semibold text-white hover:bg-hp-brand-ink sm:w-auto"
           >
             {send.isPending ? t("sending") : t("send")}
           </Button>

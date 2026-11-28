@@ -9,17 +9,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalizedName } from "@/lib/i18n/names";
 import { useErrorMessage } from "@/lib/i18n/useErrorMessage";
 import { useClasses } from "@/lib/school/classes";
-import { useFinalCards } from "@/lib/school/finalResults";
 import { useResultCards } from "@/lib/school/results";
 import { ResultCardView } from "./ResultCardView";
 
 const ALL = "all";
 
 /**
- * A published class result's cards (an exam's, or a final result's): a section's, or one
+ * A published class result's cards: a section's, or one
  * student's, ready to print (one per page).
  */
-export function CardsView({ examId, formulaId, classId }: { examId?: string; formulaId?: string; classId: string }) {
+export function CardsView({ examId, classId }: { examId: string; classId: string }) {
   const t = useTranslations("school.exams.results.cards");
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
@@ -30,9 +29,7 @@ export function CardsView({ examId, formulaId, classId }: { examId?: string; for
   const [sectionId, setSectionId] = useState<string | undefined>();
   const [enrollmentId, setEnrollmentId] = useState<string>(ALL);
   const shownSection = sectionId ?? (realSections[0] ?? sections[0])?.id;
-  const examCards = useResultCards(examId && shownSection ? { examId, classId, sectionId: shownSection } : null);
-  const finalCards = useFinalCards(formulaId, shownSection ? { sectionId: shownSection } : null);
-  const { data, isPending, isError, error, refetch } = formulaId ? finalCards : examCards;
+  const { data, isPending, isError, error, refetch } = useResultCards(shownSection ? { examId, classId, sectionId: shownSection } : null);
   const cards = data ? (enrollmentId === ALL ? data.cards : data.cards.filter((c) => c.enrollmentId === enrollmentId)) : [];
 
   return (

@@ -35,6 +35,8 @@ const createExam = z
     // the attendance period shown on the result sheet; left out = year start to the last exam day
     attendanceFrom: dateOnlySchema.optional(),
     attendanceTo: dateOnlySchema.optional(),
+    // the final exam of the year for all its classes (moved from another exam if one had it)
+    isFinal: z.boolean().default(false),
   })
   .refine((d) => (d.allClasses ? d.classIds.length === 0 : d.classIds.length > 0), {
     message: "Choose all classes, or list the classes",
@@ -55,6 +57,8 @@ const updateExam = z
     ...names,
     attendanceFrom: dateOnlySchema.nullable().optional(),
     attendanceTo: dateOnlySchema.nullable().optional(),
+    // the final exam (or not) for all its classes
+    isFinal: z.boolean().optional(),
   })
   .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" })
   .refine((d) => (d.attendanceFrom === undefined) === (d.attendanceTo === undefined), {
@@ -73,6 +77,21 @@ const updateExam = z
 const addClasses = z.strictObject({
   classIds: z.array(idSchema("Class")).min(1).max(100).refine(uniqueIds, "A class is listed twice"),
 });
+
+/*
+ * One class of the exam: its own name for the exam ("Test exam" for class 10; both null = the
+ * exam's name) and whether it is the class's final exam of the year.
+ */
+const updateExamClass = z
+  .strictObject({
+    ...names,
+    isFinal: z.boolean().optional(),
+  })
+  .refine((d) => Object.keys(d).length > 0, { message: "Provide at least one field to update" })
+  .refine((d) => (d.nameEn === undefined) === (d.nameBn === undefined), {
+    message: "Give both names together (null clears them)",
+    path: ["nameBn"],
+  });
 
 const examIdParams = z.object({ examId: idSchema("Exam id") });
 const examClassParams = z.object({ examId: idSchema("Exam id"), classId: idSchema("Class id") });
@@ -201,6 +220,7 @@ export const ExamValidation = {
   deleteExamQuery,
   createExam,
   updateExam,
+  updateExamClass,
   addClasses,
   examIdParams,
   examClassParams,
@@ -213,6 +233,7 @@ export const ExamValidation = {
 
 export type CreateExamPayload = z.infer<typeof createExam>;
 export type UpdateExamPayload = z.infer<typeof updateExam>;
+export type UpdateExamClassPayload = z.infer<typeof updateExamClass>;
 export type AddClassesPayload = z.infer<typeof addClasses>;
 export type ListExamsQuery = z.infer<typeof listExamsQuery>;
 export type DeleteExamQuery = z.infer<typeof deleteExamQuery>;

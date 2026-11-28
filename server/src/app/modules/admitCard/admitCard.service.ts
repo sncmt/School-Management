@@ -8,6 +8,7 @@ import { fileUrl } from "../../shared/storage";
 import { ResultCardService } from "../exam/resultCard.service";
 import { NotificationService, notifyInBackground } from "../notification/notification.service";
 import type { AdmitSettingsPayload, CardsQuery } from "./admitCard.validation";
+import { classExamName } from "../exam/examName";
 
 /*
  * Admit cards for an exam: one per student on roll in the exam's classes, with the photo,
@@ -78,7 +79,7 @@ const loadExam = async (schoolId: string, examId: string) => {
       academicYearId: true,
       admitCardsReleasedAt: true,
       academicYear: { select: { id: true, name: true } },
-      classes: { select: { id: true, classId: true } },
+      classes: { select: { id: true, classId: true, nameEn: true, nameBn: true } },
     },
   });
   if (!exam) throw new AppError("Exam not found!", httpStatus.NOT_FOUND);
@@ -103,16 +104,19 @@ const buildCards = async (schoolId: string, exam: ExamRow, enrollments: Enrollme
       select: { enrollmentId: true, seatNo: true, room: { select: { number: true, building: true } } },
     }),
   ]);
-  const examClassOf = new Map(exam.classes.map((c) => [c.classId, c.id]));
+  const examClassOf = new Map(exam.classes.map((c) => [c.classId, c]));
   const dayOf = new Map(days.map((d) => [d.examClassId, d]));
   const seatOf = new Map(seats.map((s) => [s.enrollmentId, s]));
 
   const cards = await Promise.all(
     enrollments.map(async (e) => {
-      const range = dayOf.get(examClassOf.get(e.classId) ?? "");
+      const examClass = examClassOf.get(e.classId);
+      const range = dayOf.get(examClass?.id ?? "");
       const seat = seatOf.get(e.id);
       return {
         enrollmentId: e.id,
+        // the exam's name in the student's class ("Test exam" for class 10), else the exam's
+        examName: examClass ? classExamName({ ...examClass, exam }) : { nameEn: exam.nameEn, nameBn: exam.nameBn },
         student: { ...e.student, photo: await fileUrl(e.student.photo) },
         rollNumber: e.rollNumber,
         class: e.class,
@@ -183,8 +187,11 @@ export const releasedForEnrollment = (enrollment: { academicYearId: string; clas
   prisma.exam.findMany({
     where: { academicYearId: enrollment.academicYearId, admitCardsReleasedAt: { not: null }, classes: { some: { classId: enrollment.classId } } },
     orderBy: { admitCardsReleasedAt: "desc" },
-    select: { id: true, nameEn: true, nameBn: true },
-  });
+    select: { id: true, nameEn: true, nameBn: true, classes: { where: { classId: enrollment.classId }, select: { nameEn: true, nameBn: true } } },
+  }).then((exams) =>
+    // the name in the child's class
+    exams.map(({ classes, ...exam }) => ({ id: exam.id, ...classExamName({ ...(classes[0] ?? { nameEn: null, nameBn: null }), exam }) })),
+  );
 
 /* One child's admit card for one exam, when the school has released it. */
 const familyCard = async (auth: Auth, studentId: string, examId: string) => {

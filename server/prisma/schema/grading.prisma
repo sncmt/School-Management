@@ -173,7 +173,6 @@ model Exam {
   admitCardsReleasedAt DateTime?
 
   classes         ExamClass[]
-  finalComponents FinalResultComponentExam[]
   seatPlan        SeatPlan?
 
   createdBy String?
@@ -193,6 +192,15 @@ model ExamClass {
   class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Restrict)
 
   status ExamClassStatus @default(ROUTINE)
+
+  // this class's own name for the exam ("Test exam" for class 10 when the exam is "Annual");
+  // both null = the exam's name. Used as a pair (classExamName)
+  nameEn String?
+  nameBn String?
+
+  // the class's final exam of the year: its result is the year's result (promotion reads it).
+  // At most one per class and academic year; the service moves the flag
+  isFinal Boolean @default(false)
 
   // SINGLE exams: the one exam day of this class
   date DateTime? @db.Date
@@ -407,165 +415,7 @@ model ExamResultSubject {
   point      Decimal? @db.Decimal(3, 2)
 
   parts  Json? // [{ name, fullMarks, passMarks, marks, passed }]
-  papers Json? // combined papers: [{ subjectId, nameEn, nameBn, code, fullMarks, marks, isAbsent }]
-
-  sortOrder Int
-
-  @@index([resultId])
-}
-
-// ============================================================ final results
-
-enum FinalComponentMethod {
-  AVERAGE // the average of the component's exams
-  BEST // the average of the best n of them ("best 2 of 3 class tests")
-}
-
-enum FinalResultStatus {
-  DRAFT
-  PUBLISHED
-}
-
-/**
- * How a class's final (or term) result is made from its exams in one year. Every school
- * and class builds its own, and a class can have several ("Half-yearly result", "Annual
- * result"). Components are weighted (adding up to 100%).
- */
-model FinalResultFormula {
-  id String @id @default(cuid())
-
-  schoolId String
-  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  academicYearId String
-  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
-
-  classId String
-  class   SchoolClass @relation(fields: [classId], references: [id], onDelete: Restrict)
-
-  nameEn String?
-  nameBn String?
-
-  // attendance on the final result sheet; null = year start to the last exam day
-  attendanceFrom DateTime? @db.Date
-  attendanceTo   DateTime? @db.Date
-
-  status      FinalResultStatus @default(DRAFT)
-  publishedAt DateTime?
-  publishedBy String?
-  resultRules Json? // the rules and grading tables used, saved when published
-
-  components FinalResultComponent[]
-  results    FinalResult[]
-
-  createdBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([academicYearId, classId, nameEn])
-  @@index([schoolId])
-}
-
-model FinalResultComponent {
-  id String @id @default(cuid())
-
-  formulaId String
-  formula   FinalResultFormula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
-
-  nameEn String? // "Class tests"
-  nameBn String?
-
-  weight    Decimal              @db.Decimal(5, 2)
-  method    FinalComponentMethod @default(AVERAGE)
-  bestCount Int? // BEST only
-  sortOrder Int                  @default(0)
-
-  exams FinalResultComponentExam[]
-
-  @@index([formulaId])
-}
-
-model FinalResultComponentExam {
-  id String @id @default(cuid())
-
-  componentId String
-  component   FinalResultComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
-
-  // Restrict: an exam used by a formula cannot be deleted
-  examId String
-  exam   Exam   @relation(fields: [examId], references: [id], onDelete: Restrict)
-
-  @@unique([componentId, examId])
-  @@index([examId])
-}
-
-/**
- * A student's published final result, saved as a snapshot like an exam result.
- */
-model FinalResult {
-  id String @id @default(cuid())
-
-  formulaId String
-  formula   FinalResultFormula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
-
-  enrollmentId String
-  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
-
-  studentId String
-  student   Student @relation(fields: [studentId], references: [id], onDelete: Restrict)
-
-  sectionId String
-
-  totalMarks Decimal  @db.Decimal(8, 2)
-  fullMarks  Decimal  @db.Decimal(8, 2)
-  percentage Decimal  @db.Decimal(5, 2)
-  gpa        Decimal? @db.Decimal(3, 2)
-  grade      String?
-
-  passed         Boolean
-  failedSubjects Int
-
-  sectionPosition Int
-  classPosition   Int
-
-  attendanceDays    Int
-  attendancePresent Int
-  attendanceAbsent  Int
-  attendanceLeave   Int
-
-  subjects FinalResultSubject[]
-
-  createdAt DateTime @default(now())
-
-  @@unique([formulaId, enrollmentId])
-  @@index([formulaId, sectionId])
-  @@index([studentId])
-}
-
-model FinalResultSubject {
-  id String @id @default(cuid())
-
-  resultId String
-  result   FinalResult @relation(fields: [resultId], references: [id], onDelete: Cascade)
-
-  subjectId String
-  nameEn    String?
-  nameBn    String?
-  code      String?
-
-  isOptional Boolean
-  excluded   Boolean // in none of the components (e.g. absent everywhere under EXCLUDE)
-
-  percentage     Decimal  @db.Decimal(5, 2)
-  passPercentage Decimal  @db.Decimal(5, 2)
-  fullMarks      Decimal  @db.Decimal(6, 2)
-  marks          Decimal? @db.Decimal(6, 2)
-  passed         Boolean
-  grade          String?
-  point          Decimal? @db.Decimal(3, 2)
-
-  // each component's percentage and the exams behind it
-  components Json
+  papers Json? // combined papers: [{ id, nameEn, nameBn, code, fullMarks, passMarks, marks, isAbsent, parts }]
 
   sortOrder Int
 

@@ -64,10 +64,9 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
   const [s, setS] = useState(saved);
   const set = <K extends keyof CardSettings>(key: K, value: CardSettings[K]) => setS((x) => ({ ...x, [key]: value }));
   const changes = (Object.keys(s) as (keyof CardSettings)[]).filter((k) => JSON.stringify(s[k]) !== JSON.stringify(saved[k])).length;
-  // preview an exam's card or a final result's; zoomed to fit, or at its printed size
-  const [final, setFinal] = useState(false);
+  // the preview: zoomed to fit, or at its printed size
   const [actual, setActual] = useState(false);
-  const sample = sampleCards(s, me?.school, final);
+  const sample = sampleCards(s, me?.school);
 
   const toggle = (key: keyof CardSettings, label: string, wide = false) => (
     <label className={cn("flex items-center justify-between gap-3 py-1.5 text-sm", wide && "col-span-2")}>
@@ -170,7 +169,6 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
             {toggle("showGrade", t("showGrade"))}
             {toggle("showPoint", t("showPoint"))}
             {toggle("showParts", t("showParts"), true)}
-            {toggle("showComponents", t("showComponents"), true)}
           </div>
           <ChoiceRow
             label={t("highestMarks")}
@@ -236,14 +234,6 @@ function Designer({ saved, canManage }: { saved: CardSettings; canManage: boolea
           bar={(size) => (
             <>
               <span className="text-[15px] font-semibold">{t("preview")}</span>
-              <Segmented
-                value={final ? "final" : "exam"}
-                onChange={(v) => setFinal(v === "final")}
-                options={[
-                  { value: "exam", label: t("previewExam") },
-                  { value: "final", label: t("previewFinal") },
-                ]}
-              />
               <Segmented
                 value={actual ? "actual" : "fit"}
                 onChange={(v) => setActual(v === "actual")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, CircleDashed, IdCard, Lock, MessageSquareText, Send, Table2, Unlock } from "lucide-react";
+import { Award, CheckCircle2, CircleDashed, IdCard, Lock, MessageSquareText, Send, Table2, Unlock } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ type View = { kind: "sheet" | "cards" | "remarks"; classId: string };
 export function ResultsTab() {
   const t = useTranslations("school.exams.results");
   const tStage = useTranslations("school.exams.stages");
+  const tDetail = useTranslations("school.exams.detail");
   const tCommon = useTranslations("common");
   const describeError = useErrorMessage();
   const format = useFormatter();
@@ -105,7 +106,19 @@ export function ResultsTab() {
             <TableBody>
               {summary.data.classes.map((c) => (
                 <TableRow key={c.class.id}>
-                  <TableCell className="font-medium">{c.class.name}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap items-center gap-1.5 font-medium">
+                      {c.class.name}
+                      {/* its result is the year's result */}
+                      {c.isFinal && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Award className="size-3" /> {tDetail("final")}
+                        </Badge>
+                      )}
+                    </div>
+                    {/* the class's own name for the exam */}
+                    {name(c.name) !== name(exam) && <div className="text-xs text-muted-foreground">{name(c.name)}</div>}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={c.status === "PUBLISHED" ? "default" : c.status === "MARKS_ENTRY" ? "secondary" : "outline"}>
                       {tStage(c.status)}

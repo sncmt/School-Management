@@ -9,6 +9,7 @@ import { SmsService, type SmsEventMessage, type SmsFacts } from "../sms/sms.serv
 import { currentMonth, dueFilter } from "../studentFee/studentFee.service";
 import type { NotificationListQuery } from "./notification.validation";
 import { PushService } from "./push.service";
+import { classExamName } from "../exam/examName";
 
 type Auth = NonNullable<Express.Request["auth"]>;
 
@@ -255,6 +256,8 @@ const notifyResultPublished = async (schoolId: string, examClassId: string) => {
     where: { id: examClassId, exam: { schoolId }, status: "PUBLISHED" },
     select: {
       class: { select: { name: true } },
+      nameEn: true,
+      nameBn: true,
       exam: { select: { nameEn: true, nameBn: true } },
       results: { select: { student: { select: studentRef } } },
     },
@@ -264,7 +267,8 @@ const notifyResultPublished = async (schoolId: string, examClassId: string) => {
   const takeBackIfUnlocked = async () => {
     if (!(await isPublished())) await withdrawResult(schoolId, examClassId);
   };
-  await sendResult(schoolId, examClassId, examClass);
+  // the exam's name in this class ("Test exam" for class 10)
+  await sendResult(schoolId, examClassId, { ...examClass, exam: classExamName(examClass) });
   await takeBackIfUnlocked();
 };
 

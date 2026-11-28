@@ -26,14 +26,11 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
   const ordinal = (n: number, of: number) => t("positionOf", { n: format.number(n), of: format.number(of) });
 
   const showHighest = s.highestMarks !== "NONE";
-  // a final result card: a column per component (Half-yearly 30%, Annual 70%)
-  const components = s.showComponents ? (data.components ?? []) : [];
   const columns = [
     s.showCode && "code",
     "subject",
     s.showFullMarks && "full",
     s.showPassMarks && "pass",
-    ...components.map((c) => `component:${c.id}`),
     "marks",
     showHighest && "highest",
     graded && s.showGrade && "grade",
@@ -127,7 +124,7 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
           <tr style={{ backgroundColor: modern ? `${accent}1a` : "#f5f5f5" }}>
             {columns.map((c) => (
               <th key={c} className={cn("border border-neutral-300 font-semibold", cell, c === "subject" ? "text-left" : "text-center")}>
-                {c.startsWith("component:") ? <ComponentHeader component={components.find((x) => `component:${x.id}` === c)!} /> : t(`columns.${c}` as "columns.subject")}
+                {t(`columns.${c}` as "columns.subject")}
                 {c === "highest" && (
                   <span className="block font-normal text-neutral-500">{t(s.highestMarks === "SECTION" ? "inSection" : "inClass")}</span>
                 )}
@@ -163,9 +160,6 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
                   highest: num(s.highestMarks === "SECTION" ? line.highestInSection : line.highestInClass),
                   grade: line.excluded ? "—" : (line.grade ?? "—"),
                   point: line.excluded || line.point === null ? "—" : gpa(line.point),
-                  ...Object.fromEntries(
-                    (line.components ?? []).map((c) => [`component:${c.componentId}`, c.percentage === null ? "—" : `${num(c.percentage)}%`]),
-                  ),
                 }}
                 // each paper as a row of its own under the combined subject, with its own marks;
                 // the grade and point belong to the combined subject
@@ -286,18 +280,6 @@ export function ResultCardView({ data, card }: { data: Omit<ResultCards, "cards"
         </div>
       )}
     </div>
-  );
-}
-
-/* A component column's heading: its name and weight. */
-function ComponentHeader({ component }: { component: NonNullable<ResultCards["components"]>[number] }) {
-  const name = useLocalizedName();
-  const format = useFormatter();
-  return (
-    <>
-      {name(component)}
-      <span className="block font-normal text-neutral-500">{format.number(Number(component.weight), { maximumFractionDigits: 2 })}%</span>
-    </>
   );
 }
 

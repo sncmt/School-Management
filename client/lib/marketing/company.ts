@@ -1,3 +1,6 @@
+// the platform's public domain, as visitors know it (shown in examples, whatever host this runs on)
+export const PUBLIC_DOMAIN = "sncmt.com";
+
 // the platform's WhatsApp for schools and visitors (the homepage's button, the dashboard menu's help line)
 export const SUPPORT_WHATSAPP = "+8801626567819";
 

@@ -15,6 +15,7 @@ import { dayStatus, eachDay, loadCalendar } from "../calendar/calendar.resolver"
 import { ExamResultService } from "../exam/examResult.service";
 import { RoutineService } from "../routine/routine.service";
 import { currentYears } from "../../shared/academicYears";
+import { classExam } from "../exam/examName";
 
 /*
  * The family login's home: the children on this account in this school, each with their
@@ -258,17 +259,21 @@ const getResults = async (auth: Auth, studentId: string) => {
       examClass: {
         select: {
           publishedAt: true,
+          nameEn: true,
+          nameBn: true,
+          isFinal: true,
           class: { select: { id: true, name: true } },
           exam: { select: { id: true, nameEn: true, nameBn: true, academicYear: { select: { id: true, name: true } } } },
         },
       },
     },
   });
-  return results.map(({ examClass: { exam, class: schoolClass, publishedAt }, ...result }) => ({
-    exam: { id: exam.id, nameEn: exam.nameEn, nameBn: exam.nameBn },
-    academicYear: exam.academicYear,
-    class: schoolClass,
-    publishedAt,
+  return results.map(({ examClass, ...result }) => ({
+    // the exam's name in the child's class; isFinal: the class's final exam of the year
+    exam: classExam(examClass),
+    academicYear: examClass.exam.academicYear,
+    class: examClass.class,
+    publishedAt: examClass.publishedAt,
     ...result,
   }));
 };

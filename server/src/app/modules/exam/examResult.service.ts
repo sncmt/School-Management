@@ -19,6 +19,7 @@ import { NotificationService, notifyInBackground } from "../notification/notific
 import { marksProgress } from "./examMarks.service";
 import { loadExamStudents } from "./examStudents";
 import { fourthOptions, isFourthFor, loadElectiveRules, mainCountFor, openElectives } from "../../shared/subjectChoice";
+import { classExam, classExamName } from "./examName";
 
 type Auth = NonNullable<Express.Request["auth"]>;
 
@@ -323,7 +324,7 @@ const publishResult = async (auth: Auth, data: ExamClassPayload) => {
 
   const passed = results.filter((r) => r.result.passed).length;
   return {
-    exam: { id: examClass.exam.id, nameEn: examClass.exam.nameEn, nameBn: examClass.exam.nameBn },
+    exam: classExam(examClass),
     class: examClass.class,
     published: results.length,
     passed,
@@ -337,23 +338,6 @@ const unlockResult = async (schoolId: string, data: ExamClassPayload) => {
   const examClass = await findExamClass(schoolId, data.examId, data.classId);
   if (examClass.status !== "PUBLISHED") throw new AppError("The result is not published", httpStatus.CONFLICT);
 
-  // a published final result is built on this exam's result
-  const finalResult = await prisma.finalResultFormula.findFirst({
-    where: {
-      schoolId,
-      classId: data.classId,
-      status: "PUBLISHED",
-      components: { some: { exams: { some: { examId: data.examId } } } },
-    },
-    select: { nameEn: true, nameBn: true },
-  });
-  if (finalResult) {
-    throw new AppError(
-      `The final result "${displayName(finalResult)}" uses this exam. Unlock that final result first`,
-      httpStatus.CONFLICT,
-    );
-  }
-
   await prisma.$transaction(async (tx) => {
     await tx.examResult.deleteMany({ where: { examClassId: examClass.id } });
     await tx.examClass.update({
@@ -363,7 +347,7 @@ const unlockResult = async (schoolId: string, data: ExamClassPayload) => {
   });
   // its "result published" messages go; publishing again sends new ones
   notifyInBackground("result withdrawn", () => NotificationService.withdrawResult(schoolId, examClass.id));
-  return { exam: examClass.exam.nameEn, class: examClass.class, status: "MARKS_ENTRY" as const };
+  return { exam: displayName(classExamName(examClass)), class: examClass.class, status: "MARKS_ENTRY" as const };
 };
 
 // -------------------------------------------------------------------- reports
@@ -433,7 +417,7 @@ const getTabulation = async (schoolId: string, query: TabulationQuery) => {
   }
 
   return {
-    exam: { id: examClass.exam.id, nameEn: examClass.exam.nameEn, nameBn: examClass.exam.nameBn },
+    exam: classExam(examClass),
     academicYear: { id: examClass.exam.academicYear.id, name: examClass.exam.academicYear.name },
     class: examClass.class,
     publishedAt: examClass.publishedAt,
@@ -489,7 +473,7 @@ const getMarksheet = async (schoolId: string, query: MarksheetQuery) => {
   const { examClass: _, subjects, ...rest } = result;
   return {
     school,
-    exam: { id: examClass.exam.id, nameEn: examClass.exam.nameEn, nameBn: examClass.exam.nameBn },
+    exam: classExam(examClass),
     academicYear: { id: examClass.exam.academicYear.id, name: examClass.exam.academicYear.name },
     class: examClass.class,
     publishedAt: result.examClass.publishedAt,
@@ -524,7 +508,15 @@ const getExamSummary = async (schoolId: string, query: SummaryQuery) => {
       nameBn: true,
       classes: {
         orderBy: { class: { numericLevel: "asc" } },
-        select: { id: true, status: true, publishedAt: true, class: { select: { id: true, name: true, numericLevel: true } } },
+        select: {
+          id: true,
+          status: true,
+          publishedAt: true,
+          nameEn: true,
+          nameBn: true,
+          isFinal: true,
+          class: { select: { id: true, name: true, numericLevel: true } },
+        },
       },
     },
   });
@@ -539,6 +531,9 @@ const getExamSummary = async (schoolId: string, query: SummaryQuery) => {
     exam: { id: exam.id, nameEn: exam.nameEn, nameBn: exam.nameBn },
     classes: exam.classes.map((c) => ({
       class: c.class,
+      // the class's own name for the exam (else the exam's), and its final-exam mark
+      name: classExamName({ ...c, exam }),
+      isFinal: c.isFinal,
       status: c.status,
       publishedAt: c.publishedAt,
       summary: c.status === "PUBLISHED" ? summarize(results.filter((r) => r.examClassId === c.id)) : null,

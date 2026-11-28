@@ -77,6 +77,12 @@ Android release: GitHub Actions → "Build Android APK" (manual dispatch). It pu
 - Decide who sits, learns or is marked in a subject with `takesSubject` / `isFourthFor` in `server/src/app/shared/subjectChoice.ts`. Never `type === "OPTIONAL"`.
 - In results, `isOptional` is per student: the same subject can be one student's main and another's 4th.
 
+### Exams per class: names and the final exam
+
+- There is no separate final result. Each class marks one exam of the year as final (`ExamClass.isFinal`). That exam's published result is the year's result, and promotion reads it.
+- Setting the flag moves it from the class's other exam of that year (`setFinal` in `exam.service.ts`), so there is at most one per class.
+- An exam can have its own name in one class (`ExamClass.nameEn/nameBn`, e.g. "Test exam" in class 10). Wherever one class is shown, take the name from `classExamName` / `classExam` in `modules/exam/examName.ts` (on the client, `classExamName` in `lib/school/exams.ts`). Pages that span several classes (seat plans, invigilator duties) keep the exam's own name.
+
 ### Permissions and paid modules
 
 - Permission codes (e.g. `attendance:mark`, `homework:manage`) belong to **modules**, and schools get modules through subscription packages (`prisma/seeds/data/*.data.ts`).

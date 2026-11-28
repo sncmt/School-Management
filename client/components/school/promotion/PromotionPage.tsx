@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, GraduationCap, TriangleAlert, Undo2 } from "lucide-react";
+import { ArrowRight, Award, GraduationCap, TriangleAlert, Undo2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -40,22 +40,15 @@ export function PromotionPage() {
   const describeError = useErrorMessage();
   const classes = useClasses();
   const [classId, setClassId] = useState<string | undefined>();
-  const [formulaId, setFormulaId] = useState<string | undefined>();
   const schoolClass = classes.data?.items.find((c) => c.id === classId) ?? classes.data?.items[0];
-  const preview = usePromotionPreview(schoolClass ? { classId: schoolClass.id, ...(formulaId ? { formulaId } : {}) } : null);
+  const preview = usePromotionPreview(schoolClass ? { classId: schoolClass.id } : null);
 
   return (
     <div className="space-y-2">
       <PageHero title={t("title")} description={t("description")} />
 
       <div className="flex flex-wrap items-end gap-2">
-        <Select
-          value={schoolClass?.id ?? ""}
-          onValueChange={(v) => {
-            setClassId(v);
-            setFormulaId(undefined);
-          }}
-        >
+        <Select value={schoolClass?.id ?? ""} onValueChange={setClassId}>
           <SelectTrigger className="w-44" label={t("class")} required>
             <SelectValue placeholder={t("class")} />
           </SelectTrigger>
@@ -77,13 +70,13 @@ export function PromotionPage() {
         )
       ) : (
         // a fresh form for each class, result and reload
-        <Promotion key={`${preview.data.class.id}:${preview.data.formulaId}:${preview.dataUpdatedAt}`} data={preview.data} onFormula={setFormulaId} />
+        <Promotion key={`${preview.data.class.id}:${preview.dataUpdatedAt}`} data={preview.data} />
       )}
     </div>
   );
 }
 
-function Promotion({ data, onFormula }: { data: PromotionPreview; onFormula: (id: string) => void }) {
+function Promotion({ data }: { data: PromotionPreview }) {
   const t = useTranslations("school.promotion");
   const format = useFormatter();
   const name = useLocalizedName();
@@ -99,6 +92,9 @@ function Promotion({ data, onFormula }: { data: PromotionPreview; onFormula: (id
   const [sectionId, setSectionId] = useState<string | undefined>(nextSections.length === 1 ? nextSections[0].id : undefined);
   const [choices, setChoices] = useState<Record<string, Choice>>({});
   const [confirming, setConfirming] = useState(false);
+  // the class's final exam: its result guides the choices once published
+  const finalExam = data.finalExam;
+  const hasResult = finalExam?.status === "PUBLISHED";
 
   const moveUp: PromotionAction = next ? "PROMOTE" : "GRADUATE";
   // left the school during the year: their enrollment is only closed
@@ -167,26 +163,25 @@ function Promotion({ data, onFormula }: { data: PromotionPreview; onFormula: (id
       {pending.length > 0 && (
         <>
           <div className="flex flex-wrap items-end gap-4">
-            {data.formulas.length > 0 ? (
+            {finalExam && hasResult ? (
               <div className="space-y-1">
                 <Label>{t("result")}</Label>
-                <Select value={data.formulaId ?? ""} onValueChange={onFormula}>
-                  <SelectTrigger className="w-56">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {data.formulas.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {name(f)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <p className="flex h-9 items-center gap-2 text-sm font-medium">
+                  <Award className="size-4 text-navy" /> {name(finalExam)}
+                </p>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">{t("noResult")}</p>
+              <p className="flex max-w-xl items-start gap-2 text-sm text-muted-foreground">
+                <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
+                <span>
+                  {finalExam ? t("finalNotPublished", { exam: name(finalExam) }) : t("noFinalExam")}{" "}
+                  <Link href="/exams" className="font-medium text-foreground underline underline-offset-2">
+                    {t("goToExams")}
+                  </Link>
+                </span>
+              </p>
             )}
-            {data.formulaId && (
+            {hasResult && (
               <div className="space-y-1">
                 <Label>{t("failedGo")}</Label>
                 <div className="flex gap-3 text-sm">
@@ -271,7 +266,7 @@ function Promotion({ data, onFormula }: { data: PromotionPreview; onFormula: (id
                             </span>
                           </>
                         ) : (
-                          <span className="text-xs text-muted-foreground">{data.formulaId ? t("noResultFor") : "—"}</span>
+                          <span className="text-xs text-muted-foreground">{hasResult ? t("noResultFor") : "—"}</span>
                         )}
                       </TableCell>
                       <TableCell>

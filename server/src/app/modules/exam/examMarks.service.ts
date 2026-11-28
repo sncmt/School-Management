@@ -18,6 +18,7 @@ import type {
   SheetQuery,
   StudentQuery,
 } from "./examMarks.validation";
+import { classExam, examClassNameSelect } from "./examName";
 
 type Auth = NonNullable<Express.Request["auth"]>;
 
@@ -59,7 +60,7 @@ const loadSheetContext = async (schoolId: string, examSubjectId: string, section
           status: true,
           classId: true,
           class: { select: { id: true, name: true } },
-          exam: { select: { id: true, nameEn: true, nameBn: true } },
+          ...examClassNameSelect,
         },
       },
     },
@@ -170,6 +171,9 @@ const findExamClass = async (schoolId: string, examId: string, classId: string) 
       id: true,
       status: true,
       class: { select: { id: true, name: true } },
+      nameEn: true,
+      nameBn: true,
+      isFinal: true,
       exam: { select: { id: true, nameEn: true, nameBn: true, academicYearId: true } },
     },
   });
@@ -235,7 +239,7 @@ const getSheet = async (auth: Auth, query: SheetQuery) => {
   });
 
   return {
-    exam: ctx.examSubject.examClass.exam,
+    exam: classExam(ctx.examSubject.examClass),
     class: ctx.examSubject.examClass.class,
     section: ctx.section,
     subject: ctx.examSubject.classSubject.subject,
@@ -317,7 +321,7 @@ const getGrid = async (schoolId: string, query: GridQuery) => {
 
   const blocker = classBlocker(examClass.status);
   return {
-    exam: examClass.exam,
+    exam: classExam(examClass),
     class: examClass.class,
     section,
     status: examClass.status,
@@ -421,7 +425,7 @@ const getStudentMarks = async (schoolId: string, query: StudentQuery) => {
 
   const blocker = classBlocker(examClass.status);
   return {
-    exam: examClass.exam,
+    exam: classExam(examClass),
     class: examClass.class,
     section: student.section,
     student: student.student,
@@ -505,11 +509,11 @@ export const marksProgress = async (examClassId: string) => {
 const getProgress = async (schoolId: string, query: ProgressQuery) => {
   const examClass = await prisma.examClass.findFirst({
     where: { examId: query.examId, classId: query.classId, exam: { schoolId } },
-    select: { id: true, status: true, class: { select: { id: true, name: true } }, exam: { select: { id: true, nameEn: true, nameBn: true } } },
+    select: { id: true, status: true, class: { select: { id: true, name: true } }, ...examClassNameSelect },
   });
   if (!examClass) throw new AppError("This class is not part of the exam", httpStatus.NOT_FOUND);
 
-  return { exam: examClass.exam, class: examClass.class, status: examClass.status, ...(await marksProgress(examClass.id)) };
+  return { exam: classExam(examClass), class: examClass.class, status: examClass.status, ...(await marksProgress(examClass.id)) };
 };
 
 // --------------------------------------------------------- a teacher's sheets
@@ -539,7 +543,7 @@ const getMySheets = async (auth: Auth, query: MineQuery) => {
       classSubjectId: true,
       classSubject: { select: { subject: { select: { id: true, nameEn: true, nameBn: true, code: true } } } },
       examClass: {
-        select: { class: { select: { id: true, name: true } }, exam: { select: { id: true, nameEn: true, nameBn: true } } },
+        select: { class: { select: { id: true, name: true } }, ...examClassNameSelect },
       },
     },
   });
@@ -551,7 +555,7 @@ const getMySheets = async (auth: Auth, query: MineQuery) => {
         .filter((a) => a.classSubjectId === es.classSubjectId)
         .map((a) => ({
           examSubjectId: es.id,
-          exam: es.examClass.exam,
+          exam: classExam(es.examClass),
           class: es.examClass.class,
           section: a.section,
           subject: es.classSubject.subject,

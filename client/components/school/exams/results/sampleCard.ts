@@ -39,43 +39,9 @@ const line = (
   ...extra,
 });
 
-// a final result's two components, and a subject's share from each (a little either side of its final %)
-const COMPONENTS = [
-  { id: "half", nameEn: "Half-yearly", nameBn: "অর্ধবার্ষিক", weight: "40" },
-  { id: "annual", nameEn: "Annual", nameBn: "বার্ষিক", weight: "60" },
-];
-const withComponents = (subject: ResultCard["subjects"][number]): ResultCard["subjects"][number] => {
-  const pct = Number(subject.percentage);
-  return {
-    ...subject,
-    parts: null,
-    papers: null,
-    components: COMPONENTS.map((c, i) => ({
-      componentId: c.id,
-      nameEn: c.nameEn,
-      nameBn: c.nameBn,
-      weight: Number(c.weight),
-      percentage: Math.round(Math.min(100, i === 0 ? pct - 3 : pct + 2) * 100) / 100,
-      exams: [],
-    })),
-  };
-};
-
-/* The sample: an exam's card, or with `final` a final result's (with the component columns). */
-export const sampleCards = (
-  settings: CardSettings,
-  school: School | undefined,
-  final = false,
-): Omit<ResultCards, "cards"> & { cards: ResultCard[] } => {
-  const data = sampleExamCards(settings, school);
-  if (!final) return data;
-  return {
-    ...data,
-    exam: { id: "sample", nameEn: "Annual Result", nameBn: "বার্ষিক ফলাফল" },
-    components: COMPONENTS,
-    cards: data.cards.map((c) => ({ ...c, subjects: c.subjects.map(withComponents) })),
-  };
-};
+/* The sample: an exam's card. */
+export const sampleCards = (settings: CardSettings, school: School | undefined): Omit<ResultCards, "cards"> & { cards: ResultCard[] } =>
+  sampleExamCards(settings, school);
 
 const sampleExamCards = (settings: CardSettings, school: School | undefined): Omit<ResultCards, "cards"> & { cards: ResultCard[] } => ({
   settings,

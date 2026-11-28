@@ -413,7 +413,7 @@ The platform's own marketing page shares the type and the gold but has its own l
   - the footer on sky blue.
 - **No gradients:** no gradients anywhere on this page.
 - **Fixed buttons:** a WhatsApp button and a back-to-top button sit at the bottom right.
-- **Logo:** the SNCMT logo (a graduate rising from an open book in a navy ring) marks the header, the footer and the browser tab.
+- **Logo:** the SNCMT logo (a teal open book with a light-teal arrow rising from its spine to a graduation cap, on a transparent ground) marks the header, the footer and the browser tab.
 
 ## Do's and Don'ts
 

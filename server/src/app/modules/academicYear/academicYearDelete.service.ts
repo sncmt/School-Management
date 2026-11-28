@@ -10,7 +10,7 @@ import { isForeignKeyViolation } from "../../utils/prismaError";
 /*
  * Deleting an academic year made by mistake (wrong dates, a duplicate). The current year too,
  * but only while nobody is enrolled in it and nothing happened in it: no fees,
- * attendance, exams, final results or homework. The setup copied into it when it was made
+ * attendance, exams or homework. The setup copied into it when it was made
  * (class subjects, subject teachers, routine, result settings, section settings, fee
  * structures, calendar entries) goes with it.
  */
@@ -22,13 +22,12 @@ const TX_OPTIONS = { maxWait: 10_000, timeout: 30_000 };
 
 const check = async (db: Db, year: { id: string; isCurrent: boolean }) => {
   const academicYearId = year.id;
-  const [enrollments, studentFees, attendance, exams, finalFormulas, homework, classSubjects, subjectTeachers, routine, feeStructures, calendarEntries, sectionConfigs] =
+  const [enrollments, studentFees, attendance, exams, homework, classSubjects, subjectTeachers, routine, feeStructures, calendarEntries, sectionConfigs] =
     await Promise.all([
       db.enrollment.count({ where: { academicYearId } }),
       db.studentFee.count({ where: { academicYearId } }),
       db.attendanceSession.count({ where: { academicYearId } }),
       db.exam.count({ where: { academicYearId } }),
-      db.finalResultFormula.count({ where: { academicYearId } }),
       db.homework.count({ where: { academicYearId } }),
       db.classSubject.count({ where: { academicYearId } }),
       db.subjectTeacher.count({ where: { academicYearId } }),
@@ -43,7 +42,6 @@ const check = async (db: Db, year: { id: string; isCurrent: boolean }) => {
       blocker("studentFees", studentFees, `${studentFees} student fee(s)`),
       blocker("attendanceDays", attendance, `${attendance} day(s) of attendance`),
       blocker("exams", exams, `${exams} exam(s)`),
-      blocker("finalFormulas", finalFormulas, `${finalFormulas} final result setup(s)`),
       blocker("homework", homework, `${homework} homework`),
     ],
     { classSubjects, subjectTeachers, routine, feeStructures, calendarEntries, sectionConfigs },

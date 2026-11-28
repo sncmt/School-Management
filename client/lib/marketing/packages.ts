@@ -38,9 +38,29 @@ export const INCLUDED_FEATURES = [
   "bangla",
 ] as const;
 
-// a package button tells the contact form which one was chosen
-export const CHOOSE_PACKAGE_EVENT = "sncmt:choose-package";
-export type ChoosePackageDetail = { code: string; billing: Billing };
+/*
+ * Custom: not one of the platform admin's packages but a one-time build for one institution, on
+ * its own domain, with features made for it. It has no set price: it is agreed with each institution.
+ * The contact form sends its code with no billing period.
+ */
+export const CUSTOM_PACKAGE = { code: "CUSTOM" } as const;
 
-// the contact form's value for a package and billing ("BASIC:YEARLY"); codes may hold "_"
-export const packageChoice = (code: string, billing: Billing) => `${code}:${billing}`;
+// the contact form's value for a package and billing ("BASIC:YEARLY", or "CUSTOM"); codes may hold "_"
+export const packageChoice = (code: string, billing?: Billing) => (billing ? `${code}:${billing}` : code);
+
+// the contact page, with a package already chosen: /contact?package=STANDARD&billing=YEARLY (Custom: no billing)
+export const contactHref = (code?: string, billing?: Billing) => {
+  if (!code) return "/contact";
+  const query = new URLSearchParams({ package: code, ...(billing ? { billing } : {}) });
+  return `/contact?${query}`;
+};
+
+/**
+ * The package a visitor chose on the packages section, as the contact form's value, if it is one
+ * on offer (a link may be old or typed by hand); otherwise "" (not chosen).
+ */
+export const chosenPlan = (packages: PublicPackage[], code?: string, billing?: string) => {
+  if (code === CUSTOM_PACKAGE.code) return packageChoice(CUSTOM_PACKAGE.code);
+  if (!packages.some((pkg) => pkg.code === code)) return "";
+  return billing === "MONTHLY" || billing === "YEARLY" ? packageChoice(code!, billing) : "";
+};

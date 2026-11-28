@@ -29,8 +29,8 @@ export const studentMoney = async (db: Db, studentIds: string[]) => {
 };
 
 /*
- * Removes enrollments and everything that hangs on them: attendance records, marks, exam
- * and final results (these hold on with Restrict, so they go first), then the enrollments;
+ * Removes enrollments and everything that hangs on them: attendance records, marks and exam
+ * results (these hold on with Restrict, so they go first), then the enrollments;
  * homework ticks, remarks, seats and optional subjects follow by cascade. The untouched class
  * fees of the student in that year and class go too. Fees with money data, and custom fees,
  * stay.
@@ -46,7 +46,6 @@ export const deleteEnrollments = async (tx: Prisma.TransactionClient, where: Pri
   const attendance = await tx.studentAttendance.deleteMany({ where: { enrollmentId: { in: ids } } });
   const marks = await tx.examMark.deleteMany({ where: { enrollmentId: { in: ids } } });
   const results = await tx.examResult.deleteMany({ where: { enrollmentId: { in: ids } } });
-  const finals = await tx.finalResult.deleteMany({ where: { enrollmentId: { in: ids } } });
   await tx.enrollment.deleteMany({ where: { id: { in: ids } } });
   const fees = await tx.studentFee.deleteMany({
     where: {
@@ -61,7 +60,7 @@ export const deleteEnrollments = async (tx: Prisma.TransactionClient, where: Pri
     enrollments: ids.length,
     attendance: attendance.count,
     marks: marks.count,
-    results: results.count + finals.count,
+    results: results.count,
     fees: fees.count,
   };
 };

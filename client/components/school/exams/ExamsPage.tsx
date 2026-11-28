@@ -2,7 +2,6 @@
 
 import {
   Armchair,
-  Award,
   Check,
   ChevronDown,
   FileBadge,
@@ -27,7 +26,6 @@ import { useExams } from "@/lib/school/exams";
 import { cn } from "@/lib/utils";
 import { AdmitCardsTab } from "./admit/AdmitCardsTab";
 import { ExamsTab } from "./ExamsTab";
-import { FinalResultsTab } from "./final/FinalResultsTab";
 import { GradingScales } from "./GradingScales";
 import { MarksTab } from "./marks/MarksTab";
 import { OptionalSubjects } from "./OptionalSubjects";
@@ -40,7 +38,6 @@ const ICONS: Record<string, LucideIcon> = {
   exams: ListChecks,
   marks: PencilLine,
   results: FileChartColumn,
-  final: Award,
   seating: Armchair,
   admit: IdCard,
   card: FileBadge,
@@ -50,7 +47,7 @@ const ICONS: Record<string, LucideIcon> = {
 };
 // the parts used for every exam are tabs (exam work, then exam day); the ones set once a year
 // sit in the Setup menu at the strip's end
-const DAILY = ["exams", "marks", "results", "final", "seating", "admit"];
+const DAILY = ["exams", "marks", "results", "seating", "admit"];
 const EXAM_DAY = "seating";
 const SETUP = ["card", "optional", "scales", "settings"];
 
@@ -70,7 +67,6 @@ export function ExamsPage() {
     can("exam:view") && "exams",
     can("exam:view") && "marks",
     can("exam:view_result") && "results",
-    can("exam:view_result") && "final",
     can("exam:view_result") && "card",
     can("exam:view") && "optional",
     can("exam:view") && "seating",
@@ -179,9 +175,6 @@ export function ExamsPage() {
         </TabsContent>
         <TabsContent value="results">
           <ResultsTab />
-        </TabsContent>
-        <TabsContent value="final">
-          <FinalResultsTab />
         </TabsContent>
         <TabsContent value="card">
           <CardSettingsTab canManage={can("grading:manage")} />
